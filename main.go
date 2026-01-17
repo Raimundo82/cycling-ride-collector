@@ -2,16 +2,32 @@ package main
 
 import (
 	"fmt"
-	"time"
+	"os"
+
+	"github.com/raimundo82/go-strava-weekly/internal/config"
+	"github.com/raimundo82/go-strava-weekly/internal/infrastructure/sheets"
+	"github.com/raimundo82/go-strava-weekly/internal/infrastructure/strava"
+	"github.com/raimundo82/go-strava-weekly/internal/interfaces/cli"
+	"github.com/raimundo82/go-strava-weekly/internal/usecase"
 )
 
 func main() {
-	fmt.Println("== Strava → Google Sheets Sync ==")
-	now := time.Now()
-	weekAgo := now.AddDate(0, 0, -7)
-	fmt.Printf("Today:      %s\n", now.Format(time.RFC3339))
-	fmt.Printf("Week ago:   %s\n", weekAgo.Format(time.RFC3339))
+	// Load configuration
+	cfg := config.Load()
 
-	fmt.Println("Step 1: here is where we will call Strava API.")
-	fmt.Println("Step 2: here is where we will send data to Google Sheets.")
+	// Initialize infrastructure layer (adapters)
+	stravaClient := strava.NewClient(cfg.StravaAPIKey)
+	sheetsClient := sheets.NewClient(cfg.SheetsSpreadsheetID)
+
+	// Initialize use case layer (business logic)
+	syncUseCase := usecase.NewSyncActivitiesUseCase(stravaClient, sheetsClient)
+
+	// Initialize interface layer (CLI)
+	app := cli.NewApp(syncUseCase)
+
+	// Run the application
+	if err := app.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
 }
