@@ -17,7 +17,7 @@
 				"go.toolsManagement.autoUpdate": true
 			},
 			"extensions": [
-				"golang.go"
+				"golang.go",
 			]
 		}
 	},
