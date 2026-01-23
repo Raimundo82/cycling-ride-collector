@@ -44,11 +44,13 @@ func MergeWorkouts(workouts []*domain.Workout, minWorkoutDuration int) *domain.W
 	merged.AvgPower = weightedAvg(float64(sumAvgPower), merged.Duration)
 	merged.AvgHeartRate = weightedAvg(float64(sumAvgHeartRate), merged.Duration)
 	merged.AvgCadence = weightedAvg(float64(sumAvgCadence), merged.Duration)
-	merged.WorkoutType = longDurationWorkouts[0].WorkoutType
 
 	return merged
 }
 
 func weightedAvg(sum float64, totalDuration int) int {
+	if totalDuration == 0 {
+		return 0
+	}
 	return int(math.Round(sum / float64(totalDuration)))
 }

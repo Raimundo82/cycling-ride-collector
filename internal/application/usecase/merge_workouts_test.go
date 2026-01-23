@@ -22,7 +22,7 @@ func TestMergeWorkouts_EmptyWorkouts(t *testing.T) {
 }
 
 func TestMergeWorkouts_NoDuration(t *testing.T) {
-	Convey("Given a slice with a single workout witn no duration", t, func() {
+	Convey("Given a slice with a single workout with no duration", t, func() {
 		workout := domain.NewWorkout(
 			domain.WorkoutParams{
 				Duration: 0,
@@ -32,7 +32,7 @@ func TestMergeWorkouts_NoDuration(t *testing.T) {
 		Convey("When MergeWorkouts is called", func() {
 			merged := MergeWorkouts(workouts, 30)
 
-			Convey("Then the result is the same workout", func() {
+			Convey("Then the result should be nil", func() {
 				So(merged, ShouldBeNil)
 			})
 		})
@@ -50,7 +50,7 @@ func TestMergeWorkouts_SingleShortDuration(t *testing.T) {
 		Convey("When MergeWorkouts is called", func() {
 			merged := MergeWorkouts(workouts, 30)
 
-			Convey("Then the result is the same workout", func() {
+			Convey("Then the result should be nil", func() {
 				So(merged, ShouldBeNil)
 			})
 		})
@@ -90,7 +90,7 @@ func TestMergeWorkouts_MixedShortAndLong(t *testing.T) {
 		Convey("When MergeWorkouts is called", func() {
 			merged := MergeWorkouts(workouts, 30)
 
-			Convey("Then the result is an empty workout", func() {
+			Convey("Then the result should be the long workout", func() {
 				So(merged, ShouldEqual, longWorkout)
 			})
 		})

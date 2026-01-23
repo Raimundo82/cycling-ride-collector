@@ -6,13 +6,20 @@ import (
 )
 
 type Config struct {
-	MininmalWorkoutDuration int
+	MinimalWorkoutDuration int
 }
 
 func Load() *Config {
-	val, _ := strconv.Atoi(getEnv("MINIMAL_WORKOUT_DURATION", "30"))
+	const defaultDuration = 30
+
+	valStr := getEnv("MINIMAL_WORKOUT_DURATION", "30")
+	val, err := strconv.Atoi(valStr)
+	if err != nil || val <= 0 {
+		val = defaultDuration
+	}
+
 	return &Config{
-		MininmalWorkoutDuration: val,
+		MinimalWorkoutDuration: val,
 	}
 }
 

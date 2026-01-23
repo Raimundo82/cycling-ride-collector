@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/raimundo82/go-strava-weekly/internal/domain"
@@ -15,6 +16,7 @@ type MockWorkoutRepository struct {
 type MockWorkoutProvider struct {
 	Workouts         []*domain.Workout
 	GetWorkoutCalled int
+	Err              error
 }
 
 func (m *MockWorkoutRepository) Save(workout *domain.Workout) error {
@@ -25,11 +27,12 @@ func (m *MockWorkoutRepository) Save(workout *domain.Workout) error {
 
 func (m *MockWorkoutProvider) GetWorkoutsByDate(unixDate int64) ([]*domain.Workout, error) {
 	m.GetWorkoutCalled++
+	if m.Err != nil {
+		return nil, m.Err
+	}
 	return m.Workouts, nil
 }
 
-// with workout
-// error from provider
 var (
 	testWorkoutShort     = &domain.Workout{Duration: 15, Distance: 5.0}
 	testWorkoutLong      = &domain.Workout{Duration: 120, Distance: 20.0}
@@ -192,8 +195,41 @@ func TestSaveWorkout_WithShortWorkout(t *testing.T) {
 			unixDate := int64(1622505600)
 			err := useCase.Execute(unixDate, 30)
 
-			Convey("Then no error occurs and a workout is saved", func() {
+			Convey("Then no error occurs and no workout is saved", func() {
 				So(err, ShouldBeNil)
+				So(mockProvider.GetWorkoutCalled, ShouldEqual, 1)
+				So(mockRepo.SaveCalled, ShouldEqual, 0)
+				So(len(mockRepo.Workouts), ShouldEqual, 0)
+			})
+		})
+	})
+}
+
+func TestSaveWorkout_WithProviderError(t *testing.T) {
+	Convey("Given a SaveWorkout use case with a provider that returns an error", t, func() {
+		mockRepo := &MockWorkoutRepository{
+			Workouts:   []*domain.Workout{},
+			SaveCalled: 0,
+		}
+
+		providerErr := fmt.Errorf("provider connection failed")
+		mockProvider := &MockWorkoutProvider{
+			Workouts:         nil,
+			GetWorkoutCalled: 0,
+			Err:              providerErr,
+		}
+
+		useCase := &SaveWorkout{
+			WorkoutRepo:     mockRepo,
+			WorkoutProvider: mockProvider,
+		}
+
+		Convey("When Execute is called", func() {
+			unixDate := int64(1622505600)
+			err := useCase.Execute(unixDate, 30)
+
+			Convey("Then the error is propagated and no workout is saved", func() {
+				So(err, ShouldEqual, providerErr)
 				So(mockProvider.GetWorkoutCalled, ShouldEqual, 1)
 				So(mockRepo.SaveCalled, ShouldEqual, 0)
 				So(len(mockRepo.Workouts), ShouldEqual, 0)
