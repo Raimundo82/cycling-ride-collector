@@ -1,30 +1,30 @@
 package domain
 
-import "time"
-
 type WorkoutType int
 
 const (
-	Estada WorkoutType = iota
+	Estrada WorkoutType = iota
 	Rolo
 )
 
 type Workout struct {
-	workoutType     WorkoutType
-	startTime       time.Time
-	distance        float64
-	duration        int
-	elevation       int
-	avgPower        int
-	normalizedPower int
-	avgHeartRate    int
-	maxHeartRate    int
-	avgCadence      int
+	Id              int64
+	WorkoutType     WorkoutType
+	StartTime       string
+	Distance        float64
+	Duration        int
+	Elevation       int
+	AvgPower        int
+	NormalizedPower int
+	AvgHeartRate    int
+	MaxHeartRate    int
+	AvgCadence      int
 }
 
 type WorkoutParams struct {
+	Id           int64
 	WorkoutType  WorkoutType
-	StartTime    time.Time
+	StartTime    string
 	Distance     float64
 	Duration     int
 	Elevation    int
@@ -36,18 +36,15 @@ type WorkoutParams struct {
 
 func NewWorkout(params WorkoutParams) *Workout {
 	return &Workout{
-		workoutType:  params.WorkoutType,
-		startTime:    params.StartTime,
-		distance:     params.Distance,
-		duration:     params.Duration,
-		elevation:    params.Elevation,
-		avgPower:     params.AvgPower,
-		avgHeartRate: params.AvgHeartRate,
-		maxHeartRate: params.MaxHeartRate,
-		avgCadence:   params.AvgCadence,
+		Id:           params.Id,
+		WorkoutType:  params.WorkoutType,
+		StartTime:    params.StartTime,
+		Distance:     params.Distance,
+		Duration:     params.Duration,
+		Elevation:    params.Elevation,
+		AvgPower:     params.AvgPower,
+		AvgHeartRate: params.AvgHeartRate,
+		MaxHeartRate: params.MaxHeartRate,
+		AvgCadence:   params.AvgCadence,
 	}
-}
-
-func (w *Workout) SetNormalizedPower(np int) {
-	w.normalizedPower = np
 }

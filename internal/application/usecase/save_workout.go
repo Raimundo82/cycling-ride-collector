@@ -9,15 +9,17 @@ type SaveWorkout struct {
 	WorkoutProvider contracts.WorkoutProvider
 }
 
-func (s *SaveWorkout) Execute(unixDate int64) error {
-	workout, err := s.WorkoutProvider.FetchWorkout(unixDate)
+func (useCase *SaveWorkout) Execute(unixDate int64, minWorkoutDuration int) error {
+	workouts, err := useCase.WorkoutProvider.GetWorkoutsByDate(unixDate)
 	if err != nil {
 		return err
 	}
 
-	if err := s.WorkoutRepo.Save(workout); err != nil {
-		return err
+	workout := MergeWorkouts(workouts, minWorkoutDuration)
+
+	if workout == nil {
+		return nil
 	}
 
-	return nil
+	return useCase.WorkoutRepo.Save(workout)
 }

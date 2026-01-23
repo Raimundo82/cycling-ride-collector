@@ -5,5 +5,5 @@ import (
 )
 
 type WorkoutProvider interface {
-	FetchWorkout(unixDate int64) (*domain.Workout, error)
+	GetWorkoutsByDate(unixDate int64) ([]*domain.Workout, error)
 }
