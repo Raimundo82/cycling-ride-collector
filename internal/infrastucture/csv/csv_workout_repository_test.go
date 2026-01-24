@@ -114,3 +114,79 @@ func TestCSVWorkoutRepository_Save_CreatesFileIfNotExists(t *testing.T) {
 		})
 	})
 }
+
+func TestCSVWorkoutRepository_Save_InvalidFilePath(t *testing.T) {
+	Convey("Given an invalid file path", t, func() {
+		repo := NewCSVWorkoutRepository("/invalid/path/that/does/not/exist/workouts.csv")
+		workout := &domain.Workout{
+			WorkoutType:            domain.Estrada,
+			StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
+			DurationInMin:          60,
+			DistanceInKm:           25.5,
+			ElevationInMeters:      500,
+			AvgPowerInWatts:        200,
+			NormalizedPowerInWatts: 220,
+			AvgHeartRateInBpm:      150,
+			MaxHeartRateInBpm:      180,
+			AvgCadenceInRpm:        90,
+		}
+
+		Convey("When Save is called", func() {
+			err := repo.Save(workout)
+
+			Convey("Then an error should be returned", func() {
+				So(err, ShouldNotBeNil)
+			})
+		})
+	})
+}
+
+func TestCSVWorkoutRepository_Save_ReadOnlyFile(t *testing.T) {
+	Convey("Given a read-only file", t, func() {
+		tmpfile, err := os.CreateTemp("", "workouts_readonly.csv")
+		So(err, ShouldBeNil)
+		defer func() { _ = os.Remove(tmpfile.Name()) }()
+
+		err = tmpfile.Close()
+		So(err, ShouldBeNil)
+
+		err = os.Chmod(tmpfile.Name(), 0o444)
+		So(err, ShouldBeNil)
+
+		repo := NewCSVWorkoutRepository(tmpfile.Name())
+		workout := &domain.Workout{
+			WorkoutType:            domain.Estrada,
+			StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
+			DurationInMin:          60,
+			DistanceInKm:           25.5,
+			ElevationInMeters:      500,
+			AvgPowerInWatts:        200,
+			NormalizedPowerInWatts: 220,
+			AvgHeartRateInBpm:      150,
+			MaxHeartRateInBpm:      180,
+			AvgCadenceInRpm:        90,
+		}
+
+		Convey("When Save is called", func() {
+			err := repo.Save(workout)
+
+			Convey("Then an error should be returned", func() {
+				So(err, ShouldNotBeNil)
+			})
+		})
+	})
+}
+
+func TestCSVWorkoutRepository_SaveToWriter_NilWorkout(t *testing.T) {
+	Convey("Given a nil workout", t, func() {
+		repo := NewCSVWorkoutRepository("test_workouts.csv")
+
+		Convey("When SaveToWriter is called with nil workout", func() {
+			var buf bytes.Buffer
+
+			Convey("Then it should panic", func() {
+				So(func() { _ = repo.SaveToWriter(nil, &buf) }, ShouldPanic)
+			})
+		})
+	})
+}
