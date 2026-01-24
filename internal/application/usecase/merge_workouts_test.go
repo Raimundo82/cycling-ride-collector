@@ -102,29 +102,31 @@ func TestMergeWorkouts_AllLongDurations(t *testing.T) {
 	Convey("Given a slice with all long duration workouts", t, func() {
 		workout1 := domain.NewWorkout(
 			domain.WorkoutParams{
-				ID:                1,
-				WorkoutType:       domain.Estrada,
-				StartTime:         time.Date(2023, time.January, 1, 9, 0, 0, 0, time.UTC),
-				DurationInMin:     50,
-				DistanceInKm:      20.0,
-				ElevationInMeters: 100,
-				AvgPowerInWatts:   250,
-				AvgHeartRateInBpm: 150,
-				AvgCadenceInRpm:   80,
-				MaxHeartRateInBpm: 150,
+				ID:                     1,
+				WorkoutType:            domain.Estrada,
+				StartTime:              time.Date(2023, time.January, 1, 9, 0, 0, 0, time.UTC),
+				DurationInMin:          50,
+				DistanceInKm:           20.0,
+				ElevationInMeters:      100,
+				AvgPowerInWatts:        250,
+				AvgHeartRateInBpm:      150,
+				AvgCadenceInRpm:        80,
+				MaxHeartRateInBpm:      150,
+				NormalizedPowerInWatts: 280,
 			})
 		workout2 := domain.NewWorkout(
 			domain.WorkoutParams{
-				ID:                2,
-				WorkoutType:       domain.Estrada,
-				StartTime:         time.Date(2023, time.January, 1, 15, 0, 0, 0, time.UTC),
-				DurationInMin:     100,
-				DistanceInKm:      30.0,
-				ElevationInMeters: 200,
-				AvgPowerInWatts:   200,
-				AvgHeartRateInBpm: 100,
-				AvgCadenceInRpm:   90,
-				MaxHeartRateInBpm: 180,
+				ID:                     2,
+				WorkoutType:            domain.Estrada,
+				StartTime:              time.Date(2023, time.January, 1, 15, 0, 0, 0, time.UTC),
+				DurationInMin:          100,
+				DistanceInKm:           30.0,
+				ElevationInMeters:      200,
+				AvgPowerInWatts:        200,
+				AvgHeartRateInBpm:      100,
+				AvgCadenceInRpm:        90,
+				NormalizedPowerInWatts: 225,
+				MaxHeartRateInBpm:      180,
 			})
 		workouts := []*domain.Workout{workout1, workout2}
 
@@ -142,6 +144,7 @@ func TestMergeWorkouts_AllLongDurations(t *testing.T) {
 				So(merged.AvgHeartRateInBpm, ShouldEqual, 117)
 				So(merged.AvgCadenceInRpm, ShouldEqual, 87)
 				So(merged.MaxHeartRateInBpm, ShouldEqual, 180)
+				So(merged.NormalizedPowerInWatts, ShouldEqual, 243)
 			})
 		})
 	})

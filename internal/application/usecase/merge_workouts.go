@@ -26,6 +26,7 @@ func MergeWorkouts(workouts []*domain.Workout, minWorkoutDuration int) *domain.W
 	sumAvgPower := 0
 	sumAvgHeartRate := 0
 	sumAvgCadence := 0
+	sumNormalizedPower := 0
 	for _, w := range longDurationWorkouts {
 		merged.DistanceInKm += w.DistanceInKm
 		merged.DurationInMin += w.DurationInMin
@@ -33,6 +34,7 @@ func MergeWorkouts(workouts []*domain.Workout, minWorkoutDuration int) *domain.W
 		sumAvgPower += w.AvgPowerInWatts * w.DurationInMin
 		sumAvgHeartRate += w.AvgHeartRateInBpm * w.DurationInMin
 		sumAvgCadence += w.AvgCadenceInRpm * w.DurationInMin
+		sumNormalizedPower += w.NormalizedPowerInWatts * w.DurationInMin
 		if merged.MaxHeartRateInBpm < w.MaxHeartRateInBpm {
 			merged.MaxHeartRateInBpm = w.MaxHeartRateInBpm
 		}
@@ -44,6 +46,7 @@ func MergeWorkouts(workouts []*domain.Workout, minWorkoutDuration int) *domain.W
 	merged.AvgPowerInWatts = weightedAvg(float64(sumAvgPower), merged.DurationInMin)
 	merged.AvgHeartRateInBpm = weightedAvg(float64(sumAvgHeartRate), merged.DurationInMin)
 	merged.AvgCadenceInRpm = weightedAvg(float64(sumAvgCadence), merged.DurationInMin)
+	merged.NormalizedPowerInWatts = weightedAvg(float64(sumNormalizedPower), merged.DurationInMin)
 
 	return merged
 }
