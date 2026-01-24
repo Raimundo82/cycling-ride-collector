@@ -14,7 +14,7 @@ func TestMergeWorkouts_EmptyWorkouts(t *testing.T) {
 		Convey("When MergeWorkouts is called", func() {
 			merged := MergeWorkouts(workouts, 30)
 
-			Convey("Then the result is an empty workout", func() {
+			Convey("Then the result is nil", func() {
 				So(merged, ShouldBeNil)
 			})
 		})
@@ -101,7 +101,7 @@ func TestMergeWorkouts_AllLongDurations(t *testing.T) {
 	Convey("Given a slice with all long duration workouts", t, func() {
 		workout1 := domain.NewWorkout(
 			domain.WorkoutParams{
-				Id:           1,
+				ID:           1,
 				WorkoutType:  domain.Estrada,
 				StartTime:    "09:00",
 				Duration:     50,
@@ -114,7 +114,7 @@ func TestMergeWorkouts_AllLongDurations(t *testing.T) {
 			})
 		workout2 := domain.NewWorkout(
 			domain.WorkoutParams{
-				Id:           2,
+				ID:           2,
 				WorkoutType:  domain.Estrada,
 				StartTime:    "15:00",
 				Duration:     100,
@@ -131,7 +131,7 @@ func TestMergeWorkouts_AllLongDurations(t *testing.T) {
 			merged := MergeWorkouts(workouts, 30)
 
 			Convey("Then the result is a merged workout with summed duration and distance", func() {
-				So(merged.Id, ShouldEqual, 1)
+				So(merged.ID, ShouldEqual, 1)
 				So(merged.StartTime, ShouldEqual, "09:00")
 				So(merged.WorkoutType, ShouldEqual, domain.Estrada)
 				So(merged.Duration, ShouldEqual, 150)

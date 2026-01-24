@@ -14,9 +14,9 @@ type MockWorkoutRepository struct {
 }
 
 type MockWorkoutProvider struct {
-	Workouts         []*domain.Workout
-	GetWorkoutCalled int
-	Err              error
+	Workouts               []*domain.Workout
+	GetWorkoutByDateCalled int
+	Err                    error
 }
 
 func (m *MockWorkoutRepository) Save(workout *domain.Workout) error {
@@ -26,7 +26,7 @@ func (m *MockWorkoutRepository) Save(workout *domain.Workout) error {
 }
 
 func (m *MockWorkoutProvider) GetWorkoutsByDate(unixDate int64) ([]*domain.Workout, error) {
-	m.GetWorkoutCalled++
+	m.GetWorkoutByDateCalled++
 	if m.Err != nil {
 		return nil, m.Err
 	}
@@ -42,10 +42,10 @@ var (
 
 func TestSaveWorkout(t *testing.T) {
 	testCases := []struct {
-		name      string
-		workouts  []*domain.Workout
-		wantCalls int
-		wantSaved int
+		name          string
+		workouts      []*domain.Workout
+		wantSaveCalls int
+		wantSaved     int
 	}{
 		{"NoWorkouts", emptyWorkouts, 0, 0},
 		{"SingleShort", []*domain.Workout{testWorkoutShort}, 0, 0},
@@ -63,8 +63,8 @@ func TestSaveWorkout(t *testing.T) {
 			}
 
 			mockProvider := &MockWorkoutProvider{
-				Workouts:         tc.workouts,
-				GetWorkoutCalled: 0,
+				Workouts:               tc.workouts,
+				GetWorkoutByDateCalled: 0,
 			}
 
 			useCase := &SaveWorkout{
@@ -76,9 +76,9 @@ func TestSaveWorkout(t *testing.T) {
 				unixDate := int64(1622505600)
 				err := useCase.Execute(unixDate, 30)
 
-				Convey("Then no error occurs and no workout is saved", func() {
+				Convey("Then asserting saves match expectations", func() {
 					So(err, ShouldBeNil)
-					So(mockRepo.SaveCalled, ShouldEqual, tc.wantCalls)
+					So(mockRepo.SaveCalled, ShouldEqual, tc.wantSaveCalls)
 					So(len(mockRepo.Workouts), ShouldEqual, tc.wantSaved)
 				})
 			})
@@ -94,8 +94,8 @@ func TestSaveWorkout_WithNoWorkouts(t *testing.T) {
 		}
 
 		mockProvider := &MockWorkoutProvider{
-			Workouts:         []*domain.Workout{},
-			GetWorkoutCalled: 0,
+			Workouts:               []*domain.Workout{},
+			GetWorkoutByDateCalled: 0,
 		}
 
 		useCase := &SaveWorkout{
@@ -127,7 +127,7 @@ func TestSaveWorkout_WithLongWorkout(t *testing.T) {
 			Workouts: []*domain.Workout{
 				domain.NewWorkout(domain.WorkoutParams{
 					Duration:     45,
-					Id:           1,
+					ID:           1,
 					WorkoutType:  domain.Estrada,
 					StartTime:    "10:00",
 					Distance:     100,
@@ -138,7 +138,7 @@ func TestSaveWorkout_WithLongWorkout(t *testing.T) {
 					AvgPower:     225,
 				}),
 			},
-			GetWorkoutCalled: 0,
+			GetWorkoutByDateCalled: 0,
 		}
 
 		useCase := &SaveWorkout{
@@ -152,7 +152,7 @@ func TestSaveWorkout_WithLongWorkout(t *testing.T) {
 
 			Convey("Then no error occurs and a workout is saved", func() {
 				So(err, ShouldBeNil)
-				So(mockProvider.GetWorkoutCalled, ShouldEqual, 1)
+				So(mockProvider.GetWorkoutByDateCalled, ShouldEqual, 1)
 				So(mockRepo.SaveCalled, ShouldEqual, 1)
 				So(len(mockRepo.Workouts), ShouldEqual, 1)
 				So(mockRepo.Workouts[0], ShouldEqual, mockProvider.Workouts[0])
@@ -172,7 +172,7 @@ func TestSaveWorkout_WithShortWorkout(t *testing.T) {
 			Workouts: []*domain.Workout{
 				domain.NewWorkout(domain.WorkoutParams{
 					Duration:     15,
-					Id:           1,
+					ID:           1,
 					WorkoutType:  domain.Estrada,
 					StartTime:    "10:00",
 					Distance:     100,
@@ -183,7 +183,7 @@ func TestSaveWorkout_WithShortWorkout(t *testing.T) {
 					AvgPower:     225,
 				}),
 			},
-			GetWorkoutCalled: 0,
+			GetWorkoutByDateCalled: 0,
 		}
 
 		useCase := &SaveWorkout{
@@ -197,7 +197,7 @@ func TestSaveWorkout_WithShortWorkout(t *testing.T) {
 
 			Convey("Then no error occurs and no workout is saved", func() {
 				So(err, ShouldBeNil)
-				So(mockProvider.GetWorkoutCalled, ShouldEqual, 1)
+				So(mockProvider.GetWorkoutByDateCalled, ShouldEqual, 1)
 				So(mockRepo.SaveCalled, ShouldEqual, 0)
 				So(len(mockRepo.Workouts), ShouldEqual, 0)
 			})
@@ -214,9 +214,9 @@ func TestSaveWorkout_WithProviderError(t *testing.T) {
 
 		providerErr := fmt.Errorf("provider connection failed")
 		mockProvider := &MockWorkoutProvider{
-			Workouts:         nil,
-			GetWorkoutCalled: 0,
-			Err:              providerErr,
+			Workouts:               nil,
+			GetWorkoutByDateCalled: 0,
+			Err:                    providerErr,
 		}
 
 		useCase := &SaveWorkout{
@@ -230,7 +230,7 @@ func TestSaveWorkout_WithProviderError(t *testing.T) {
 
 			Convey("Then the error is propagated and no workout is saved", func() {
 				So(err, ShouldEqual, providerErr)
-				So(mockProvider.GetWorkoutCalled, ShouldEqual, 1)
+				So(mockProvider.GetWorkoutByDateCalled, ShouldEqual, 1)
 				So(mockRepo.SaveCalled, ShouldEqual, 0)
 				So(len(mockRepo.Workouts), ShouldEqual, 0)
 			})

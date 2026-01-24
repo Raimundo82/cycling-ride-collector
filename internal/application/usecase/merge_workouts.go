@@ -38,9 +38,9 @@ func MergeWorkouts(workouts []*domain.Workout, minWorkoutDuration int) *domain.W
 		}
 
 	}
-	merged.Id = longDurationWorkouts[0].Id
+	merged.ID = longDurationWorkouts[0].ID
 	merged.StartTime = longDurationWorkouts[0].StartTime
-	merged.WorkoutType = domain.Estrada
+	merged.WorkoutType = longDurationWorkouts[0].WorkoutType
 	merged.AvgPower = weightedAvg(float64(sumAvgPower), merged.Duration)
 	merged.AvgHeartRate = weightedAvg(float64(sumAvgHeartRate), merged.Duration)
 	merged.AvgCadence = weightedAvg(float64(sumAvgCadence), merged.Duration)

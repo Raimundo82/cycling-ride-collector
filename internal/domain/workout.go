@@ -8,7 +8,7 @@ const (
 )
 
 type Workout struct {
-	Id              int64
+	ID              int64
 	WorkoutType     WorkoutType
 	StartTime       string
 	Distance        float64
@@ -22,7 +22,7 @@ type Workout struct {
 }
 
 type WorkoutParams struct {
-	Id           int64
+	ID           int64
 	WorkoutType  WorkoutType
 	StartTime    string
 	Distance     float64
@@ -36,7 +36,7 @@ type WorkoutParams struct {
 
 func NewWorkout(params WorkoutParams) *Workout {
 	return &Workout{
-		Id:           params.Id,
+		ID:           params.ID,
 		WorkoutType:  params.WorkoutType,
 		StartTime:    params.StartTime,
 		Distance:     params.Distance,
