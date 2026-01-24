@@ -53,3 +53,16 @@ func NewWorkout(params WorkoutParams) *Workout {
 		AvgCadenceInRpm:        params.AvgCadenceInRpm,
 	}
 }
+
+func (wt WorkoutType) String() string {
+	switch wt {
+	case Estrada:
+		return "Estrada"
+	case Rolo:
+		return "Rolo"
+	case Mixed:
+		return "Mixed"
+	default:
+		return ""
+	}
+}
