@@ -17,7 +17,7 @@ func NewCSVWorkoutRepository(filePath string) *CSVWorkoutRepository {
 	return &CSVWorkoutRepository{filePath: filePath}
 }
 
-func (r *CSVWorkoutRepository) Save(workout *domain.Workout) error {
+func (r *CSVWorkoutRepository) Save(workout *domain.Workout) (err error) {
 	file, err := os.OpenFile(r.filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
 		return err
@@ -31,9 +31,14 @@ func (r *CSVWorkoutRepository) Save(workout *domain.Workout) error {
 	return r.SaveToWriter(workout, file)
 }
 
-func (r *CSVWorkoutRepository) SaveToWriter(workout *domain.Workout, w io.Writer) error {
+func (r *CSVWorkoutRepository) SaveToWriter(workout *domain.Workout, w io.Writer) (err error) {
 	writer := csv.NewWriter(w)
-	defer writer.Flush()
+	defer func() {
+		writer.Flush()
+		if flushErr := writer.Error(); flushErr != nil && err == nil {
+			err = flushErr
+		}
+	}()
 
 	record := r.workoutToRecord(workout)
 	return writer.Write(record)

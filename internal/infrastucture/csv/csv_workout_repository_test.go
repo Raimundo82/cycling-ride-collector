@@ -12,7 +12,7 @@ import (
 )
 
 func TestCSVWorkoutRepository_SaveToWriter(t *testing.T) {
-	Convey("Given an Workout", t, func() {
+	Convey("Given a Workout", t, func() {
 		workout := &domain.Workout{
 			WorkoutType:            domain.Estrada,
 			StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
