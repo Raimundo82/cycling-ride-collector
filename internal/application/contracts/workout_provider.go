@@ -1,9 +1,11 @@
 package contracts
 
 import (
+	"time"
+
 	"github.com/raimundo82/go-strava-weekly/internal/domain"
 )
 
 type WorkoutProvider interface {
-	GetWorkoutsByDate(unixDate int64) ([]*domain.Workout, error)
+	GetWorkoutsByDate(date time.Time) ([]*domain.Workout, error)
 }

@@ -3,6 +3,7 @@ package usecase
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/raimundo82/go-strava-weekly/internal/domain"
 	. "github.com/smartystreets/goconvey/convey"
@@ -25,7 +26,7 @@ func (m *MockWorkoutRepository) Save(workout *domain.Workout) error {
 	return nil
 }
 
-func (m *MockWorkoutProvider) GetWorkoutsByDate(unixDate int64) ([]*domain.Workout, error) {
+func (m *MockWorkoutProvider) GetWorkoutsByDate(date time.Time) ([]*domain.Workout, error) {
 	m.GetWorkoutByDateCalled++
 	if m.Err != nil {
 		return nil, m.Err
@@ -34,9 +35,9 @@ func (m *MockWorkoutProvider) GetWorkoutsByDate(unixDate int64) ([]*domain.Worko
 }
 
 var (
-	testWorkoutShort     = &domain.Workout{Duration: 15, Distance: 5.0}
-	testWorkoutLong      = &domain.Workout{Duration: 120, Distance: 20.0}
-	otherTestWorkoutLong = &domain.Workout{Duration: 60, Distance: 10.0}
+	testWorkoutShort     = &domain.Workout{DurationInMin: 15, DistanceInKm: 5.0}
+	testWorkoutLong      = &domain.Workout{DurationInMin: 120, DistanceInKm: 20.0}
+	otherTestWorkoutLong = &domain.Workout{DurationInMin: 60, DistanceInKm: 10.0}
 	emptyWorkouts        = []*domain.Workout{}
 )
 
@@ -73,8 +74,8 @@ func TestSaveWorkout(t *testing.T) {
 			}
 
 			Convey("When Execute is called", func() {
-				unixDate := int64(1622505600)
-				err := useCase.Execute(unixDate, 30)
+				date := time.Date(2023, time.June, 1, 0, 0, 0, 0, time.UTC)
+				err := useCase.Execute(date, 30)
 
 				Convey("Then asserting saves match expectations", func() {
 					So(err, ShouldBeNil)
@@ -104,8 +105,8 @@ func TestSaveWorkout_WithNoWorkouts(t *testing.T) {
 		}
 
 		Convey("When Execute is called", func() {
-			unixDate := int64(1622505600)
-			err := useCase.Execute(unixDate, 30)
+			date := time.Date(2023, time.June, 1, 0, 0, 0, 0, time.UTC)
+			err := useCase.Execute(date, 30)
 
 			Convey("Then no error occurs and no workout is saved", func() {
 				So(err, ShouldBeNil)
@@ -118,6 +119,7 @@ func TestSaveWorkout_WithNoWorkouts(t *testing.T) {
 
 func TestSaveWorkout_WithLongWorkout(t *testing.T) {
 	Convey("Given a SaveWorkout use case with a long workout from provider", t, func() {
+		date := time.Date(2023, time.June, 1, 10, 0, 0, 0, time.UTC)
 		mockRepo := &MockWorkoutRepository{
 			Workouts:   []*domain.Workout{},
 			SaveCalled: 0,
@@ -126,16 +128,16 @@ func TestSaveWorkout_WithLongWorkout(t *testing.T) {
 		mockProvider := &MockWorkoutProvider{
 			Workouts: []*domain.Workout{
 				domain.NewWorkout(domain.WorkoutParams{
-					Duration:     45,
-					ID:           1,
-					WorkoutType:  domain.Estrada,
-					StartTime:    "10:00",
-					Distance:     100,
-					Elevation:    500,
-					AvgCadence:   90,
-					MaxHeartRate: 180,
-					AvgHeartRate: 140,
-					AvgPower:     225,
+					DurationInMin:     45,
+					ID:                1,
+					WorkoutType:       domain.Estrada,
+					StartTime:         date,
+					DistanceInKm:      100,
+					ElevationInMeters: 500,
+					AvgCadenceInRpm:   90,
+					MaxHeartRateInBpm: 180,
+					AvgHeartRateInBpm: 140,
+					AvgPowerInWatts:   225,
 				}),
 			},
 			GetWorkoutByDateCalled: 0,
@@ -147,8 +149,7 @@ func TestSaveWorkout_WithLongWorkout(t *testing.T) {
 		}
 
 		Convey("When Execute is called", func() {
-			unixDate := int64(1622505600)
-			err := useCase.Execute(unixDate, 30)
+			err := useCase.Execute(date, 30)
 
 			Convey("Then no error occurs and a workout is saved", func() {
 				So(err, ShouldBeNil)
@@ -163,6 +164,7 @@ func TestSaveWorkout_WithLongWorkout(t *testing.T) {
 
 func TestSaveWorkout_WithShortWorkout(t *testing.T) {
 	Convey("Given a SaveWorkout use case with a short workout from provider", t, func() {
+		date := time.Date(2023, time.June, 1, 10, 0, 0, 0, time.UTC)
 		mockRepo := &MockWorkoutRepository{
 			Workouts:   []*domain.Workout{},
 			SaveCalled: 0,
@@ -171,16 +173,16 @@ func TestSaveWorkout_WithShortWorkout(t *testing.T) {
 		mockProvider := &MockWorkoutProvider{
 			Workouts: []*domain.Workout{
 				domain.NewWorkout(domain.WorkoutParams{
-					Duration:     15,
-					ID:           1,
-					WorkoutType:  domain.Estrada,
-					StartTime:    "10:00",
-					Distance:     100,
-					Elevation:    500,
-					AvgCadence:   90,
-					MaxHeartRate: 180,
-					AvgHeartRate: 140,
-					AvgPower:     225,
+					DurationInMin:     15,
+					ID:                1,
+					WorkoutType:       domain.Estrada,
+					StartTime:         date,
+					DistanceInKm:      100,
+					ElevationInMeters: 500,
+					AvgCadenceInRpm:   90,
+					MaxHeartRateInBpm: 180,
+					AvgHeartRateInBpm: 140,
+					AvgPowerInWatts:   225,
 				}),
 			},
 			GetWorkoutByDateCalled: 0,
@@ -192,8 +194,7 @@ func TestSaveWorkout_WithShortWorkout(t *testing.T) {
 		}
 
 		Convey("When Execute is called", func() {
-			unixDate := int64(1622505600)
-			err := useCase.Execute(unixDate, 30)
+			err := useCase.Execute(date, 30)
 
 			Convey("Then no error occurs and no workout is saved", func() {
 				So(err, ShouldBeNil)
@@ -207,6 +208,7 @@ func TestSaveWorkout_WithShortWorkout(t *testing.T) {
 
 func TestSaveWorkout_WithProviderError(t *testing.T) {
 	Convey("Given a SaveWorkout use case with a provider that returns an error", t, func() {
+		date := time.Date(2023, time.June, 1, 10, 0, 0, 0, time.UTC)
 		mockRepo := &MockWorkoutRepository{
 			Workouts:   []*domain.Workout{},
 			SaveCalled: 0,
@@ -225,8 +227,7 @@ func TestSaveWorkout_WithProviderError(t *testing.T) {
 		}
 
 		Convey("When Execute is called", func() {
-			unixDate := int64(1622505600)
-			err := useCase.Execute(unixDate, 30)
+			err := useCase.Execute(date, 30)
 
 			Convey("Then the error is propagated and no workout is saved", func() {
 				So(err, ShouldEqual, providerErr)

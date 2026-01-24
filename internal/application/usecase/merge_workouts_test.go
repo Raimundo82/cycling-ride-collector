@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"testing"
+	"time"
 
 	"github.com/raimundo82/go-strava-weekly/internal/domain"
 	. "github.com/smartystreets/goconvey/convey"
@@ -25,7 +26,7 @@ func TestMergeWorkouts_NoDuration(t *testing.T) {
 	Convey("Given a slice with a single workout with no duration", t, func() {
 		workout := domain.NewWorkout(
 			domain.WorkoutParams{
-				Duration: 0,
+				DurationInMin: 0,
 			})
 		workouts := []*domain.Workout{workout}
 
@@ -43,7 +44,7 @@ func TestMergeWorkouts_SingleShortDuration(t *testing.T) {
 	Convey("Given a slice with a single workout of short duration", t, func() {
 		workout := domain.NewWorkout(
 			domain.WorkoutParams{
-				Duration: 29,
+				DurationInMin: 29,
 			})
 		workouts := []*domain.Workout{workout}
 
@@ -61,7 +62,7 @@ func TestMergeWorkouts_SingleLongDuration(t *testing.T) {
 	Convey("Given a slice with a single workout of long duration", t, func() {
 		workout := domain.NewWorkout(
 			domain.WorkoutParams{
-				Duration: 61,
+				DurationInMin: 61,
 			})
 		workouts := []*domain.Workout{workout}
 
@@ -79,11 +80,11 @@ func TestMergeWorkouts_MixedShortAndLong(t *testing.T) {
 	Convey("Given a slice with mixed short and long duration workouts", t, func() {
 		shortWorkout := domain.NewWorkout(
 			domain.WorkoutParams{
-				Duration: 29,
+				DurationInMin: 29,
 			})
 		longWorkout := domain.NewWorkout(
 			domain.WorkoutParams{
-				Duration: 75,
+				DurationInMin: 75,
 			})
 		workouts := []*domain.Workout{shortWorkout, longWorkout}
 
@@ -101,29 +102,29 @@ func TestMergeWorkouts_AllLongDurations(t *testing.T) {
 	Convey("Given a slice with all long duration workouts", t, func() {
 		workout1 := domain.NewWorkout(
 			domain.WorkoutParams{
-				ID:           1,
-				WorkoutType:  domain.Estrada,
-				StartTime:    "09:00",
-				Duration:     50,
-				Distance:     20.0,
-				Elevation:    100,
-				AvgPower:     250,
-				AvgHeartRate: 150,
-				AvgCadence:   80,
-				MaxHeartRate: 150,
+				ID:                1,
+				WorkoutType:       domain.Estrada,
+				StartTime:         time.Date(2023, time.January, 1, 9, 0, 0, 0, time.UTC),
+				DurationInMin:     50,
+				DistanceInKm:      20.0,
+				ElevationInMeters: 100,
+				AvgPowerInWatts:   250,
+				AvgHeartRateInBpm: 150,
+				AvgCadenceInRpm:   80,
+				MaxHeartRateInBpm: 150,
 			})
 		workout2 := domain.NewWorkout(
 			domain.WorkoutParams{
-				ID:           2,
-				WorkoutType:  domain.Estrada,
-				StartTime:    "15:00",
-				Duration:     100,
-				Distance:     30.0,
-				Elevation:    200,
-				AvgPower:     200,
-				AvgHeartRate: 100,
-				AvgCadence:   90,
-				MaxHeartRate: 180,
+				ID:                2,
+				WorkoutType:       domain.Estrada,
+				StartTime:         time.Date(2023, time.January, 1, 15, 0, 0, 0, time.UTC),
+				DurationInMin:     100,
+				DistanceInKm:      30.0,
+				ElevationInMeters: 200,
+				AvgPowerInWatts:   200,
+				AvgHeartRateInBpm: 100,
+				AvgCadenceInRpm:   90,
+				MaxHeartRateInBpm: 180,
 			})
 		workouts := []*domain.Workout{workout1, workout2}
 
@@ -132,15 +133,15 @@ func TestMergeWorkouts_AllLongDurations(t *testing.T) {
 
 			Convey("Then the result is a merged workout with summed duration and distance", func() {
 				So(merged.ID, ShouldEqual, 1)
-				So(merged.StartTime, ShouldEqual, "09:00")
+				So(merged.StartTime, ShouldEqual, time.Date(2023, time.January, 1, 9, 0, 0, 0, time.UTC))
 				So(merged.WorkoutType, ShouldEqual, domain.Estrada)
-				So(merged.Duration, ShouldEqual, 150)
-				So(merged.Distance, ShouldEqual, 50.0)
-				So(merged.Elevation, ShouldEqual, 300)
-				So(merged.AvgPower, ShouldEqual, 217)
-				So(merged.AvgHeartRate, ShouldEqual, 117)
-				So(merged.AvgCadence, ShouldEqual, 87)
-				So(merged.MaxHeartRate, ShouldEqual, 180)
+				So(merged.DurationInMin, ShouldEqual, 150)
+				So(merged.DistanceInKm, ShouldEqual, 50.0)
+				So(merged.ElevationInMeters, ShouldEqual, 300)
+				So(merged.AvgPowerInWatts, ShouldEqual, 217)
+				So(merged.AvgHeartRateInBpm, ShouldEqual, 117)
+				So(merged.AvgCadenceInRpm, ShouldEqual, 87)
+				So(merged.MaxHeartRateInBpm, ShouldEqual, 180)
 			})
 		})
 	})

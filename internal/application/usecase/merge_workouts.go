@@ -9,7 +9,7 @@ import (
 func MergeWorkouts(workouts []*domain.Workout, minWorkoutDuration int) *domain.Workout {
 	longDurationWorkouts := []*domain.Workout{}
 	for _, workout := range workouts {
-		if workout.Duration >= minWorkoutDuration {
+		if workout.DurationInMin >= minWorkoutDuration {
 			longDurationWorkouts = append(longDurationWorkouts, workout)
 		}
 	}
@@ -27,23 +27,23 @@ func MergeWorkouts(workouts []*domain.Workout, minWorkoutDuration int) *domain.W
 	sumAvgHeartRate := 0
 	sumAvgCadence := 0
 	for _, w := range longDurationWorkouts {
-		merged.Distance += w.Distance
-		merged.Duration += w.Duration
-		merged.Elevation += w.Elevation
-		sumAvgPower += w.AvgPower * w.Duration
-		sumAvgHeartRate += w.AvgHeartRate * w.Duration
-		sumAvgCadence += w.AvgCadence * w.Duration
-		if merged.MaxHeartRate < w.MaxHeartRate {
-			merged.MaxHeartRate = w.MaxHeartRate
+		merged.DistanceInKm += w.DistanceInKm
+		merged.DurationInMin += w.DurationInMin
+		merged.ElevationInMeters += w.ElevationInMeters
+		sumAvgPower += w.AvgPowerInWatts * w.DurationInMin
+		sumAvgHeartRate += w.AvgHeartRateInBpm * w.DurationInMin
+		sumAvgCadence += w.AvgCadenceInRpm * w.DurationInMin
+		if merged.MaxHeartRateInBpm < w.MaxHeartRateInBpm {
+			merged.MaxHeartRateInBpm = w.MaxHeartRateInBpm
 		}
 
 	}
 	merged.ID = longDurationWorkouts[0].ID
 	merged.StartTime = longDurationWorkouts[0].StartTime
 	merged.WorkoutType = longDurationWorkouts[0].WorkoutType
-	merged.AvgPower = weightedAvg(float64(sumAvgPower), merged.Duration)
-	merged.AvgHeartRate = weightedAvg(float64(sumAvgHeartRate), merged.Duration)
-	merged.AvgCadence = weightedAvg(float64(sumAvgCadence), merged.Duration)
+	merged.AvgPowerInWatts = weightedAvg(float64(sumAvgPower), merged.DurationInMin)
+	merged.AvgHeartRateInBpm = weightedAvg(float64(sumAvgHeartRate), merged.DurationInMin)
+	merged.AvgCadenceInRpm = weightedAvg(float64(sumAvgCadence), merged.DurationInMin)
 
 	return merged
 }

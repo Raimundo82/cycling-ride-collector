@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"time"
+
 	"github.com/raimundo82/go-strava-weekly/internal/application/contracts"
 )
 
@@ -9,8 +11,8 @@ type SaveWorkout struct {
 	WorkoutProvider contracts.WorkoutProvider
 }
 
-func (useCase *SaveWorkout) Execute(unixDate int64, minWorkoutDuration int) error {
-	workouts, err := useCase.WorkoutProvider.GetWorkoutsByDate(unixDate)
+func (useCase *SaveWorkout) Execute(date time.Time, minWorkoutDuration int) error {
+	workouts, err := useCase.WorkoutProvider.GetWorkoutsByDate(date)
 	if err != nil {
 		return err
 	}
