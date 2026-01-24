@@ -14,7 +14,7 @@ Content-Type: application/json
 {
   "client_id": "{{clientId}}",
   "client_secret": "9cadabd71859f82e1569de118947cd92cec4ed4b",
-  "code": "486b348765926d0c9948a44a18bd334a4ed92388",
+  "code": "b3f14945dcbed4e4286006449f61eaa17a33678c",
   "grant_type": "authorization_code"
 }
 
@@ -23,7 +23,7 @@ Content-Type: application/json
 #@athleteId = {{getToken.response.body.athlete.id}}
 @athleteId = 5918738
 #@accessToken = {{getToken.response.body.access_token}}
-@accessToken = cd9f0f9a0fe367eaf7c7bb61952f4ee3212a471e
+@accessToken = 2cbfa31df47d3b6e6f15a70b979b0bdf2d9caf0b
 #@refreshToken = {{getToken.response.body.refresh_token}}
 @refreshToken = 8290859c0661549bead47aea535a54de65c75f49
 
@@ -38,8 +38,12 @@ Authorization: Bearer {{accessToken}}
 
 ###
 
+GET https://www.strava.com/api/v3/athlete/activities?before=1769212800&after=1769040000&per_page=10
+Authorization: Bearer {{accessToken}}
+###
+
 ### Step 4: Get Power Stream Data for Activity (to calculate NP yourself)
-@activityId = 16403237207
+@activityId = 16618396319
 
 GET https://www.strava.com/api/v3/activities/{{activityId}}/streams?keys=watts&key_by_type=true
 Authorization: Bearer {{accessToken}}
