@@ -42,7 +42,7 @@ package "Domain Layer" {
     
     Workout --> WorkoutType : has
     WorkoutParams --> WorkoutType : has
-    Workout ..> WorkoutParams : <<creates from>>
+    Workout ..> WorkoutParams : <<constructed from>>
 }
 
 package "Application Layer" {
