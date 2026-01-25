@@ -9,5 +9,6 @@ require (
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/samber/lo v1.52.0 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
+	golang.org/x/oauth2 v0.34.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
 )

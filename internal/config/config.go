@@ -7,6 +7,12 @@ import (
 
 type Config struct {
 	MinimalWorkoutDuration int
+	StravaBaseUrl          string
+	StravaApiBaseUrl       string
+	StravaClientID         string
+	StravaClientSecret     string
+	StravaAccessToken      string
+	StravaRefreshToken     string
 }
 
 func Load() *Config {
@@ -20,6 +26,12 @@ func Load() *Config {
 
 	return &Config{
 		MinimalWorkoutDuration: val,
+		StravaBaseUrl:          getEnv("STRAVA_BASE_URL", "https://www.strava.com"),
+		StravaApiBaseUrl:       getEnv("STRAVA_API_BASE_URL", "https://www.strava.com/api/v3"),
+		StravaClientID:         getEnv("STRAVA_CLIENT_ID", ""),
+		StravaClientSecret:     getEnv("STRAVA_CLIENT_SECRET", ""),
+		StravaAccessToken:      getEnv("STRAVA_ACCESS_TOKEN", ""),
+		StravaRefreshToken:     getEnv("STRAVA_REFRESH_TOKEN", ""),
 	}
 }
 

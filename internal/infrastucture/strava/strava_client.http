@@ -1,0 +1,51 @@
+@clientId = 131590
+
+### Step 1: Authorize - Open this URL in browser to get authorization code
+# @name authorize
+GET https://www.strava.com/oauth/authorize?client_id=131590&response_type=code&redirect_uri=http://localhost&scope=activity:read_all
+
+###
+
+### Step 2: Obtain OAuth Token from Strava API v3
+# @name getToken
+POST https://www.strava.com/oauth/token
+Content-Type: application/json
+
+{
+  "client_id": "{{clientId}}",
+  "client_secret": "9cadabd71859f82e1569de118947cd92cec4ed4b",
+  "code": "3c681af2e60437ee19038e270c11c38b585f115e",
+  "grant_type": "authorization_code"
+}
+
+###
+
+#@athleteId = {{getToken.response.body.athlete.id}}
+@athleteId = 5918738
+#@accessToken = {{getToken.response.body.access_token}}
+@accessToken = 47c555273c93bce4d905bab19d03a01c6cb73fe1
+#@refreshToken = {{getToken.response.body.refresh_token}}
+@refreshToken = 8290859c0661549bead47aea535a54de65c75f49
+
+###
+
+### Step 3: Get Activities for Current Day
+# Replace with today's date at midnight in Unix timestamp (e.g., 1731801600 for Nov 17, 2025 00:00 UTC)
+@todayTimestamp = 1764547200
+
+GET https://www.strava.com/api/v3/activities/16618396319
+Authorization: Bearer {{accessToken}}
+
+###
+
+GET https://www.strava.com/api/v3/athlete/activities?before=1769212800&after=1769040000&per_page=10
+Authorization: Bearer {{accessToken}}
+###
+
+### Step 4: Get Power Stream Data for Activity (to calculate NP yourself)
+@activityId = 16618396319
+
+GET https://www.strava.com/api/v3/activities/{{activityId}}/streams?keys=watts&key_by_type=true
+Authorization: Bearer {{accessToken}}
+
+###
