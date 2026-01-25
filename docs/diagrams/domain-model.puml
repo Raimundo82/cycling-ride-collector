@@ -1,0 +1,101 @@
+@startuml domain-model
+!theme plain
+title Domain Model - Go Strava Weekly
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+package "Domain Layer" {
+    enum WorkoutType {
+        Estrada (Road cycling)
+        Rolo (Indoor trainer)
+        Mixed (Combined)
+    }
+    
+    class Workout {
+        + ID: int64
+        + WorkoutType: WorkoutType
+        + StartTime: time.Time
+        + DistanceInKm: float64
+        + DurationInMin: int
+        + ElevationInMeters: int
+        + AvgPowerInWatts: int
+        + NormalizedPowerInWatts: int
+        + AvgHeartRateInBpm: int
+        + MaxHeartRateInBpm: int
+        + AvgCadenceInRpm: int
+    }
+    
+    class WorkoutParams {
+        + ID: int64
+        + WorkoutType: WorkoutType
+        + StartTime: time.Time
+        + DistanceInKm: float64
+        + DurationInMin: int
+        + ElevationInMeters: int
+        + AvgPowerInWatts: int
+        + NormalizedPowerInWatts: int
+        + AvgHeartRateInBpm: int
+        + MaxHeartRateInBpm: int
+        + AvgCadenceInRpm: int
+    }
+    
+    Workout --> WorkoutType : has
+    WorkoutParams --> WorkoutType : has
+    Workout ..> WorkoutParams : <<creates from>>
+}
+
+package "Application Layer" {
+    interface WorkoutProvider {
+        + GetWorkoutsByDate(date: time.Time): []*Workout, error
+    }
+    
+    interface WorkoutRepository {
+        + Save(workout: *Workout): error
+    }
+    
+    class MergeWorkouts {
+        + MergeWorkouts(workouts: []*Workout, minDuration: int): *Workout
+        - weightedAvg(sum: float64, totalDuration: int): int
+    }
+    
+    class SaveWorkout {
+        + SaveWorkout(workout: *Workout): error
+    }
+}
+
+package "Infrastructure Layer" {
+    class CSVWorkoutRepository {
+        + Save(workout: *Workout): error
+    }
+    
+    class StravaProvider {
+        + GetWorkoutsByDate(date: time.Time): []*Workout, error
+    }
+}
+
+WorkoutProvider ..> Workout : provides
+WorkoutRepository ..> Workout : persists
+MergeWorkouts ..> Workout : processes
+SaveWorkout ..> Workout : saves
+CSVWorkoutRepository ..|> WorkoutRepository : implements
+StravaProvider ..|> WorkoutProvider : implements
+
+note right of MergeWorkouts
+  **Business Rules:**
+  - Filters workouts by minimum duration
+  - Merges multiple workouts from same day
+  - Sums: distance, duration, elevation
+  - Weighted averages: power, heart rate, cadence
+  - Preserves: max heart rate
+end note
+
+note right of Workout
+  **Key Metrics:**
+  - Power metrics for training analysis
+  - Heart rate zones tracking
+  - Distance and elevation for route planning
+  - Cadence for pedaling efficiency
+end note
+
+@enduml

@@ -38,6 +38,16 @@ internal/
 └── config/          # Configuration management
 ```
 
+### Architecture Diagrams
+
+Detailed architecture diagrams are available as PlantUML diagrams in the [`docs/diagrams`](/docs/diagrams) directory:
+
+- **[C4 Context Diagram](/docs/diagrams/c4-context.puml)** - System context and external interactions
+- **[C4 Container Diagram](/docs/diagrams/c4-container.puml)** - High-level application architecture
+- **[Domain Model Diagram](/docs/diagrams/domain-model.puml)** - Domain entities and relationships
+
+See the [diagrams README](/docs/diagrams/README.md) for instructions on viewing these diagrams online.
+
 ## Prerequisites
 
 - Go 1.25.3 or higher
