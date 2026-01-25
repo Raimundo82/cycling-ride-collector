@@ -34,7 +34,7 @@ internal/
 ├── application/     # Use cases and business logic
 │   ├── contracts/   # Interface definitions
 │   └── usecase/     # Business logic implementation
-├── infrastucture/   # External integrations (CSV, API clients)
+├── infrastructure/  # External integrations (CSV, API clients)
 └── config/          # Configuration management
 ```
 
