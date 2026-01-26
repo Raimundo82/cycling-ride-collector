@@ -3,22 +3,31 @@
 This diagram shows the system context for the Go Strava Weekly application.
 
 ```mermaid
-C4Context
-    title System Context diagram for Go Strava Weekly
-
-    Person(athlete, "Athlete", "A cyclist or endurance athlete who tracks their workouts")
+graph TB
+    subgraph External["External Systems"]
+        Strava["Strava API<br/>(Planned)<br/>Workout data provider"]
+        CSV["CSV Files<br/>Local storage"]
+    end
     
-    System(strava_weekly, "Go Strava Weekly", "Fetches workout data from Strava API and saves to CSV files for weekly analysis and tracking")
+    subgraph System["Go Strava Weekly"]
+        App["Go Strava Weekly<br/>CLI Application<br/>Processes and stores workout data"]
+    end
     
-    System_Ext(strava, "Strava API", "Provides access to athlete's workout data including power, heart rate, distance, and duration metrics")
+    User["Athlete<br/>Cyclist tracking workouts"]
     
-    SystemDb_Ext(csv_files, "CSV Files", "Stores workout data locally for analysis")
-
-    Rel(athlete, strava_weekly, "Runs weekly sync", "CLI")
-    Rel(strava_weekly, strava, "Fetches workouts", "HTTPS/REST (planned)")
-    Rel(strava_weekly, csv_files, "Saves workout data", "File I/O")
-    Rel(athlete, strava, "Records workouts", "Mobile/Web App")
-    Rel(athlete, csv_files, "Views/analyzes data", "Spreadsheet apps")
+    User -->|"Runs weekly sync<br/>(CLI)"| App
+    App -->|"Will fetch workouts<br/>(HTTPS/REST)"| Strava
+    App -->|"Saves workout data<br/>(File I/O)"| CSV
+    User -->|"Records workouts<br/>(Mobile/Web)"| Strava
+    User -->|"Views/analyzes data<br/>(Spreadsheet apps)"| CSV
+    
+    classDef userStyle fill:#08427b,stroke:#052e56,color:#fff
+    classDef systemStyle fill:#1168bd,stroke:#0b4884,color:#fff
+    classDef externalStyle fill:#999,stroke:#666,color:#fff
+    
+    class User userStyle
+    class App systemStyle
+    class Strava,CSV externalStyle
 ```
 
 ## Notes

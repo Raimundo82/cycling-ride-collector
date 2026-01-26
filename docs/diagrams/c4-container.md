@@ -3,32 +3,38 @@
 This diagram shows the high-level technical architecture of the Go Strava Weekly application.
 
 ```mermaid
-C4Container
-    title Container diagram for Go Strava Weekly
-
-    Person(athlete, "Athlete", "A cyclist who uses the system for workout tracking")
+graph TB
+    User["Athlete<br/>Cyclist"]
+    Strava["Strava API<br/>(Planned)"]
+    CSV["CSV Files"]
     
-    System_Ext(strava, "Strava API", "External workout data provider (planned)")
+    subgraph App["Go Strava Weekly Application"]
+        Main["Main Application<br/>CLI Entry Point"]
+        
+        subgraph Layers["Architecture Layers"]
+            Domain["Domain Layer<br/>Workout, WorkoutType<br/>Core business entities"]
+            Application["Application Layer<br/>SaveWorkout, MergeWorkouts<br/>Use cases & contracts"]
+            Infrastructure["Infrastructure Layer<br/>CSVWorkoutRepository<br/>Data persistence"]
+        end
+    end
     
-    System_Boundary(strava_weekly, "Go Strava Weekly") {
-        Container(main, "Main Application", "Go", "Command-line application that orchestrates the workout sync process")
-        
-        Container(domain, "Domain Layer", "Go Package", "Contains core business entities (Workout, WorkoutType) and domain logic")
-        
-        Container(application, "Application Layer", "Go Package", "Contains use cases (SaveWorkout, MergeWorkouts) and contracts (WorkoutProvider, WorkoutRepository)")
-        
-        Container(infrastructure, "Infrastructure Layer", "Go Package", "Contains CSVWorkoutRepository for data persistence")
-    }
+    User -->|"Executes (CLI)"| Main
+    Main -->|"Uses use cases"| Application
+    Application -->|"Uses entities"| Domain
+    Application -->|"Uses via contracts"| Infrastructure
+    Infrastructure -->|"Depends on"| Domain
+    Infrastructure -->|"Will fetch (HTTPS/REST)"| Strava
+    Infrastructure -->|"Reads/Writes (File I/O)"| CSV
     
-    ContainerDb_Ext(csv, "CSV Files", "File System", "Stores workout data locally")
-
-    Rel(athlete, main, "Executes", "CLI")
-    Rel(main, application, "Uses use cases", "Function calls")
-    Rel(application, domain, "Uses entities", "Import")
-    Rel(application, infrastructure, "Uses via contracts", "Interface")
-    Rel(infrastructure, domain, "Depends on", "Import")
-    Rel(infrastructure, strava, "Will fetch workouts", "HTTPS/REST (planned)")
-    Rel(infrastructure, csv, "Reads/Writes", "File I/O")
+    classDef userStyle fill:#08427b,stroke:#052e56,color:#fff
+    classDef mainStyle fill:#1168bd,stroke:#0b4884,color:#fff
+    classDef layerStyle fill:#438dd5,stroke:#2e6295,color:#fff
+    classDef externalStyle fill:#999,stroke:#666,color:#fff
+    
+    class User userStyle
+    class Main mainStyle
+    class Domain,Application,Infrastructure layerStyle
+    class Strava,CSV externalStyle
 ```
 
 ## Notes
