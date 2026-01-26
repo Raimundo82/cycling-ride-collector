@@ -40,13 +40,13 @@ internal/
 
 ### Architecture Diagrams
 
-Detailed architecture diagrams are available as PlantUML diagrams in the [`docs/diagrams`](/docs/diagrams) directory:
+Detailed architecture diagrams are available as Mermaid diagrams in the [`docs/diagrams`](/docs/diagrams) directory:
 
-- **[C4 Context Diagram](/docs/diagrams/c4-context.puml)** - System context and external interactions
-- **[C4 Container Diagram](/docs/diagrams/c4-container.puml)** - High-level application architecture
-- **[Domain Model Diagram](/docs/diagrams/domain-model.puml)** - Domain entities and relationships
+- **[C4 Context Diagram](/docs/diagrams/c4-context.md)** - System context and external interactions
+- **[C4 Container Diagram](/docs/diagrams/c4-container.md)** - High-level application architecture
+- **[Domain Model Diagram](/docs/diagrams/domain-model.md)** - Domain entities and relationships
 
-See the [diagrams README](/docs/diagrams/README.md) for instructions on viewing these diagrams online.
+These diagrams render automatically in GitHub's markdown viewer. See the [diagrams README](/docs/diagrams/README.md) for more viewing options.
 
 ## Prerequisites
 

@@ -1,36 +1,28 @@
 # Architecture Diagrams
 
-This directory contains PlantUML diagrams as code that document the architecture of the Go Strava Weekly application.
+This directory contains Mermaid diagrams as code that document the architecture of the Go Strava Weekly application.
 
 ## Diagrams
 
 ### C4 Context Diagram
-**File:** `c4-context.puml`
+**File:** [`c4-context.md`](./c4-context.md)
 
 Shows the system context - how the Go Strava Weekly application fits into the broader ecosystem, including:
 - Athletes (users)
-- Strava API (external system)
-- Google Sheets (external system)
-
-**Quick View:**
-- [SVG Format](http://www.plantuml.com/plantuml/svg/TLDFRzem5B_dKxnn6PKekVIqKnbZRINOKA53Eo5Zln8BnuxiPqBswMSxILcpxMPPx_VtsVUEc2LVAfZVxUT64rue-o0rLruW54IL-vJdbjNJewJ27xn3o-EOfYatPLuffYFyrf5Gyf3FxsxNyUfbjSnBvWXjVYMULc4oovQpdzzVjllTq_PnlrmyBBvz6Tza6KbI29icO4he020aErfMmgkny61WGvQT6UmGJwh9iZLQP_IOKQ6GS0AZMNiQnIFmXYlf208KjV2MQOxGpK9T60Xa_EI02fGMQcDFnfC3epkPKJ3LsXcxTB6lasuW7rg9Wb-HU86k9mB1YC6hDMK_ohG0rsZkG1AG2NdCCIOk48DiJDZoXq6c6YTTGYIJKX-lRlQB2tMEWcn7Fbi_HHDhQyvI11UCStGkodI9FmwSjIiEn52P6kq42WmF0IoBHOhGMwnhaYp4xaY6NaeaAxaRMaa1KYj_11ebRyPY6oCmXgVIk3vZxyNvicHMObi0CZU8VvRECoL_9GDH-1dLTU73lJnx_QOGguucLam71i0BSfzIvB09Yn9UeG1k4sia7N2z5JpOQmhskDskD_dpOhFz3xYlP76fZANtrO-6LQNbtVmhMOo4t5ZnNdvb3b9XliC3pAhgBsWl_aDYVQsZBpeIHEHdQ-hmcMEdz_5_X9_v6m)
-- [PNG Format](http://www.plantuml.com/plantuml/png/TLDFRzem5B_dKxnn6PKekVIqKnbZRINOKA53Eo5Zln8BnuxiPqBswMSxILcpxMPPx_VtsVUEc2LVAfZVxUT64rue-o0rLruW54IL-vJdbjNJewJ27xn3o-EOfYatPLuffYFyrf5Gyf3FxsxNyUfbjSnBvWXjVYMULc4oovQpdzzVjllTq_PnlrmyBBvz6Tza6KbI29icO4he020aErfMmgkny61WGvQT6UmGJwh9iZLQP_IOKQ6GS0AZMNiQnIFmXYlf208KjV2MQOxGpK9T60Xa_EI02fGMQcDFnfC3epkPKJ3LsXcxTB6lasuW7rg9Wb-HU86k9mB1YC6hDMK_ohG0rsZkG1AG2NdCCIOk48DiJDZoXq6c6YTTGYIJKX-lRlQB2tMEWcn7Fbi_HHDhQyvI11UCStGkodI9FmwSjIiEn52P6kq42WmF0IoBHOhGMwnhaYp4xaY6NaeaAxaRMaa1KYj_11ebRyPY6oCmXgVIk3vZxyNvicHMObi0CZU8VvRECoL_9GDH-1dLTU73lJnx_QOGguucLam71i0BSfzIvB09Yn9UeG1k4sia7N2z5JpOQmhskDskD_dpOhFz3xYlP76fZANtrO-6LQNbtVmhMOo4t5ZnNdvb3b9XliC3pAhgBsWl_aDYVQsZBpeIHEHdQ-hmcMEdz_5_X9_v6m)
+- Strava API (external system - planned)
+- CSV Files (local storage)
 
 ### C4 Container Diagram
-**File:** `c4-container.puml`
+**File:** [`c4-container.md`](./c4-container.md)
 
 Shows the high-level technical architecture - the main containers/components of the application:
 - Main Application (CLI entry point)
 - Domain Layer (core business entities)
 - Application Layer (use cases and business logic)
-- Infrastructure Layer (external integrations)
-
-**Quick View:**
-- [SVG Format](http://www.plantuml.com/plantuml/svg/XLHDR-8m4BtdLyno0gbjBZtjgIpG5ebk4T15UqAkCu1Lnuvi1vfTxN_V6IUaq5AL0t6SUVFcuytS-21SA7CDW-lLm9eWb46NV5D6wZ93s8PG-EzfwiJ-QgF2jdmkFJf9XcZ2bRHvMcXXsC6b3vbMp-dW-dBALqyFapGNFg1BZrrV5MIR99F-xyUdnMevNjol9gExqSzXjvSaGGMDqDf2fiJ6YHpMri6TXNbmOYTWYVYYgoIPelFMT4NOQWnu0Pr-VUhm4MGbjV81zbiB5BE7i4Nm5GLK-zjRzsBB0EHJlYYpwH3_F7vUZLv3rqSkyjIGzgTZzakVq1cXMtWcWe32sPtAq96FOnTRnE09T6VjXlAQn_SFdg877wmJ6mHXCjWfNmgj_eYWh3aAwuSjJIPSrSIssiSwHF-dfUdqu6y2z6ihsStfGPOFz81-KMWbQ-yHpVy3c-T4Vgd97CIR1PLD1B1ERf5fGrF8G_g-CfBJb-WzXSgaxvWpst0Fum4ceg92rL5FgVIKTSqV0HwaTGYaCW9x3wGo5HIHTfSrumKqXqLLO2_MgsO0RJTAde_XA1_Mnb5sNqL3oW4fM3xCr8OLkQACSdGRKi-X8BKTyrLykrQQkln9PPHPEneGLyfGEjRl-EJYozZme215qqXpmWdL_BKeYPW608r4K7cXCQTYraPduna-TwNVCS7y5yomi5wHA2kcl5KitwX2VbrWNf1SNTNAzdYW8datmnrgMp1dIg89L8qUqVvBaXdgjvbjj35wHLcIMSnlCYP3jge_dZRlYNlHTYK6LnePUoc5rhw1de1Q2KRmGLAC7NCYuHpcGtCYbXSVxOjGWwdiRYqaDlZta3VbOu4cyr3FsmddUqoxTcunyCYrkcBa_M8ndQUpqNpn6VgmSKQlpE5ZBpfdDz1v1xK0PYWodowTQZeIspzE7taNtL0clC7_0m)
-- [PNG Format](http://www.plantuml.com/plantuml/png/XLHDR-8m4BtdLyno0gbjBZtjgIpG5ebk4T15UqAkCu1Lnuvi1vfTxN_V6IUaq5AL0t6SUVFcuytS-21SA7CDW-lLm9eWb46NV5D6wZ93s8PG-EzfwiJ-QgF2jdmkFJf9XcZ2bRHvMcXXsC6b3vbMp-dW-dBALqyFapGNFg1BZrrV5MIR99F-xyUdnMevNjol9gExqSzXjvSaGGMDqDf2fiJ6YHpMri6TXNbmOYTWYVYYgoIPelFMT4NOQWnu0Pr-VUhm4MGbjV81zbiB5BE7i4Nm5GLK-zjRzsBB0EHJlYYpwH3_F7vUZLv3rqSkyjIGzgTZzakVq1cXMtWcWe32sPtAq96FOnTRnE09T6VjXlAQn_SFdg877wmJ6mHXCjWfNmgj_eYWh3aAwuSjJIPSrSIssiSwHF-dfUdqu6y2z6ihsStfGPOFz81-KMWbQ-yHpVy3c-T4Vgd97CIR1PLD1B1ERf5fGrF8G_g-CfBJb-WzXSgaxvWpst0Fum4ceg92rL5FgVIKTSqV0HwaTGYaCW9x3wGo5HIHTfSrumKqXqLLO2_MgsO0RJTAde_XA1_Mnb5sNqL3oW4fM3xCr8OLkQACSdGRKi-X8BKTyrLykrQQkln9PPHPEneGLyfGEjRl-EJYozZme215qqXpmWdL_BKeYPW608r4K7cXCQTYraPduna-TwNVCS7y5yomi5wHA2kcl5KitwX2VbrWNf1SNTNAzdYW8datmnrgMp1dIg89L8qUqVvBaXdgjvbjj35wHLcIMSnlCYP3jge_dZRlYNlHTYK6LnePUoc5rhw1de1Q2KRmGLAC7NCYuHpcGtCYbXSVxOjGWwdiRYqaDlZta3VbOu4cyr3FsmddUqoxTcunyCYrkcBa_M8ndQUpqNpn6VgmSKQlpE5ZBpfdDz1v1xK0PYWodowTQZeIspzE7taNtL0clC7_0m)
+- Infrastructure Layer (CSV-based storage)
 
 ### Domain Model Diagram
-**File:** `domain-model.puml`
+**File:** [`domain-model.md`](./domain-model.md)
 
 Shows the domain model - the core business entities and their relationships:
 - Workout entity with all metrics
@@ -38,71 +30,49 @@ Shows the domain model - the core business entities and their relationships:
 - Application contracts (interfaces)
 - Infrastructure implementations
 
-**Quick View:**
-- [SVG Format](http://www.plantuml.com/plantuml/svg/xLPBRzim3BxxLt0zfLaJx33i41J1scQFOCjG9CDw67PGBIOHgeSXoMczhVzzb1mdifksbs6d-I0av4TI93zHUkiyixvK4hXHJEY1CXnbziAlKI4KaaIP5ruYJA8UPa4F0_XWOE4jsp2uGhoHLPQv6w4BPfc2N3BdphotuhhqECsDNeYV2AyIY1GQVLKW6ElN9iiAbj-m5SBHDindLg4zWbyPq8UwL71bx8qf_TTWL8l3zyxH9ZY3tjmm3dcLa-FLyKuzDz90RwgvCHO8IL7jNZiJTyYXTs7KDIbuhRYFQrnY7atW9EXBc4v68BH_ypgH9HiSfNyIo28K-wjG1F2q3iFFH3qHr0sTurH_KYDOIiFQ4IQbPLuOFTKpeUC64kKxYPj6YnwjwmBEDgjBSujsgg-Ozm_KNunLJ5AV-5CeSl8HAOaveyRgyq9r0JDszpI0F5mmZZ7DUQf-hF2NWJ3kV_d_NVaRnWy6uzQn6y6QkHInRSspE1WEnnsR4PoUqc2WurlcdaxXqXer7cVtoIWuAmefybZKzZoWBQDTiXntFgtP28wsHP8FwBTgTrvDg1uzJalI-kCHVF_Hts9E0AqrjbkA1w7cM1WdlB5LAzY2RR1tMqD6q3Yb20UzrloUeLrXiyMMjvQcSUlQsrL2DuICJJpUXzrv6i0jYjMQwajjxxboJ-iJyCOpsVNmw5aC-HqQX8dysVJJtaxrqhAw-QN5TdlhY1UBRt-_vFMLzTVfGfbrcPWmdhXUr6ANFKof0wJ9GMF8PMroFF2MetFaBcrB6-D8uxA3HHmEVuyFq9cwhmf9rxwcy9r2fIOxOSiWqyOZsC0sCCisWwbA_VvvwUYIfHxCIubkrEzdWP_lXGp34XgEmtKLc2qKtVXyIyu8Z0uTg59wGK7t1c5mKBRqMk6iYj15gUYiyEqqFzdvePurGphYhhPd0wXKbbX9HaMOlIUm3YCKo8giytfQHejBYmxj9Y0LkqjW6MeEeGBTEknFPB__2IjAWrv5-IxzEEj1rK9ODeyKUiC0qqnMn8M8-xYB13yDLJ70SdfChQAskRZ8XkzpZEui1O_lEAqRz7RyHtM1d8KN4-1oAN91yYf9vItzfATXzWS)
-- [PNG Format](http://www.plantuml.com/plantuml/png/xLPBRzim3BxxLt0zfLaJx33i41J1scQFOCjG9CDw67PGBIOHgeSXoMczhVzzb1mdifksbs6d-I0av4TI93zHUkiyixvK4hXHJEY1CXnbziAlKI4KaaIP5ruYJA8UPa4F0_XWOE4jsp2uGhoHLPQv6w4BPfc2N3BdphotuhhqECsDNeYV2AyIY1GQVLKW6ElN9iiAbj-m5SBHDindLg4zWbyPq8UwL71bx8qf_TTWL8l3zyxH9ZY3tjmm3dcLa-FLyKuzDz90RwgvCHO8IL7jNZiJTyYXTs7KDIbuhRYFQrnY7atW9EXBc4v68BH_ypgH9HiSfNyIo28K-wjG1F2q3iFFH3qHr0sTurH_KYDOIiFQ4IQbPLuOFTKpeUC64kKxYPj6YnwjwmBEDgjBSujsgg-Ozm_KNunLJ5AV-5CeSl8HAOaveyRgyq9r0JDszpI0F5mmZZ7DUQf-hF2NWJ3kV_d_NVaRnWy6uzQn6y6QkHInRSspE1WEnnsR4PoUqc2WurlcdaxXqXer7cVtoIWuAmefybZKzZoWBQDTiXntFgtP28wsHP8FwBTgTrvDg1uzJalI-kCHVF_Hts9E0AqrjbkA1w7cM1WdlB5LAzY2RR1tMqD6q3Yb20UzrloUeLrXiyMMjvQcSUlQsrL2DuICJJpUXzrv6i0jYjMQwajjxxboJ-iJyCOpsVNmw5aC-HqQX8dysVJJtaxrqhAw-QN5TdlhY1UBRt-_vFMLzTVfGfbrcPWmdhXUr6ANFKof0wJ9GMF8PMroFF2MetFaBcrB6-D8uxA3HHmEVuyFq9cwhmf9rxwcy9r2fIOxOSiWqyOZsC0sCCisWwbA_VvvwUYIfHxCIubkrEzdWP_lXGp34XgEmtKLc2qKtVXyIyu8Z0uTg59wGK7t1c5mKBRqMk6iYj15gUYiyEqqFzdvePurGphYhhPd0wXKbbX9HaMOlIUm3YCKo8giytfQHejBYmxj9Y0LkqjW6MeEeGBTEknFPB__2IjAWrv5-IxzEEj1rK9ODeyKUiC0qqnMn8M8-xYB13yDLJ70SdfChQAskRZ8XkzpZEui1O_lEAqRz7RyHtM1d8KN4-1oAN91yYf9vItzfATXzWS)
-
 ## Viewing the Diagrams
 
-### Option 1: PlantUML Online Server
+### GitHub Rendering
 
-You can view any diagram by using the PlantUML online server. For each diagram file:
+All Mermaid diagrams render automatically in GitHub's markdown viewer. Simply click on any of the `.md` files above to view the diagrams directly in your browser.
 
-1. Copy the content of the `.puml` file
-2. Go to [PlantUML Online Server](http://www.plantuml.com/plantuml/uml/)
-3. Paste the content into the text area
-4. The diagram will be automatically rendered
-
-### Option 2: Direct URL Encoding
-
-You can generate a direct link by encoding the PlantUML file:
-
-```bash
-# Example for c4-context.puml
-cat c4-context.puml | plantuml -encodeurl
-```
-
-Then visit: `http://www.plantuml.com/plantuml/svg/[encoded-string]`
-
-### Option 3: VS Code Extension
+### VS Code Extension
 
 If you're using Visual Studio Code:
 
-1. Install the "PlantUML" extension
-2. Open any `.puml` file
-3. Press `Alt+D` to preview the diagram
+1. Install the "Markdown Preview Mermaid Support" extension
+2. Open any `.md` file
+3. Use the markdown preview (`Ctrl+Shift+V` or `Cmd+Shift+V`)
 
-### Option 4: Local PlantUML Installation
+### Other Markdown Viewers
 
-Install PlantUML locally to generate images:
+Most modern markdown viewers support Mermaid diagrams natively, including:
+- GitLab
+- Bitbucket
+- Notion
+- Obsidian
+- Many static site generators (Hugo, Jekyll, etc.)
 
-```bash
-# Install PlantUML (requires Java)
-# On macOS with Homebrew:
-brew install plantuml
+### Mermaid Live Editor
 
-# Generate PNG images
-plantuml c4-context.puml
-plantuml c4-container.puml
-plantuml domain-model.puml
+For editing and previewing diagrams:
 
-# Generate SVG images (better quality)
-plantuml -tsvg c4-context.puml
-plantuml -tsvg c4-container.puml
-plantuml -tsvg domain-model.puml
-```
+1. Visit [Mermaid Live Editor](https://mermaid.live/)
+2. Copy and paste the Mermaid code from any diagram
+3. Edit and preview in real-time
 
 ## Updating the Diagrams
 
 To update a diagram:
 
-1. Edit the corresponding `.puml` file
-2. View the changes using one of the methods above
-3. Commit the updated `.puml` file to version control
+1. Edit the corresponding `.md` file
+2. Modify the Mermaid code within the triple backticks
+3. Preview using GitHub or your markdown viewer
+4. Commit the updated file to version control
 
 ## Resources
 
-- [PlantUML Official Site](https://plantuml.com/)
+- [Mermaid Official Documentation](https://mermaid.js.org/)
 - [C4 Model](https://c4model.com/)
-- [PlantUML C4 Extension](https://github.com/plantuml-stdlib/C4-PlantUML)
-- [PlantUML Language Reference](https://plantuml.com/guide)
+- [Mermaid Live Editor](https://mermaid.live/)
+- [Mermaid Syntax Guide](https://mermaid.js.org/intro/)
