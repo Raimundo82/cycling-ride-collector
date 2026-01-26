@@ -38,6 +38,16 @@ internal/
 └── config/          # Configuration management
 ```
 
+### Architecture Diagrams
+
+Detailed architecture diagrams are available as Mermaid diagrams in the [`docs/diagrams`](/docs/diagrams) directory:
+
+- **[C4 Context Diagram](/docs/diagrams/c4-context.md)** - System context and external interactions
+- **[C4 Container Diagram](/docs/diagrams/c4-container.md)** - High-level application architecture
+- **[Domain Model Diagram](/docs/diagrams/domain-model.md)** - Domain entities and relationships
+
+These diagrams render automatically in GitHub's markdown viewer. See the [diagrams README](/docs/diagrams/README.md) for more viewing options.
+
 ## Prerequisites
 
 - Go 1.25.3 or higher
