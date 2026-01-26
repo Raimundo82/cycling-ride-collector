@@ -60,7 +60,7 @@ classDiagram
     
     class MergeWorkouts {
         <<function>>
-        +MergeWorkouts(workouts []*Workout, minDuration int) *Workout
+        +MergeWorkouts(workouts []*Workout, minDuration int) *Workout (nullable)
         -weightedAvg(sum float64, totalDuration int) int
     }
     
@@ -112,5 +112,5 @@ Each workout tracks the following metrics:
 
 - `MergeWorkouts` is implemented as a **standalone function**, not a class/struct
 - `SaveWorkout` is a **struct** with dependencies injected (WorkoutRepo and WorkoutProvider)
-- Currently, only **CSVWorkoutRepository** is implemented
-- **WorkoutProvider** interface exists but no Strava implementation yet (planned)
+- Currently, only **CSVWorkoutRepository** is implemented in the infrastructure layer
+- **WorkoutProvider** interface is defined in contracts but no implementation exists yet (Strava integration planned)
