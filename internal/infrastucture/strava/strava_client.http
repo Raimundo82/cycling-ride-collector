@@ -1,0 +1,65 @@
+@clientId = 131590
+
+### Step 1: Authorize - Open this URL in browser to get authorization code
+# @name authorize
+GET https://www.strava.com/oauth/authorize?client_id=131590&response_type=code&redirect_uri=http://localhost&scope=activity:read_all
+
+###
+
+### Step 2: Obtain OAuth Token from Strava API v3
+# @name getToken
+POST https://www.strava.com/oauth/token
+Content-Type: application/json
+
+{
+  "client_id": "{{clientId}}",
+  "client_secret": "9cadabd71859f82e1569de118947cd92cec4ed4b",
+  "code": "22141832d366c9c098e858868e0d8c65fc8c139b",
+  "grant_type": "authorization_code"
+}
+
+###
+
+#@athleteId = {{getToken.response.body.athlete.id}}
+@athleteId = 5918738
+#@accessToken = {{getToken.response.body.access_token}}
+@accessToken = 68821c1ddab504e8a95ff56650687ae6c47df054
+#@refreshToken = {{getToken.response.body.refresh_token}}
+@refreshToken = 8290859c0661549bead47aea535a54de65c75f49
+
+###
+### Step 2.5: Refresh Access Token (when expired)
+# @name refreshTokenResponse
+POST https://www.strava.com/oauth/token
+Content-Type: application/json
+
+{
+  "client_id": "{{clientId}}",
+  "client_secret": "9cadabd71859f82e1569de118947cd92cec4ed4b",
+  "refresh_token": "{{refreshToken}}",
+  "grant_type": "refresh_token"
+}
+
+###
+
+#@accessToken = {{refreshToken.response.body.access_token}}
+#@refreshToken = {{refreshToken.response.body.refresh_token}}
+#@accessToken = {{refreshTokenResponse.response.body.access_token}}
+#@refreshToken = {{refreshTokenResponse.response.body.refresh_token}}
+###
+### Step 3: Get Activities for Current Day
+# Replace with today's date at midnight in Unix timestamp (e.g., 1731801600 for Nov 17, 2025 00:00 UTC)
+@before = 1762128000
+@after = 1762041600
+
+GET https://www.strava.com/api/v3/athlete/activities?before={{before}}&after={{after}}&per_page=10
+Authorization: Bearer {{accessToken}}
+###
+
+### Step 4: Get Power Stream Data for Activity (to calculate NP yourself)
+@activityId = 17119403965
+
+GET https://www.strava.com/api/v3/activities/{{activityId}}/streams?keys=watts&key_by_type=true
+Authorization: Bearer {{accessToken}}
+
+###
