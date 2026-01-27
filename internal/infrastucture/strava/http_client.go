@@ -11,16 +11,26 @@ import (
 )
 
 type httpClient struct {
-	httpClient *http.Client
-	baseUrl    string
+	httpClient  *http.Client
+	baseUrl     string
+	accessToken string
+	cfg         *config.Config
 }
 
 var _ client = (*httpClient)(nil)
 
 func NewHttpClient(http *http.Client, cfg *config.Config) *httpClient {
 	return &httpClient{
-		httpClient: http,
-		baseUrl:    cfg.StravaApiBaseUrl,
+		httpClient:  http,
+		baseUrl:     cfg.StravaApiBaseUrl,
+		accessToken: cfg.StravaAccessToken,
+		cfg:         cfg,
+	}
+}
+
+func (c *httpClient) addAuthHeader(req *http.Request) {
+	if c.accessToken != "" {
+		req.Header.Set("Authorization", "Bearer "+c.accessToken)
 	}
 }
 
@@ -31,6 +41,8 @@ func (c *httpClient) GetActivitiesByDate(ctx context.Context, date time.Time) ([
 	if err != nil {
 		return nil, err
 	}
+
+	c.addAuthHeader(req)
 
 	q := req.URL.Query()
 	q.Set("after", fmt.Sprint(start.Unix()))
@@ -63,6 +75,8 @@ func (c *httpClient) GetWattsStream(ctx context.Context, id int64) (*WattsStream
 		return nil, err
 	}
 
+	c.addAuthHeader(req)
+
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -83,4 +97,49 @@ func (c *httpClient) GetWattsStream(ctx context.Context, id int64) (*WattsStream
 	}
 
 	return &streams.Watts, nil
+}
+
+// RefreshTokenResponse represents the response from the Strava token refresh endpoint
+type RefreshTokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresAt    int64  `json:"expires_at"`
+	ExpiresIn    int    `json:"expires_in"`
+}
+
+// RefreshAccessToken refreshes the access token using the refresh token
+func (c *httpClient) RefreshAccessToken(ctx context.Context) (*RefreshTokenResponse, error) {
+	tokenURL := c.cfg.StravaBaseUrl + "/oauth/token"
+
+	req, err := http.NewRequestWithContext(ctx, "POST", tokenURL, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	q := req.URL.Query()
+	q.Set("client_id", c.cfg.StravaClientID)
+	q.Set("client_secret", c.cfg.StravaClientSecret)
+	q.Set("grant_type", "refresh_token")
+	q.Set("refresh_token", c.cfg.StravaRefreshToken)
+	req.URL.RawQuery = q.Encode()
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("strava token refresh error: %s", resp.Status)
+	}
+
+	var tokenResp RefreshTokenResponse
+	if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
+		return nil, err
+	}
+
+	// Update the client's access token
+	c.accessToken = tokenResp.AccessToken
+
+	return &tokenResp, nil
 }
