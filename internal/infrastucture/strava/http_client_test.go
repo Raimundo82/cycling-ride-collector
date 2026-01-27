@@ -412,11 +412,15 @@ func TestGetWattsStream_SendsAuthorizationHeader(t *testing.T) {
 func TestRefreshAccessToken_SuccessfullyRefreshesToken(t *testing.T) {
 	Convey("Given a strava http server that returns a successful token refresh", t, func() {
 		var gotPath string
-		var gotQuery string
+		var gotContentType string
+		var gotBody string
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			gotPath = r.URL.Path
-			gotQuery = r.URL.RawQuery
+			gotContentType = r.Header.Get("Content-Type")
+			body := make([]byte, r.ContentLength)
+			_, _ = r.Body.Read(body)
+			gotBody = string(body)
 			_, _ = w.Write([]byte(`{
 				"access_token": "new_access_token_789",
 				"refresh_token": "new_refresh_token_789",
@@ -442,11 +446,12 @@ func TestRefreshAccessToken_SuccessfullyRefreshesToken(t *testing.T) {
 				So(gotPath, ShouldEqual, "/oauth/token")
 			})
 
-			Convey("It should include the correct parameters", func() {
-				So(gotQuery, ShouldContainSubstring, "client_id=test_client_id")
-				So(gotQuery, ShouldContainSubstring, "client_secret=test_client_secret")
-				So(gotQuery, ShouldContainSubstring, "grant_type=refresh_token")
-				So(gotQuery, ShouldContainSubstring, "refresh_token=test_refresh_token")
+			Convey("It should use form-encoded POST body", func() {
+				So(gotContentType, ShouldEqual, "application/x-www-form-urlencoded")
+				So(gotBody, ShouldContainSubstring, "client_id=test_client_id")
+				So(gotBody, ShouldContainSubstring, "client_secret=test_client_secret")
+				So(gotBody, ShouldContainSubstring, "grant_type=refresh_token")
+				So(gotBody, ShouldContainSubstring, "refresh_token=test_refresh_token")
 			})
 
 			Convey("It should decode the token response", func() {

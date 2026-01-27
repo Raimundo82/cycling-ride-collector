@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/raimundo82/go-strava-weekly/internal/config"
@@ -111,17 +113,19 @@ type RefreshTokenResponse struct {
 func (c *httpClient) RefreshAccessToken(ctx context.Context) (*RefreshTokenResponse, error) {
 	tokenURL := c.cfg.StravaBaseUrl + "/oauth/token"
 
-	req, err := http.NewRequestWithContext(ctx, "POST", tokenURL, nil)
+	// Create form data
+	formData := url.Values{}
+	formData.Set("client_id", c.cfg.StravaClientID)
+	formData.Set("client_secret", c.cfg.StravaClientSecret)
+	formData.Set("grant_type", "refresh_token")
+	formData.Set("refresh_token", c.cfg.StravaRefreshToken)
+
+	req, err := http.NewRequestWithContext(ctx, "POST", tokenURL, strings.NewReader(formData.Encode()))
 	if err != nil {
 		return nil, err
 	}
 
-	q := req.URL.Query()
-	q.Set("client_id", c.cfg.StravaClientID)
-	q.Set("client_secret", c.cfg.StravaClientSecret)
-	q.Set("grant_type", "refresh_token")
-	q.Set("refresh_token", c.cfg.StravaRefreshToken)
-	req.URL.RawQuery = q.Encode()
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
