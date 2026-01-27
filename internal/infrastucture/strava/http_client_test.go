@@ -3,6 +3,7 @@ package strava
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -418,8 +419,7 @@ func TestRefreshAccessToken_SuccessfullyRefreshesToken(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			gotPath = r.URL.Path
 			gotContentType = r.Header.Get("Content-Type")
-			body := make([]byte, r.ContentLength)
-			_, _ = r.Body.Read(body)
+			body, _ := io.ReadAll(r.Body)
 			gotBody = string(body)
 			_, _ = w.Write([]byte(`{
 				"access_token": "new_access_token_789",
