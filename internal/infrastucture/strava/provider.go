@@ -19,8 +19,8 @@ func NewProvider(c client) *Provider {
 	return &Provider{client: c}
 }
 
-func (p *Provider) GetWorkoutsByDate(data time.Time) ([]*domain.Workout, error) {
-	acts, err := p.client.GetActivityByDate(context.Background(), data)
+func (p *Provider) GetWorkoutsByDate(date time.Time) ([]*domain.Workout, error) {
+	acts, err := p.client.GetActivitiesByDate(context.Background(), date)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (p *Provider) GetWorkoutsByDate(data time.Time) ([]*domain.Workout, error) 
 	rideActivities := lo.FilterMap(acts, func(a *ActivityDto, _ int) (w *domain.Workout, ok bool) {
 		if a.Type == "Ride" && a.SportType == "Ride" {
 			stream, err := p.client.GetWattsStream(context.Background(), a.ID)
-			a.Watts = lo.Ternary(err == nil, stream, nil)
+			a.Watts = lo.Ternary(err == nil, stream, &WattsStreamDto{WattsData: []int{}})
 			return MapToWorkout(a), true
 		}
 		return nil, false

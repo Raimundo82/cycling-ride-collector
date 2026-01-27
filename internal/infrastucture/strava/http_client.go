@@ -24,7 +24,7 @@ func NewHttpClient(http *http.Client, cfg *config.Config) *httpClient {
 	}
 }
 
-func (c *httpClient) GetActivityByDate(ctx context.Context, date time.Time) ([]*ActivityDto, error) {
+func (c *httpClient) GetActivitiesByDate(ctx context.Context, date time.Time) ([]*ActivityDto, error) {
 	start := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 	end := start.Add(time.Hour * 24)
 	req, err := http.NewRequestWithContext(ctx, "GET", c.baseUrl+"/athlete/activities", nil)
@@ -69,13 +69,17 @@ func (c *httpClient) GetWattsStream(ctx context.Context, id int64) (*WattsStream
 	}
 	defer func() { _ = resp.Body.Close() }()
 
-	var streams wattsStreamResponse
-	if err := json.NewDecoder(resp.Body).Decode(&streams); err != nil {
-		return nil, err
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("strava error: %s", resp.Status)
 	}
 
-	if streams.Watts.WattsData == nil {
-		return nil, fmt.Errorf("no watts data found for activity %d", id)
+	var streams wattsStreamResponse
+	if err := json.NewDecoder(resp.Body).Decode(&streams); err != nil {
+		return &WattsStreamDto{WattsData: []int{}}, nil
+	}
+
+	if len(streams.Watts.WattsData) == 0 {
+		return &WattsStreamDto{WattsData: []int{}}, nil
 	}
 
 	return &streams.Watts, nil

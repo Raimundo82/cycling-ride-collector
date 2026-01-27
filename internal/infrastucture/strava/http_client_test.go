@@ -12,8 +12,9 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestGetActivityByDate_BuildsCorrectRequestAndDecodes(t *testing.T) {
-	Convey("Given a strava http server", t, func() {
+func TestGetActivitiesByDate_ConstructsCorrectRequestAndDecodesActivities(t *testing.T) {
+	Convey("Given a strava http server and a date", t, func() {
+		date := time.Date(2024, 1, 10, 0, 0, 0, 0, time.UTC)
 		var gotPath string
 		var gotQuery string
 
@@ -24,17 +25,17 @@ func TestGetActivityByDate_BuildsCorrectRequestAndDecodes(t *testing.T) {
 		}))
 		defer server.Close()
 		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
-		Convey("When GetActivityByDate is called", func() {
-			date := time.Date(2024, 1, 10, 0, 0, 0, 0, time.UTC)
-			acts, err := client.GetActivityByDate(context.Background(), date)
+
+		Convey("When GetActivitiesByDate is called", func() {
+			acts, err := client.GetActivitiesByDate(context.Background(), date)
 
 			Convey("It should call the correct endpoint", func() {
 				So(err, ShouldBeNil)
 				So(gotPath, ShouldEqual, "/athlete/activities")
 			})
 			Convey("It should include day range", func() {
-				start := time.Date(2024, 1, 10, 0, 0, 0, 0, time.UTC).Unix()
-				end := start + 86400
+				start := date.Unix()
+				end := date.Add(24 * time.Hour).Unix()
 
 				So(gotQuery, ShouldContainSubstring, fmt.Sprintf("after=%d", start))
 				So(gotQuery, ShouldContainSubstring, fmt.Sprintf("before=%d", end))
@@ -46,8 +47,147 @@ func TestGetActivityByDate_BuildsCorrectRequestAndDecodes(t *testing.T) {
 	})
 }
 
-func TestGetWattsStream(t *testing.T) {
-	Convey("Given", t, func() {
+func TestGetActivitiesByDate_ReturnsEmptySliceWhenNoActivities(t *testing.T) {
+	Convey("Given a strava http server and a date", t, func() {
+		date := time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC)
+		var gotPath string
+		var gotQuery string
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			gotPath = r.URL.Path
+			gotQuery = r.URL.RawQuery
+			_, _ = w.Write([]byte(`[]`))
+		}))
+		defer server.Close()
+		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+
+		Convey("When GetActivityByDate is called", func() {
+			acts, err := client.GetActivitiesByDate(context.Background(), date)
+
+			Convey("It should call the correct endpoint", func() {
+				So(err, ShouldBeNil)
+				So(gotPath, ShouldEqual, "/athlete/activities")
+			})
+			Convey("It should include day range", func() {
+				start := date.Unix()
+				end := date.Add(24 * time.Hour).Unix()
+
+				So(gotQuery, ShouldContainSubstring, fmt.Sprintf("after=%d", start))
+				So(gotQuery, ShouldContainSubstring, fmt.Sprintf("before=%d", end))
+			})
+			Convey("It should decode activities", func() {
+				So(len(acts), ShouldEqual, 0)
+			})
+		})
+	})
+}
+
+func TestGetActivityByDate_ErrorCases(t *testing.T) {
+	Convey("Given a strava http client", t, func() {
+		client := NewHttpClient(http.DefaultClient, &config.Config{StravaApiBaseUrl: "http://invalid"})
+
+		Convey("When context is canceled", func() {
+			ctx, cancel := context.WithCancel(context.Background())
+			cancel()
+
+			acts, err := client.GetActivitiesByDate(ctx, time.Now())
+
+			Convey("It should return a context error", func() {
+				So(acts, ShouldBeNil)
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "context canceled")
+			})
+		})
+	})
+}
+
+func TestGetActivitiesByDate_ReturnsErrorOnNonOKStatus(t *testing.T) {
+	Convey("Given a strava http server that returns 401", t, func() {
+		date := time.Date(2024, 1, 10, 0, 0, 0, 0, time.UTC)
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusUnauthorized)
+		}))
+		defer server.Close()
+		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+
+		Convey("When GetActivitiesByDate is called", func() {
+			acts, err := client.GetActivitiesByDate(context.Background(), date)
+
+			Convey("It should return an error", func() {
+				So(acts, ShouldBeNil)
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "strava error")
+			})
+		})
+	})
+}
+
+func TestGetActivitiesByDate_ReturnsErrorOnInvalidJSON(t *testing.T) {
+	Convey("Given a strava http server that returns invalid JSON", t, func() {
+		date := time.Date(2024, 1, 10, 0, 0, 0, 0, time.UTC)
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write([]byte(`{invalid json}`))
+		}))
+		defer server.Close()
+		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+
+		Convey("When GetActivitiesByDate is called", func() {
+			acts, err := client.GetActivitiesByDate(context.Background(), date)
+
+			Convey("It should return a decoding error", func() {
+				So(acts, ShouldBeNil)
+				So(err, ShouldNotBeNil)
+			})
+		})
+	})
+}
+
+func TestGetActivitiesByDate_ReturnsErrorOnNetworkFailure(t *testing.T) {
+	Convey("Given an unreachable strava server", t, func() {
+		date := time.Date(2024, 1, 10, 0, 0, 0, 0, time.UTC)
+		client := NewHttpClient(http.DefaultClient, &config.Config{StravaApiBaseUrl: "http://localhost:99999"})
+
+		Convey("When GetActivitiesByDate is called", func() {
+			acts, err := client.GetActivitiesByDate(context.Background(), date)
+
+			Convey("It should return a network error", func() {
+				So(acts, ShouldBeNil)
+				So(err, ShouldNotBeNil)
+			})
+		})
+	})
+}
+
+func TestGetActivitiesByDate_ReturnsErrorOnTimeout(t *testing.T) {
+	Convey("Given a slow strava http server", t, func() {
+		date := time.Date(2024, 1, 10, 0, 0, 0, 0, time.UTC)
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(200 * time.Millisecond)
+			_, _ = w.Write([]byte(`[{"id":1}]`))
+		}))
+		defer server.Close()
+		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+
+		Convey("When GetActivitiesByDate is called with a timeout context", func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+			defer cancel()
+
+			acts, err := client.GetActivitiesByDate(ctx, date)
+
+			Convey("It should return a timeout error", func() {
+				So(acts, ShouldBeNil)
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "context deadline exceeded")
+			})
+		})
+	})
+}
+
+func TestGetWattsStream_ConstructsCorrectRequestAndDecodesStream(t *testing.T) {
+	Convey("Given a strava http server", t, func() {
 		var gotPath string
 		var gotQuery string
 
@@ -66,11 +206,124 @@ func TestGetWattsStream(t *testing.T) {
 			Convey("It should call the correct endpoint", func() {
 				So(err, ShouldBeNil)
 				So(gotPath, ShouldEqual, fmt.Sprintf("/activities/%d/streams", activityID))
+			})
+
+			Convey("It should include the correct query parameters", func() {
 				So(gotQuery, ShouldEqual, "keys=watts&key_by_type=true")
 			})
 
-			Convey("Then", func() {
-				So(watts, ShouldResemble, &WattsStreamDto{WattsData: []int{103, 100, 50}})
+			Convey("It should decode the watts stream", func() {
+				So(watts.WattsData, ShouldResemble, []int{103, 100, 50})
+			})
+		})
+	})
+}
+
+func TestGetWattsStream_ReturnsEmptyWattsWhenNoWattsData(t *testing.T) {
+	Convey("Given a strava http server that returns empty watts data", t, func() {
+		activityID := int64(12345)
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write([]byte(`{"watts":{"data": null}}`))
+		}))
+		defer server.Close()
+		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+
+		Convey("When GetWattsStream is called", func() {
+			watts, err := client.GetWattsStream(context.Background(), activityID)
+
+			Convey("It should return empty watts data", func() {
+				So(watts, ShouldNotBeNil)
+				So(watts.WattsData, ShouldBeEmpty)
+				So(err, ShouldBeNil)
+			})
+		})
+	})
+}
+
+func TestGetWattsStream_ReturnsEmptyWattsWhenWattsDataIsEmpty(t *testing.T) {
+	Convey("Given a strava http server that returns empty watts data", t, func() {
+		activityID := int64(12345)
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write([]byte(`{"watts":{"data": []}}`))
+		}))
+		defer server.Close()
+		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+
+		Convey("When GetWattsStream is called", func() {
+			watts, err := client.GetWattsStream(context.Background(), activityID)
+
+			Convey("It should return empty watts data", func() {
+				So(watts, ShouldNotBeNil)
+				So(watts.WattsData, ShouldBeEmpty)
+				So(err, ShouldBeNil)
+			})
+		})
+	})
+}
+
+func TestGetWattsStream_ReturnsErrorOnNonOKStatus(t *testing.T) {
+	Convey("Given a strava http server that returns 404", t, func() {
+		activityID := int64(12345)
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNotFound)
+		}))
+		defer server.Close()
+		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+
+		Convey("When GetWattsStream is called", func() {
+			watts, err := client.GetWattsStream(context.Background(), activityID)
+
+			Convey("It should return an error", func() {
+				So(watts, ShouldBeNil)
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "strava error")
+			})
+		})
+	})
+}
+
+func TestGetWattsStream_ReturnsErrorOnCanceledContext(t *testing.T) {
+	Convey("Given a strava http server", t, func() {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(100 * time.Millisecond)
+			_, _ = w.Write([]byte(`{"watts":{"data": [100]}}`))
+		}))
+		defer server.Close()
+		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+
+		Convey("When GetWattsStream is called with a canceled context", func() {
+			ctx, cancel := context.WithCancel(context.Background())
+			cancel()
+
+			watts, err := client.GetWattsStream(ctx, 12345)
+
+			Convey("It should return a context error", func() {
+				So(watts, ShouldBeNil)
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "context canceled")
+			})
+		})
+	})
+}
+
+func TestGetWattsStream_ReturnsErrorOnInvalidJSON(t *testing.T) {
+	Convey("Given a strava http server that returns invalid JSON", t, func() {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_, _ = w.Write([]byte(`{invalid json}`))
+		}))
+		defer server.Close()
+		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+
+		Convey("When GetWattsStream is called", func() {
+			watts, err := client.GetWattsStream(context.Background(), 12345)
+
+			Convey("It should return empty watts data", func() {
+				So(watts, ShouldNotBeNil)
+				So(watts.WattsData, ShouldBeEmpty)
+				So(err, ShouldBeNil)
 			})
 		})
 	})

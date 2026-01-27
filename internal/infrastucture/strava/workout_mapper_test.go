@@ -8,8 +8,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestMapToWorkout(t *testing.T) {
-	Convey("Given a road ride ActivityDto", t, func() {
+func TestMapToWorkout_With29WattsDataPoints(t *testing.T) {
+	Convey("Given a road ride ActivityDto with 29 watts data points", t, func() {
 		activity := &ActivityDto{
 			ID:                 123456789,
 			Type:               "Ride",
@@ -45,16 +45,19 @@ func TestMapToWorkout(t *testing.T) {
 				So(workout.DistanceInKm, ShouldEqual, 25.5)
 				So(workout.ElevationInMeters, ShouldEqual, 500)
 				So(workout.AvgPowerInWatts, ShouldEqual, 200)
-				So(workout.NormalizedPowerInWatts, ShouldEqual, 0)
 				So(workout.AvgHeartRateInBpm, ShouldEqual, 150)
 				So(workout.MaxHeartRateInBpm, ShouldEqual, 180)
 				So(workout.AvgCadenceInRpm, ShouldEqual, 90)
+			})
+			Convey("And Normalized Power should be zero due to insufficient data points", func() {
 				So(workout.NormalizedPowerInWatts, ShouldEqual, 0)
 			})
 		})
 	})
+}
 
-	Convey("Given a trainer ride ActivityDto", t, func() {
+func TestMapToWorkout_WithMoreThan30WattsDataPoints(t *testing.T) {
+	Convey("Given a trainer ride ActivityDto with more than 30 watts data points", t, func() {
 		activity := &ActivityDto{
 			ID:                 987654321,
 			Type:               "Ride",
@@ -97,7 +100,6 @@ func TestMapToWorkout(t *testing.T) {
 			})
 		})
 	})
-
 	Convey("Given an ActivityDto with invalid date format", t, func() {
 		activity := &ActivityDto{
 			ID:                 111111111,

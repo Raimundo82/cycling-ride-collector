@@ -14,6 +14,8 @@ func MapToWorkout(a *ActivityDto) *domain.Workout {
 		startTime = time.Time{}
 	}
 
+	wattsData := lo.Ternary(a.Watts != nil, a.Watts.WattsData, []int{})
+
 	return &domain.Workout{
 		ID:                     a.ID,
 		WorkoutType:            lo.Ternary(a.IsTrainer, domain.Rolo, domain.Estrada),
@@ -22,7 +24,7 @@ func MapToWorkout(a *ActivityDto) *domain.Workout {
 		DistanceInKm:           math.Trunc(a.Distance/1000*100) / 100,
 		ElevationInMeters:      int(a.TotalElevationGain),
 		AvgPowerInWatts:        int(a.AveragePower),
-		NormalizedPowerInWatts: int(math.Round(NormalizedPower(a.Watts.WattsData))),
+		NormalizedPowerInWatts: int(math.Round(NormalizedPower(wattsData))),
 		AvgHeartRateInBpm:      int(a.AverageHeartRate),
 		MaxHeartRateInBpm:      int(a.MaxHeartRate),
 		AvgCadenceInRpm:        int(a.AverageCadence),
