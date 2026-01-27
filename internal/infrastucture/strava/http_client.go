@@ -109,7 +109,40 @@ type RefreshTokenResponse struct {
 	ExpiresIn    int    `json:"expires_in"`
 }
 
-// RefreshAccessToken refreshes the access token using the refresh token
+// RefreshAccessToken refreshes the access token using the refresh token.
+//
+// This method should be called when the current access token expires. Strava access tokens
+// typically expire after 6 hours. You can detect expiration by:
+//  1. Checking the ExpiresAt timestamp from a previous token response
+//  2. Handling 401 Unauthorized responses from API calls
+//
+// Example usage when handling expired tokens:
+//
+//	activities, err := client.GetActivitiesByDate(ctx, date)
+//	if err != nil && strings.Contains(err.Error(), "401") {
+//	    // Token expired, refresh it
+//	    tokenResp, err := client.RefreshAccessToken(ctx)
+//	    if err != nil {
+//	        return err
+//	    }
+//	    // Store new tokens in your config/database for persistence
+//	    cfg.StravaAccessToken = tokenResp.AccessToken
+//	    cfg.StravaRefreshToken = tokenResp.RefreshToken
+//	    saveConfig(cfg) // Your config persistence logic
+//
+//	    // Retry the original request
+//	    activities, err = client.GetActivitiesByDate(ctx, date)
+//	}
+//
+// The method returns a RefreshTokenResponse containing:
+//   - AccessToken: New access token to use for API calls
+//   - RefreshToken: New refresh token to use for future refreshes
+//   - ExpiresAt: Unix timestamp when the new access token expires
+//   - ExpiresIn: Number of seconds until expiration
+//
+// Note: The method automatically updates the client's internal accessToken,
+// but you should persist the new tokens (both access and refresh) to your
+// config or database for use across application restarts.
 func (c *httpClient) RefreshAccessToken(ctx context.Context) (*RefreshTokenResponse, error) {
 	tokenURL := c.cfg.StravaBaseUrl + "/oauth/token"
 
