@@ -341,7 +341,7 @@ func TestGetActivitiesByDate_SendsAuthorizationHeader(t *testing.T) {
 		defer server.Close()
 
 		client := NewHttpClient(server.Client(), &config.Config{
-			StravaApiBaseUrl: server.URL,
+			StravaApiBaseUrl:  server.URL,
 			StravaAccessToken: "test_access_token_123",
 		})
 
@@ -368,7 +368,7 @@ func TestGetActivitiesByDate_NoAuthHeaderWhenTokenEmpty(t *testing.T) {
 		defer server.Close()
 
 		client := NewHttpClient(server.Client(), &config.Config{
-			StravaApiBaseUrl: server.URL,
+			StravaApiBaseUrl:  server.URL,
 			StravaAccessToken: "",
 		})
 
@@ -394,7 +394,7 @@ func TestGetWattsStream_SendsAuthorizationHeader(t *testing.T) {
 		defer server.Close()
 
 		client := NewHttpClient(server.Client(), &config.Config{
-			StravaApiBaseUrl: server.URL,
+			StravaApiBaseUrl:  server.URL,
 			StravaAccessToken: "test_access_token_456",
 		})
 
@@ -427,9 +427,9 @@ func TestRefreshAccessToken_SuccessfullyRefreshesToken(t *testing.T) {
 		defer server.Close()
 
 		client := NewHttpClient(server.Client(), &config.Config{
-			StravaBaseUrl:     server.URL,
-			StravaApiBaseUrl:  server.URL,
-			StravaClientID:    "test_client_id",
+			StravaBaseUrl:      server.URL,
+			StravaApiBaseUrl:   server.URL,
+			StravaClientID:     "test_client_id",
 			StravaClientSecret: "test_client_secret",
 			StravaRefreshToken: "test_refresh_token",
 		})
@@ -472,9 +472,9 @@ func TestRefreshAccessToken_ReturnsErrorOnNonOKStatus(t *testing.T) {
 		defer server.Close()
 
 		client := NewHttpClient(server.Client(), &config.Config{
-			StravaBaseUrl:     server.URL,
-			StravaApiBaseUrl:  server.URL,
-			StravaClientID:    "test_client_id",
+			StravaBaseUrl:      server.URL,
+			StravaApiBaseUrl:   server.URL,
+			StravaClientID:     "test_client_id",
 			StravaClientSecret: "test_client_secret",
 			StravaRefreshToken: "test_refresh_token",
 		})
@@ -499,9 +499,9 @@ func TestRefreshAccessToken_ReturnsErrorOnInvalidJSON(t *testing.T) {
 		defer server.Close()
 
 		client := NewHttpClient(server.Client(), &config.Config{
-			StravaBaseUrl:     server.URL,
-			StravaApiBaseUrl:  server.URL,
-			StravaClientID:    "test_client_id",
+			StravaBaseUrl:      server.URL,
+			StravaApiBaseUrl:   server.URL,
+			StravaClientID:     "test_client_id",
 			StravaClientSecret: "test_client_secret",
 			StravaRefreshToken: "test_refresh_token",
 		})
@@ -520,9 +520,9 @@ func TestRefreshAccessToken_ReturnsErrorOnInvalidJSON(t *testing.T) {
 func TestRefreshAccessToken_ReturnsErrorOnCanceledContext(t *testing.T) {
 	Convey("Given a strava http client", t, func() {
 		client := NewHttpClient(http.DefaultClient, &config.Config{
-			StravaBaseUrl:     "http://invalid",
-			StravaApiBaseUrl:  "http://invalid",
-			StravaClientID:    "test_client_id",
+			StravaBaseUrl:      "http://invalid",
+			StravaApiBaseUrl:   "http://invalid",
+			StravaClientID:     "test_client_id",
 			StravaClientSecret: "test_client_secret",
 			StravaRefreshToken: "test_refresh_token",
 		})
