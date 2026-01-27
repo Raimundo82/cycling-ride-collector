@@ -32,6 +32,10 @@ func MapToWorkout(a *ActivityDto) *domain.Workout {
 }
 
 func NormalizedPower(watts []int) float64 {
+	avg30 := func(sum int) float64 {
+		return float64(sum) / 30.0
+	}
+
 	if len(watts) < 30 {
 		return 0
 	}
@@ -41,15 +45,12 @@ func NormalizedPower(watts []int) float64 {
 		sum += watts[i]
 	}
 
-	var qSum float64
-	n := 0
+	qSum := avg30(sum) * avg30(sum) * avg30(sum) * avg30(sum)
+	n := 1
 
-	for i := 29; i < len(watts); i++ {
-		if i >= 30 {
-			sum += watts[i] - watts[i-30]
-		}
-		avg30 := float64(sum) / 30.0
-		qSum += avg30 * avg30 * avg30 * avg30
+	for i := 30; i < len(watts); i++ {
+		sum += watts[i] - watts[i-30]
+		qSum += avg30(sum) * avg30(sum) * avg30(sum) * avg30(sum)
 		n++
 	}
 
