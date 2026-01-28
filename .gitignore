@@ -32,3 +32,5 @@ go.work.sum
 # .vscode/
 
 stava_client.http
+
+*.csv

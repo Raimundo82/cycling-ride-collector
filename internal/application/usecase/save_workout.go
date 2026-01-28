@@ -16,7 +16,6 @@ func (useCase *SaveWorkout) Execute(date time.Time, minWorkoutDuration int) erro
 	if err != nil {
 		return err
 	}
-
 	workout := MergeWorkouts(workouts, minWorkoutDuration)
 
 	if workout == nil {

@@ -10,37 +10,53 @@ import (
 	"github.com/raimundo82/go-strava-weekly/internal/config"
 )
 
-type httpClient struct {
+type stravaHttpClient struct {
 	httpClient  *http.Client
 	baseUrl     string
 	accessToken string
 }
 
-var _ client = (*httpClient)(nil)
+type authTransport struct {
+	underlying  http.RoundTripper
+	accessToken string
+}
 
-func NewHttpClient(http *http.Client, cfg *config.Config) *httpClient {
-	return &httpClient{
-		httpClient:  http,
+func (a *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if a.accessToken != "" {
+		req = req.Clone(req.Context())
+		req.Header.Set("Authorization", "Bearer "+a.accessToken)
+	}
+	return a.underlying.RoundTrip(req)
+}
+
+var (
+	_ client            = (*stravaHttpClient)(nil)
+	_ http.RoundTripper = (*authTransport)(nil)
+)
+
+func NewHttpClient(httpClient *http.Client, cfg *config.Config) *stravaHttpClient {
+	if httpClient.Transport == nil {
+		httpClient.Transport = http.DefaultTransport
+	}
+	httpClient.Transport = &authTransport{
+		underlying:  httpClient.Transport,
+		accessToken: cfg.StravaAccessToken,
+	}
+
+	return &stravaHttpClient{
+		httpClient:  httpClient,
 		baseUrl:     cfg.StravaApiBaseUrl,
 		accessToken: cfg.StravaAccessToken,
 	}
 }
 
-func (c *httpClient) addAuthHeader(req *http.Request) {
-	if c.accessToken != "" {
-		req.Header.Set("Authorization", "Bearer "+c.accessToken)
-	}
-}
-
-func (c *httpClient) GetActivitiesByDate(ctx context.Context, date time.Time) ([]*ActivityDto, error) {
+func (c *stravaHttpClient) GetActivitiesByDate(ctx context.Context, date time.Time) ([]*ActivityDto, error) {
 	start := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 	end := start.Add(time.Hour * 24)
 	req, err := http.NewRequestWithContext(ctx, "GET", c.baseUrl+"/athlete/activities", nil)
 	if err != nil {
 		return nil, err
 	}
-
-	c.addAuthHeader(req)
 
 	q := req.URL.Query()
 	q.Set("after", fmt.Sprint(start.Unix()))
@@ -65,15 +81,13 @@ func (c *httpClient) GetActivitiesByDate(ctx context.Context, date time.Time) ([
 	return acts, nil
 }
 
-func (c *httpClient) GetWattsStream(ctx context.Context, id int64) (*WattsStreamDto, error) {
+func (c *stravaHttpClient) GetWattsStream(ctx context.Context, id int64) (*WattsStreamDto, error) {
 	u := fmt.Sprintf("%s/activities/%d/streams?keys=watts&key_by_type=true", c.baseUrl, id)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", u, nil)
 	if err != nil {
 		return nil, err
 	}
-
-	c.addAuthHeader(req)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
