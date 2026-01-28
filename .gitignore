@@ -31,6 +31,6 @@ go.work.sum
 # .idea/
 # .vscode/
 
-stava_client.http
 
 *.csv
+stava_client.http
