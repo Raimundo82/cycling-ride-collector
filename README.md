@@ -89,35 +89,19 @@ The application can be configured using environment variables:
 | `MINIMAL_WORKOUT_DURATION` | Minimum workout duration in minutes to include | `30` |
 | `STRAVA_BASE_URL` | Strava OAuth base URL | `https://www.strava.com` |
 | `STRAVA_API_BASE_URL` | Strava API base URL | `https://www.strava.com/api/v3` |
-| `STRAVA_CLIENT_ID` | Your Strava application client ID | - |
-| `STRAVA_CLIENT_SECRET` | Your Strava application client secret | - |
 | `STRAVA_ACCESS_TOKEN` | Current Strava access token | - |
-| `STRAVA_REFRESH_TOKEN` | Strava refresh token | - |
 
 ### Strava Authentication
 
-The application uses OAuth2 for Strava authentication. To set up:
+The application uses Bearer token authentication for Strava API requests. To set up:
 
 1. Create a Strava API application at https://www.strava.com/settings/api
-2. Set your `STRAVA_CLIENT_ID` and `STRAVA_CLIENT_SECRET`
-3. Obtain initial access and refresh tokens through the OAuth2 flow
-4. Set `STRAVA_ACCESS_TOKEN` and `STRAVA_REFRESH_TOKEN`
+2. Obtain an access token through the OAuth2 flow
+3. Set `STRAVA_ACCESS_TOKEN` environment variable
 
-**Token Refresh**: Strava access tokens expire after 6 hours. The application includes automatic token refresh functionality:
+All API requests will include the access token in the `Authorization: Bearer <token>` header.
 
-```go
-// When a token expires (401 error), refresh it
-tokenResp, err := client.RefreshAccessToken(ctx)
-if err != nil {
-    log.Fatal(err)
-}
-
-// Update your configuration with new tokens
-os.Setenv("STRAVA_ACCESS_TOKEN", tokenResp.AccessToken)
-os.Setenv("STRAVA_REFRESH_TOKEN", tokenResp.RefreshToken)
-
-// Token expires at: time.Unix(tokenResp.ExpiresAt, 0)
-```
+**Note**: Strava access tokens expire after 6 hours. You will need to handle token refresh manually or implement your own refresh logic as needed.
 
 ### Example
 
