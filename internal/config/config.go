@@ -26,8 +26,8 @@ func Load() *Config {
 
 	return &Config{
 		MinimalWorkoutDuration: val,
-		StravaBaseUrl:          getEnv("STRAVA_BASE_URL", "https://www.strava.com"),
-		StravaApiBaseUrl:       getEnv("STRAVA_API_BASE_URL", "https://www.strava.com/api/v3"),
+		StravaBaseUrl:          getEnv("STRAVA_BASE_URL", ""),
+		StravaApiBaseUrl:       getEnv("STRAVA_API_BASE_URL", ""),
 		StravaClientID:         getEnv("STRAVA_CLIENT_ID", ""),
 		StravaClientSecret:     getEnv("STRAVA_CLIENT_SECRET", ""),
 		StravaAccessToken:      getEnv("STRAVA_ACCESS_TOKEN", ""),

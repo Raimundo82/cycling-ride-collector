@@ -87,6 +87,21 @@ The application can be configured using environment variables:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `MINIMAL_WORKOUT_DURATION` | Minimum workout duration in minutes to include | `30` |
+| `STRAVA_BASE_URL` | Strava OAuth base URL | `https://www.strava.com` |
+| `STRAVA_API_BASE_URL` | Strava API base URL | `https://www.strava.com/api/v3` |
+| `STRAVA_ACCESS_TOKEN` | Current Strava access token | - |
+
+### Strava Authentication
+
+The application uses Bearer token authentication for Strava API requests. To set up:
+
+1. Create a Strava API application at https://www.strava.com/settings/api
+2. Obtain an access token through the OAuth2 flow
+3. Set `STRAVA_ACCESS_TOKEN` environment variable
+
+All API requests will include the access token in the `Authorization: Bearer <token>` header.
+
+**Note**: Strava access tokens expire after 6 hours. You will need to handle token refresh manually or implement your own refresh logic as needed.
 
 ### Example
 
