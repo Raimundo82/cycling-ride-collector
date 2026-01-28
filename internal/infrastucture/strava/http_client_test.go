@@ -408,3 +408,29 @@ func TestGetWattsStream_SendsAuthorizationHeader(t *testing.T) {
 		})
 	})
 }
+
+func TestGetWattsStream_NoAuthHeaderWhenTokenEmpty(t *testing.T) {
+	Convey("Given a strava http client without an access token", t, func() {
+		var gotAuthHeader string
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			gotAuthHeader = r.Header.Get("Authorization")
+			_, _ = w.Write([]byte(`{"watts":{"data": [100, 200]}}`))
+		}))
+		defer server.Close()
+
+		client := NewHttpClient(server.Client(), &config.Config{
+			StravaApiBaseUrl:  server.URL,
+			StravaAccessToken: "",
+		})
+
+		Convey("When GetWattsStream is called", func() {
+			_, err := client.GetWattsStream(context.Background(), 12345)
+
+			Convey("It should not send an Authorization header", func() {
+				So(err, ShouldBeNil)
+				So(gotAuthHeader, ShouldBeEmpty)
+			})
+		})
+	})
+}
