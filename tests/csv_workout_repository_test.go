@@ -1,4 +1,4 @@
-package csv
+package test
 
 import (
 	"bytes"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/raimundo82/go-strava-weekly/internal/domain"
+	"github.com/raimundo82/go-strava-weekly/internal/infrastucture/csv"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -25,7 +26,7 @@ func TestCSVWorkoutRepository_SaveToWriter(t *testing.T) {
 			MaxHeartRateInBpm:      180,
 			AvgCadenceInRpm:        90,
 		}
-		repo := NewCSVWorkoutRepository("test_workouts.csv")
+		repo := csv.NewCSVWorkoutRepository("test_workouts.csv")
 
 		Convey("When SaveToWriter is called", func() {
 			var buf bytes.Buffer
@@ -55,7 +56,7 @@ func TestCSVWorkoutRepository_Save_AppendsToFile(t *testing.T) {
 		err = tmpfile.Close()
 		So(err, ShouldBeNil)
 
-		repo := NewCSVWorkoutRepository(tmpfile.Name())
+		repo := csv.NewCSVWorkoutRepository(tmpfile.Name())
 		workout := &domain.Workout{
 			WorkoutType:            domain.Estrada,
 			StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
@@ -90,7 +91,7 @@ func TestCSVWorkoutRepository_Save_CreatesFileIfNotExists(t *testing.T) {
 		filename := "workouts_temp.csv"
 		_ = os.Remove(filename)
 		defer func() { _ = os.Remove(filename) }()
-		repo := NewCSVWorkoutRepository(filename)
+		repo := csv.NewCSVWorkoutRepository(filename)
 		workout := &domain.Workout{
 			WorkoutType:            domain.Estrada,
 			StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
@@ -117,7 +118,7 @@ func TestCSVWorkoutRepository_Save_CreatesFileIfNotExists(t *testing.T) {
 
 func TestCSVWorkoutRepository_Save_InvalidFilePath(t *testing.T) {
 	Convey("Given an invalid file path", t, func() {
-		repo := NewCSVWorkoutRepository("/invalid/path/that/does/not/exist/workouts.csv")
+		repo := csv.NewCSVWorkoutRepository("/invalid/path/that/does/not/exist/workouts.csv")
 		workout := &domain.Workout{
 			WorkoutType:            domain.Estrada,
 			StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
@@ -153,7 +154,7 @@ func TestCSVWorkoutRepository_Save_ReadOnlyFile(t *testing.T) {
 		err = os.Chmod(tmpfile.Name(), 0o444)
 		So(err, ShouldBeNil)
 
-		repo := NewCSVWorkoutRepository(tmpfile.Name())
+		repo := csv.NewCSVWorkoutRepository(tmpfile.Name())
 		workout := &domain.Workout{
 			WorkoutType:            domain.Estrada,
 			StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
@@ -179,7 +180,7 @@ func TestCSVWorkoutRepository_Save_ReadOnlyFile(t *testing.T) {
 
 func TestCSVWorkoutRepository_SaveToWriter_NilWorkout(t *testing.T) {
 	Convey("Given a nil workout", t, func() {
-		repo := NewCSVWorkoutRepository("test_workouts.csv")
+		repo := csv.NewCSVWorkoutRepository("test_workouts.csv")
 
 		Convey("When SaveToWriter is called with nil workout", func() {
 			var buf bytes.Buffer

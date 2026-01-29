@@ -12,10 +12,10 @@ import (
 var _ contracts.WorkoutProvider = (*Provider)(nil)
 
 type Provider struct {
-	client client
+	client Client
 }
 
-func NewProvider(c client) *Provider {
+func NewProvider(c Client) *Provider {
 	return &Provider{client: c}
 }
 

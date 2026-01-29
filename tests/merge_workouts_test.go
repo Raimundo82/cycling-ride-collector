@@ -1,9 +1,10 @@
-package usecase
+package test
 
 import (
 	"testing"
 	"time"
 
+	"github.com/raimundo82/go-strava-weekly/internal/application/usecase"
 	"github.com/raimundo82/go-strava-weekly/internal/domain"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -13,7 +14,7 @@ func TestMergeWorkouts_EmptyWorkouts(t *testing.T) {
 		workouts := []*domain.Workout{}
 
 		Convey("When MergeWorkouts is called", func() {
-			merged := MergeWorkouts(workouts, 30)
+			merged := usecase.MergeWorkouts(workouts, 30)
 
 			Convey("Then the result is nil", func() {
 				So(merged, ShouldBeNil)
@@ -31,7 +32,7 @@ func TestMergeWorkouts_NoDuration(t *testing.T) {
 		workouts := []*domain.Workout{workout}
 
 		Convey("When MergeWorkouts is called", func() {
-			merged := MergeWorkouts(workouts, 30)
+			merged := usecase.MergeWorkouts(workouts, 30)
 
 			Convey("Then the result should be nil", func() {
 				So(merged, ShouldBeNil)
@@ -49,7 +50,7 @@ func TestMergeWorkouts_SingleShortDuration(t *testing.T) {
 		workouts := []*domain.Workout{workout}
 
 		Convey("When MergeWorkouts is called", func() {
-			merged := MergeWorkouts(workouts, 30)
+			merged := usecase.MergeWorkouts(workouts, 30)
 
 			Convey("Then the result should be nil", func() {
 				So(merged, ShouldBeNil)
@@ -67,7 +68,7 @@ func TestMergeWorkouts_SingleLongDuration(t *testing.T) {
 		workouts := []*domain.Workout{workout}
 
 		Convey("When MergeWorkouts is called", func() {
-			merged := MergeWorkouts(workouts, 30)
+			merged := usecase.MergeWorkouts(workouts, 30)
 
 			Convey("Then the result is the same workout", func() {
 				So(merged, ShouldEqual, workout)
@@ -89,7 +90,7 @@ func TestMergeWorkouts_MixedShortAndLong(t *testing.T) {
 		workouts := []*domain.Workout{shortWorkout, longWorkout}
 
 		Convey("When MergeWorkouts is called", func() {
-			merged := MergeWorkouts(workouts, 30)
+			merged := usecase.MergeWorkouts(workouts, 30)
 
 			Convey("Then the result should be the long workout", func() {
 				So(merged, ShouldEqual, longWorkout)
@@ -131,7 +132,7 @@ func TestMergeWorkouts_AllLongDurations(t *testing.T) {
 		workouts := []*domain.Workout{workout1, workout2}
 
 		Convey("When MergeWorkouts is called", func() {
-			merged := MergeWorkouts(workouts, 30)
+			merged := usecase.MergeWorkouts(workouts, 30)
 
 			Convey("Then the result is a merged workout with summed duration and distance", func() {
 				So(merged.ID, ShouldEqual, 1)
