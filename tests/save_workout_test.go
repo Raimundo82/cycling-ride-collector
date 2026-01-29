@@ -1,10 +1,11 @@
-package usecase
+package test
 
 import (
 	"fmt"
 	"testing"
 	"time"
 
+	"github.com/raimundo82/go-strava-weekly/internal/application/usecase"
 	"github.com/raimundo82/go-strava-weekly/internal/domain"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -68,7 +69,7 @@ func TestSaveWorkout(t *testing.T) {
 				GetWorkoutByDateCalled: 0,
 			}
 
-			useCase := &SaveWorkout{
+			useCase := &usecase.SaveWorkout{
 				WorkoutRepo:     mockRepo,
 				WorkoutProvider: mockProvider,
 			}
@@ -99,7 +100,7 @@ func TestSaveWorkout_WithNoWorkouts(t *testing.T) {
 			GetWorkoutByDateCalled: 0,
 		}
 
-		useCase := &SaveWorkout{
+		useCase := &usecase.SaveWorkout{
 			WorkoutRepo:     mockRepo,
 			WorkoutProvider: mockProvider,
 		}
@@ -143,7 +144,7 @@ func TestSaveWorkout_WithLongWorkout(t *testing.T) {
 			GetWorkoutByDateCalled: 0,
 		}
 
-		useCase := &SaveWorkout{
+		useCase := &usecase.SaveWorkout{
 			WorkoutRepo:     mockRepo,
 			WorkoutProvider: mockProvider,
 		}
@@ -188,7 +189,7 @@ func TestSaveWorkout_WithShortWorkout(t *testing.T) {
 			GetWorkoutByDateCalled: 0,
 		}
 
-		useCase := &SaveWorkout{
+		useCase := &usecase.SaveWorkout{
 			WorkoutRepo:     mockRepo,
 			WorkoutProvider: mockProvider,
 		}
@@ -221,7 +222,7 @@ func TestSaveWorkout_WithProviderError(t *testing.T) {
 			Err:                    providerErr,
 		}
 
-		useCase := &SaveWorkout{
+		useCase := &usecase.SaveWorkout{
 			WorkoutRepo:     mockRepo,
 			WorkoutProvider: mockProvider,
 		}

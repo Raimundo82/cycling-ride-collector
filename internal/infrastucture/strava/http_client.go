@@ -30,7 +30,7 @@ func (a *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 var (
-	_ client            = (*stravaHttpClient)(nil)
+	_ Client            = (*stravaHttpClient)(nil)
 	_ http.RoundTripper = (*authTransport)(nil)
 )
 

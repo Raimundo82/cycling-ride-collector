@@ -1,16 +1,17 @@
-package strava
+package test
 
 import (
 	"testing"
 	"time"
 
 	"github.com/raimundo82/go-strava-weekly/internal/domain"
+	"github.com/raimundo82/go-strava-weekly/internal/infrastucture/strava"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestMapToWorkout_With29WattsDataPoints(t *testing.T) {
 	Convey("Given a road ride ActivityDto with 29 watts data points", t, func() {
-		activity := &ActivityDto{
+		activity := &strava.ActivityDto{
 			ID:                 123456789,
 			Type:               "Ride",
 			IsTrainer:          false,
@@ -23,7 +24,7 @@ func TestMapToWorkout_With29WattsDataPoints(t *testing.T) {
 			AverageHeartRate:   150.0,
 			MaxHeartRate:       180.0,
 			AverageCadence:     90.0,
-			Watts: &WattsStreamDto{[]int{
+			Watts: &strava.WattsStreamDto{WattsData: []int{
 				200, 200, 200, 200, 200, 200, 200, 200, 200, 200,
 				200, 200, 200, 200, 200, 200, 200, 200, 200, 200,
 				200, 200, 200, 200, 200, 200, 200, 200, 200,
@@ -31,7 +32,7 @@ func TestMapToWorkout_With29WattsDataPoints(t *testing.T) {
 		}
 
 		Convey("When MapToWorkout is called", func() {
-			workout := MapToWorkout(activity)
+			workout := strava.MapToWorkout(activity)
 
 			Convey("Then it should map to Estrada workout type", func() {
 				So(workout.WorkoutType, ShouldEqual, domain.Estrada)
@@ -58,7 +59,7 @@ func TestMapToWorkout_With29WattsDataPoints(t *testing.T) {
 
 func TestMapToWorkout_WithMoreThan30WattsDataPoints(t *testing.T) {
 	Convey("Given a trainer ride ActivityDto with more than 30 watts data points", t, func() {
-		activity := &ActivityDto{
+		activity := &strava.ActivityDto{
 			ID:                 987654321,
 			Type:               "Ride",
 			IsTrainer:          true,
@@ -71,7 +72,7 @@ func TestMapToWorkout_WithMoreThan30WattsDataPoints(t *testing.T) {
 			AverageHeartRate:   145.0,
 			MaxHeartRate:       175.0,
 			AverageCadence:     85.0,
-			Watts: &WattsStreamDto{[]int{
+			Watts: &strava.WattsStreamDto{WattsData: []int{
 				200, 200, 200, 200, 200, 200, 200, 200, 200, 200,
 				200, 200, 200, 200, 200, 200, 200, 200, 200, 200,
 				200, 200, 200, 200, 200, 200, 200, 200, 200, 200,
@@ -79,7 +80,7 @@ func TestMapToWorkout_WithMoreThan30WattsDataPoints(t *testing.T) {
 		}
 
 		Convey("When MapToWorkout is called", func() {
-			workout := MapToWorkout(activity)
+			workout := strava.MapToWorkout(activity)
 
 			Convey("Then it should map to Rolo workout type", func() {
 				So(workout.WorkoutType, ShouldEqual, domain.Rolo)
@@ -101,7 +102,7 @@ func TestMapToWorkout_WithMoreThan30WattsDataPoints(t *testing.T) {
 		})
 	})
 	Convey("Given an ActivityDto with invalid date format", t, func() {
-		activity := &ActivityDto{
+		activity := &strava.ActivityDto{
 			ID:                 111111111,
 			Type:               "Ride",
 			IsTrainer:          false,
@@ -114,7 +115,7 @@ func TestMapToWorkout_WithMoreThan30WattsDataPoints(t *testing.T) {
 			AverageHeartRate:   140.0,
 			MaxHeartRate:       170.0,
 			AverageCadence:     80.0,
-			Watts: &WattsStreamDto{[]int{
+			Watts: &strava.WattsStreamDto{WattsData: []int{
 				150, 150, 150, 150, 150, 150, 150, 150, 150, 150,
 				150, 150, 150, 150, 150, 150, 150, 150, 150, 150,
 				150, 150, 150, 150, 150, 150, 150, 150, 150, 150,
@@ -125,7 +126,7 @@ func TestMapToWorkout_WithMoreThan30WattsDataPoints(t *testing.T) {
 		}
 
 		Convey("When MapToWorkout is called", func() {
-			workout := MapToWorkout(activity)
+			workout := strava.MapToWorkout(activity)
 
 			Convey("Then StartTime should be zero time", func() {
 				So(workout.StartTime, ShouldResemble, time.Time{})

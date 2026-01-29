@@ -1,4 +1,4 @@
-package strava
+package test
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/raimundo82/go-strava-weekly/internal/config"
+	"github.com/raimundo82/go-strava-weekly/internal/infrastucture/strava"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -24,7 +25,7 @@ func TestGetActivitiesByDate_ConstructsCorrectRequestAndDecodesActivities(t *tes
 			_, _ = w.Write([]byte(`[{"id":1},{"id":2}]`))
 		}))
 		defer server.Close()
-		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+		client := strava.NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetActivitiesByDate is called", func() {
 			acts, err := client.GetActivitiesByDate(context.Background(), date)
@@ -59,7 +60,7 @@ func TestGetActivitiesByDate_ReturnsEmptySliceWhenNoActivities(t *testing.T) {
 			_, _ = w.Write([]byte(`[]`))
 		}))
 		defer server.Close()
-		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+		client := strava.NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetActivityByDate is called", func() {
 			acts, err := client.GetActivitiesByDate(context.Background(), date)
@@ -84,7 +85,7 @@ func TestGetActivitiesByDate_ReturnsEmptySliceWhenNoActivities(t *testing.T) {
 
 func TestGetActivityByDate_ErrorCases(t *testing.T) {
 	Convey("Given a strava http client", t, func() {
-		client := NewHttpClient(http.DefaultClient, &config.Config{StravaApiBaseUrl: "http://invalid"})
+		client := strava.NewHttpClient(http.DefaultClient, &config.Config{StravaApiBaseUrl: "http://invalid"})
 
 		Convey("When context is canceled", func() {
 			ctx, cancel := context.WithCancel(context.Background())
@@ -109,7 +110,7 @@ func TestGetActivitiesByDate_ReturnsErrorOnNonOKStatus(t *testing.T) {
 			w.WriteHeader(http.StatusUnauthorized)
 		}))
 		defer server.Close()
-		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+		client := strava.NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetActivitiesByDate is called", func() {
 			acts, err := client.GetActivitiesByDate(context.Background(), date)
@@ -131,7 +132,7 @@ func TestGetActivitiesByDate_ReturnsErrorOnInvalidJSON(t *testing.T) {
 			_, _ = w.Write([]byte(`{invalid json}`))
 		}))
 		defer server.Close()
-		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+		client := strava.NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetActivitiesByDate is called", func() {
 			acts, err := client.GetActivitiesByDate(context.Background(), date)
@@ -147,7 +148,7 @@ func TestGetActivitiesByDate_ReturnsErrorOnInvalidJSON(t *testing.T) {
 func TestGetActivitiesByDate_ReturnsErrorOnNetworkFailure(t *testing.T) {
 	Convey("Given an unreachable strava server", t, func() {
 		date := time.Date(2024, 1, 10, 0, 0, 0, 0, time.UTC)
-		client := NewHttpClient(http.DefaultClient, &config.Config{StravaApiBaseUrl: "http://localhost:99999"})
+		client := strava.NewHttpClient(http.DefaultClient, &config.Config{StravaApiBaseUrl: "http://localhost:99999"})
 
 		Convey("When GetActivitiesByDate is called", func() {
 			acts, err := client.GetActivitiesByDate(context.Background(), date)
@@ -169,7 +170,7 @@ func TestGetActivitiesByDate_ReturnsErrorOnTimeout(t *testing.T) {
 			_, _ = w.Write([]byte(`[{"id":1}]`))
 		}))
 		defer server.Close()
-		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+		client := strava.NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetActivitiesByDate is called with a timeout context", func() {
 			ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
@@ -197,7 +198,7 @@ func TestGetWattsStream_ConstructsCorrectRequestAndDecodesStream(t *testing.T) {
 			_, _ = w.Write([]byte(`{"watts":{"data": [103,100,50]}}`))
 		}))
 		defer server.Close()
-		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+		client := strava.NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetWattsStream is called", func() {
 			activityID := int64(12345)
@@ -227,7 +228,7 @@ func TestGetWattsStream_ReturnsEmptyWattsWhenNoWattsData(t *testing.T) {
 			_, _ = w.Write([]byte(`{"watts":{"data": null}}`))
 		}))
 		defer server.Close()
-		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+		client := strava.NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetWattsStream is called", func() {
 			watts, err := client.GetWattsStream(context.Background(), activityID)
@@ -249,7 +250,7 @@ func TestGetWattsStream_ReturnsEmptyWattsWhenWattsDataIsEmpty(t *testing.T) {
 			_, _ = w.Write([]byte(`{"watts":{"data": []}}`))
 		}))
 		defer server.Close()
-		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+		client := strava.NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetWattsStream is called", func() {
 			watts, err := client.GetWattsStream(context.Background(), activityID)
@@ -271,7 +272,7 @@ func TestGetWattsStream_ReturnsErrorOnNonOKStatus(t *testing.T) {
 			w.WriteHeader(http.StatusNotFound)
 		}))
 		defer server.Close()
-		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+		client := strava.NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetWattsStream is called", func() {
 			watts, err := client.GetWattsStream(context.Background(), activityID)
@@ -292,7 +293,7 @@ func TestGetWattsStream_ReturnsErrorOnCanceledContext(t *testing.T) {
 			_, _ = w.Write([]byte(`{"watts":{"data": [100]}}`))
 		}))
 		defer server.Close()
-		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+		client := strava.NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetWattsStream is called with a canceled context", func() {
 			ctx, cancel := context.WithCancel(context.Background())
@@ -315,7 +316,7 @@ func TestGetWattsStream_ReturnsErrorOnInvalidJSON(t *testing.T) {
 			_, _ = w.Write([]byte(`{invalid json}`))
 		}))
 		defer server.Close()
-		client := NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
+		client := strava.NewHttpClient(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetWattsStream is called", func() {
 			watts, err := client.GetWattsStream(context.Background(), 12345)
@@ -340,7 +341,7 @@ func TestGetActivitiesByDate_SendsAuthorizationHeader(t *testing.T) {
 		}))
 		defer server.Close()
 
-		client := NewHttpClient(server.Client(), &config.Config{
+		client := strava.NewHttpClient(server.Client(), &config.Config{
 			StravaApiBaseUrl:  server.URL,
 			StravaAccessToken: "test_access_token_123",
 		})
@@ -367,7 +368,7 @@ func TestGetActivitiesByDate_NoAuthHeaderWhenTokenEmpty(t *testing.T) {
 		}))
 		defer server.Close()
 
-		client := NewHttpClient(server.Client(), &config.Config{
+		client := strava.NewHttpClient(server.Client(), &config.Config{
 			StravaApiBaseUrl:  server.URL,
 			StravaAccessToken: "",
 		})
@@ -393,7 +394,7 @@ func TestGetWattsStream_SendsAuthorizationHeader(t *testing.T) {
 		}))
 		defer server.Close()
 
-		client := NewHttpClient(server.Client(), &config.Config{
+		client := strava.NewHttpClient(server.Client(), &config.Config{
 			StravaApiBaseUrl:  server.URL,
 			StravaAccessToken: "test_access_token_456",
 		})
@@ -419,7 +420,7 @@ func TestGetWattsStream_NoAuthHeaderWhenTokenEmpty(t *testing.T) {
 		}))
 		defer server.Close()
 
-		client := NewHttpClient(server.Client(), &config.Config{
+		client := strava.NewHttpClient(server.Client(), &config.Config{
 			StravaApiBaseUrl:  server.URL,
 			StravaAccessToken: "",
 		})
