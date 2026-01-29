@@ -2,7 +2,6 @@ package strava
 
 type ActivityDto struct {
 	ID                 int64   `json:"id"`
-	Type               string  `json:"type"`
 	SportType          string  `json:"sport_type"`
 	IsTrainer          bool    `json:"trainer"`
 	StartDate          string  `json:"start_date_local"`
