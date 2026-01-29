@@ -13,7 +13,6 @@ func TestMapToWorkout_With29WattsDataPoints(t *testing.T) {
 	Convey("Given a road ride ActivityDto with 29 watts data points", t, func() {
 		activity := &strava.ActivityDto{
 			ID:                 123456789,
-			Type:               "Ride",
 			IsTrainer:          false,
 			StartDate:          "2024-01-25T10:30:00Z",
 			Distance:           25500.4,
@@ -61,7 +60,6 @@ func TestMapToWorkout_WithMoreThan30WattsDataPoints(t *testing.T) {
 	Convey("Given a trainer ride ActivityDto with more than 30 watts data points", t, func() {
 		activity := &strava.ActivityDto{
 			ID:                 987654321,
-			Type:               "Ride",
 			IsTrainer:          true,
 			StartDate:          "2024-01-25T18:00:00Z",
 			Distance:           30000.0,
@@ -104,7 +102,6 @@ func TestMapToWorkout_WithMoreThan30WattsDataPoints(t *testing.T) {
 	Convey("Given an ActivityDto with invalid date format", t, func() {
 		activity := &strava.ActivityDto{
 			ID:                 111111111,
-			Type:               "Ride",
 			IsTrainer:          false,
 			StartDate:          "invalid-date",
 			Distance:           10000.0,
