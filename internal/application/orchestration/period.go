@@ -1,6 +1,8 @@
 package orchestration
 
-import "time"
+import (
+	"time"
+)
 
 type Date struct {
 	Year  int
@@ -26,8 +28,14 @@ type Period struct {
 }
 
 func NewPeriod(startDate, endDate Date) Period {
+	s := startDate.ToTime()
+	e := endDate.ToTime()
 	return Period{
-		StartDate: startDate.ToTime(),
-		EndDate:   endDate.ToTime(),
+		StartDate: s,
+		EndDate:   e,
 	}
+}
+
+func (p Period) IsValid() bool {
+	return !p.StartDate.After(p.EndDate)
 }

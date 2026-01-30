@@ -12,6 +12,11 @@ type SaveWorkoutsOrchestrator struct {
 
 func (o *SaveWorkoutsOrchestrator) SaveWorkoutsOverPeriod(period Period, minWorkoutDuration int) error {
 	var errs []error
+
+	if !period.IsValid() {
+		return errors.New("invalid period: start date is after end date")
+	}
+
 	for date := period.StartDate; !date.After(period.EndDate); date = date.AddDate(0, 0, 1) {
 		err := o.SaveWorkoutUseCase.Execute(date, minWorkoutDuration)
 		if err != nil {
