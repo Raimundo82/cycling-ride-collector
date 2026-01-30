@@ -48,14 +48,21 @@ func (r *CSVWorkoutRepository) workoutToRecord(workout *domain.Workout) []string
 	return []string{
 		workout.StartTime.Format("1/2/2006"),
 		workout.WorkoutType.String(),
-		workout.StartTime.Format("15:04"),
-		strconv.Itoa(workout.DurationInMin),
-		strconv.FormatFloat(workout.DistanceInKm, 'f', 2, 64),
-		strconv.Itoa(workout.ElevationInMeters),
-		strconv.Itoa(workout.AvgPowerInWatts),
-		strconv.Itoa(workout.NormalizedPowerInWatts),
-		strconv.Itoa(workout.AvgHeartRateInBpm),
-		strconv.Itoa(workout.MaxHeartRateInBpm),
-		strconv.Itoa(workout.AvgCadenceInRpm),
+		valueOrEmpty(workout.StartTime.Format("15:04"), "00:00"),
+		valueOrEmpty(strconv.Itoa(workout.DurationInMin), "0"),
+		valueOrEmpty(strconv.FormatFloat(workout.DistanceInKm, 'f', 2, 64), "0.00"),
+		valueOrEmpty(strconv.Itoa(workout.ElevationInMeters), "0"),
+		valueOrEmpty(strconv.Itoa(workout.AvgPowerInWatts), "0"),
+		valueOrEmpty(strconv.Itoa(workout.NormalizedPowerInWatts), "0"),
+		valueOrEmpty(strconv.Itoa(workout.AvgHeartRateInBpm), "0"),
+		valueOrEmpty(strconv.Itoa(workout.MaxHeartRateInBpm), "0"),
+		valueOrEmpty(strconv.Itoa(workout.AvgCadenceInRpm), "0"),
 	}
+}
+
+func valueOrEmpty(value string, zero string) string {
+	if value == zero {
+		return ""
+	}
+	return value
 }
