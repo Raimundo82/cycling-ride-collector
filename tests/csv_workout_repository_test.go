@@ -7,15 +7,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/raimundo82/go-strava-weekly/internal/domain"
+	. "github.com/raimundo82/go-strava-weekly/internal/domain"
 	"github.com/raimundo82/go-strava-weekly/internal/infrastucture/csv"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestCSVWorkoutRepository_SaveToWriter(t *testing.T) {
 	Convey("Given a Workout", t, func() {
-		workout := &domain.Workout{
-			WorkoutType:            domain.Estrada,
+		workout := &Workout{
+			WorkoutType:            Estrada,
 			StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
 			DurationInMin:          60,
 			DistanceInKm:           25.5,
@@ -57,8 +57,8 @@ func TestCSVWorkoutRepository_Save_AppendsToFile(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		repo := csv.NewCSVWorkoutRepository(tmpfile.Name())
-		workout := &domain.Workout{
-			WorkoutType:            domain.Estrada,
+		workout := &Workout{
+			WorkoutType:            Estrada,
 			StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
 			DurationInMin:          60,
 			DistanceInKm:           25.5,
@@ -92,8 +92,8 @@ func TestCSVWorkoutRepository_Save_CreatesFileIfNotExists(t *testing.T) {
 		_ = os.Remove(filename)
 		defer func() { _ = os.Remove(filename) }()
 		repo := csv.NewCSVWorkoutRepository(filename)
-		workout := &domain.Workout{
-			WorkoutType:            domain.Estrada,
+		workout := &Workout{
+			WorkoutType:            Estrada,
 			StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
 			DurationInMin:          60,
 			DistanceInKm:           25.5,
@@ -119,8 +119,8 @@ func TestCSVWorkoutRepository_Save_CreatesFileIfNotExists(t *testing.T) {
 func TestCSVWorkoutRepository_Save_InvalidFilePath(t *testing.T) {
 	Convey("Given an invalid file path", t, func() {
 		repo := csv.NewCSVWorkoutRepository("/invalid/path/that/does/not/exist/workouts.csv")
-		workout := &domain.Workout{
-			WorkoutType:            domain.Estrada,
+		workout := &Workout{
+			WorkoutType:            Estrada,
 			StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
 			DurationInMin:          60,
 			DistanceInKm:           25.5,
@@ -155,8 +155,8 @@ func TestCSVWorkoutRepository_Save_ReadOnlyFile(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		repo := csv.NewCSVWorkoutRepository(tmpfile.Name())
-		workout := &domain.Workout{
-			WorkoutType:            domain.Estrada,
+		workout := &Workout{
+			WorkoutType:            Estrada,
 			StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
 			DurationInMin:          60,
 			DistanceInKm:           25.5,
@@ -173,6 +173,72 @@ func TestCSVWorkoutRepository_Save_ReadOnlyFile(t *testing.T) {
 
 			Convey("Then an error should be returned", func() {
 				So(err, ShouldNotBeNil)
+			})
+		})
+	})
+}
+
+func TestCSVWorkoutRepositoryNoWorkout(t *testing.T) {
+	Convey("Given a workout with only date and zero values for all other fields", t, func() {
+		workout := NewWorkout(&WorkoutParams{
+			ID:                     0,
+			StartTime:              time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC),
+			WorkoutType:            Estrada,
+			DistanceInKm:           0.00,
+			DurationInMin:          0,
+			ElevationInMeters:      0,
+			AvgPowerInWatts:        0,
+			NormalizedPowerInWatts: 0,
+			AvgHeartRateInBpm:      0,
+			MaxHeartRateInBpm:      0,
+			AvgCadenceInRpm:        0,
+		})
+		repo := csv.NewCSVWorkoutRepository("test_workouts.csv")
+
+		Convey("When SaveToWriter is called", func() {
+			var buf bytes.Buffer
+			err := repo.SaveToWriter(workout, &buf)
+
+			Convey("Then error should be nil", func() {
+				So(err, ShouldBeNil)
+			})
+
+			Convey("And it should write a line with zeros", func() {
+				expected := "6/1/2024,Estrada,00:00,0,0.00,0,0,0,0,0,0\n"
+				So(buf.String(), ShouldEqual, expected)
+			})
+		})
+	})
+}
+
+func TestCSVWorkoutRepository_SaveToWriter_NoWorkoutSentinelValues(t *testing.T) {
+	Convey("Given a workout with only date and sentinel values for all other fields", t, func() {
+		workout := NewWorkout(&WorkoutParams{
+			ID:                     -1,
+			StartTime:              time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC),
+			WorkoutType:            None,
+			DistanceInKm:           -1.00,
+			DurationInMin:          -1,
+			ElevationInMeters:      -1,
+			AvgPowerInWatts:        -1,
+			NormalizedPowerInWatts: -1,
+			AvgHeartRateInBpm:      -1,
+			MaxHeartRateInBpm:      -1,
+			AvgCadenceInRpm:        -1,
+		})
+		repo := csv.NewCSVWorkoutRepository("test_workouts.csv")
+
+		Convey("When SaveToWriter is called", func() {
+			var buf bytes.Buffer
+			err := repo.SaveToWriter(workout, &buf)
+
+			Convey("Then error should be nil", func() {
+				So(err, ShouldBeNil)
+			})
+
+			Convey("And it should write an empty line", func() {
+				expected := "6/1/2024,,,,,,,,,,\n"
+				So(buf.String(), ShouldEqual, expected)
 			})
 		})
 	})

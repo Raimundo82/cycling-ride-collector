@@ -5,7 +5,8 @@ import "time"
 type WorkoutType int
 
 const (
-	Estrada WorkoutType = iota
+	None WorkoutType = iota
+	Estrada
 	Rolo
 	Mixed
 )
@@ -38,7 +39,7 @@ type WorkoutParams struct {
 	AvgCadenceInRpm        int
 }
 
-func NewWorkout(params WorkoutParams) *Workout {
+func NewWorkout(params *WorkoutParams) *Workout {
 	return &Workout{
 		ID:                     params.ID,
 		WorkoutType:            params.WorkoutType,
