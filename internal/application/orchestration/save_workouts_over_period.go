@@ -3,11 +3,11 @@ package orchestration
 import (
 	"errors"
 
-	"github.com/raimundo82/go-strava-weekly/internal/application/usecase"
+	"github.com/raimundo82/go-strava-weekly/internal/application/contracts"
 )
 
 type SaveWorkoutsOrchestrator struct {
-	SaveWorkoutUseCase *usecase.SaveWorkout
+	SaveWorkoutUseCase contracts.SaveWorkoutUseCase
 }
 
 func (o *SaveWorkoutsOrchestrator) SaveWorkoutsOverPeriod(period Period, minWorkoutDuration int) error {

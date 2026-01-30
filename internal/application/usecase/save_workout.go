@@ -6,6 +6,8 @@ import (
 	"github.com/raimundo82/go-strava-weekly/internal/application/contracts"
 )
 
+var _ contracts.SaveWorkoutUseCase = (*SaveWorkout)(nil)
+
 type SaveWorkout struct {
 	WorkoutRepo     contracts.WorkoutRepository
 	WorkoutProvider contracts.WorkoutProvider
