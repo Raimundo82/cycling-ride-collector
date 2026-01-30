@@ -6,7 +6,6 @@ import (
 
 	. "github.com/raimundo82/go-strava-weekly/internal/application/contracts"
 	. "github.com/raimundo82/go-strava-weekly/internal/application/orchestration"
-
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -43,6 +42,5 @@ func TestSaveWorkoutsOverPeriod(t *testing.T) {
 				So(mockSaveWorkoutUseCase.ExecuteCalled, ShouldEqual, 3)
 			})
 		})
-
 	})
 }
