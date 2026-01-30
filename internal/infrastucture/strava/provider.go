@@ -26,7 +26,7 @@ func (p *Provider) GetWorkoutsByDate(date time.Time) ([]*domain.Workout, error) 
 	}
 
 	rideActivities := lo.FilterMap(acts, func(a *ActivityDto, _ int) (w *domain.Workout, ok bool) {
-		if a.SportType == "Ride" {
+		if a.SportType == "Ride" && !a.Commute {
 			stream, err := p.client.GetWattsStream(context.Background(), a.ID)
 			a.Watts = lo.Ternary(err == nil, stream, &WattsStreamDto{WattsData: []int{}})
 			return MapToWorkout(a), true

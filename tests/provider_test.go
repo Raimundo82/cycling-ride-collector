@@ -34,9 +34,10 @@ func TestProvider_FiltersAndMapsRides(t *testing.T) {
 		Convey("When the client returns rides and non-rides", func() {
 			stub := &stubClient{
 				acts: []*strava.ActivityDto{
-					{ID: 1, SportType: "Ride"},
-					{ID: 2, SportType: "MountainBike"},
-					{ID: 3, SportType: "Run"},
+					{ID: 1, SportType: "Ride", Commute: false},
+					{ID: 2, SportType: "Ride", Commute: true},
+					{ID: 3, SportType: "MountainBike", Commute: false},
+					{ID: 4, SportType: "Run"},
 				},
 				wattsStream: &strava.WattsStreamDto{WattsData: []int{100, 150, 200, 250, 300, 350, 400, 450}},
 			}
@@ -68,8 +69,8 @@ func TestProvider_HandlesWattsStreamErrorsGracefully(t *testing.T) {
 	Convey("Given a Strava provider where GetWattsStream fails", t, func() {
 		stub := &stubClient{
 			acts: []*strava.ActivityDto{
-				{ID: 1, SportType: "Ride"},
-				{ID: 2, SportType: "MountainBike"},
+				{ID: 1, SportType: "Ride", Commute: false},
+				{ID: 2, SportType: "MountainBike", Commute: false},
 			},
 			wattsStreamErr: errors.New("watts stream unavailable"),
 		}

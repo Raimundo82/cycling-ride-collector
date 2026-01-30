@@ -3,6 +3,7 @@ package strava
 type ActivityDto struct {
 	ID                 int64   `json:"id"`
 	SportType          string  `json:"sport_type"`
+	Commute            bool    `json:"commute"`
 	IsTrainer          bool    `json:"trainer"`
 	StartDate          string  `json:"start_date_local"`
 	Distance           float64 `json:"distance"`
