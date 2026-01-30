@@ -46,6 +46,7 @@ func (r *CSVWorkoutRepository) SaveToWriter(workout *domain.Workout, w io.Writer
 
 func (r *CSVWorkoutRepository) workoutToRecord(workout *domain.Workout) []string {
 	return []string{
+		workout.StartTime.Format("1/2/2006"),
 		workout.WorkoutType.String(),
 		workout.StartTime.Format("15:04"),
 		strconv.Itoa(workout.DurationInMin),
