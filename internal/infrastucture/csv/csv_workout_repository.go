@@ -45,24 +45,36 @@ func (r *CSVWorkoutRepository) SaveToWriter(workout *domain.Workout, w io.Writer
 }
 
 func (r *CSVWorkoutRepository) workoutToRecord(workout *domain.Workout) []string {
+	startTime := ""
+	if workout.ID >= 0 {
+		startTime = workout.StartTime.Format("15:04")
+	}
+
 	return []string{
 		workout.StartTime.Format("1/2/2006"),
 		workout.WorkoutType.String(),
-		valueOrEmpty(workout.StartTime.Format("15:04"), "00:00"),
-		valueOrEmpty(strconv.Itoa(workout.DurationInMin), "0"),
-		valueOrEmpty(strconv.FormatFloat(workout.DistanceInKm, 'f', 2, 64), "0.00"),
-		valueOrEmpty(strconv.Itoa(workout.ElevationInMeters), "0"),
-		valueOrEmpty(strconv.Itoa(workout.AvgPowerInWatts), "0"),
-		valueOrEmpty(strconv.Itoa(workout.NormalizedPowerInWatts), "0"),
-		valueOrEmpty(strconv.Itoa(workout.AvgHeartRateInBpm), "0"),
-		valueOrEmpty(strconv.Itoa(workout.MaxHeartRateInBpm), "0"),
-		valueOrEmpty(strconv.Itoa(workout.AvgCadenceInRpm), "0"),
+		startTime,
+		intValueOrEmpty(workout.DurationInMin),
+		floatValueOrEmpty(workout.DistanceInKm),
+		intValueOrEmpty(workout.ElevationInMeters),
+		intValueOrEmpty(workout.AvgPowerInWatts),
+		intValueOrEmpty(workout.NormalizedPowerInWatts),
+		intValueOrEmpty(workout.AvgHeartRateInBpm),
+		intValueOrEmpty(workout.MaxHeartRateInBpm),
+		intValueOrEmpty(workout.AvgCadenceInRpm),
 	}
 }
 
-func valueOrEmpty(value string, zero string) string {
-	if value == zero {
+func intValueOrEmpty(value int) string {
+	if value < 0 {
 		return ""
 	}
-	return value
+	return strconv.Itoa(value)
+}
+
+func floatValueOrEmpty(value float64) string {
+	if value < 0 {
+		return ""
+	}
+	return strconv.FormatFloat(value, 'f', 2, 64)
 }

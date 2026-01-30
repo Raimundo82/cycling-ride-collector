@@ -179,13 +179,56 @@ func TestCSVWorkoutRepository_Save_ReadOnlyFile(t *testing.T) {
 }
 
 func TestCSVWorkoutRepositoryNoWorkout(t *testing.T) {
-	Convey("Given a workout with no data", t, func() {
+	Convey("Given a workout with only date and zero values for all other fields", t, func() {
 		workout := NewWorkout(&WorkoutParams{
-			StartTime: time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC),
+			ID:                     0,
+			StartTime:              time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC),
+			WorkoutType:            Estrada,
+			DistanceInKm:           0.00,
+			DurationInMin:          0,
+			ElevationInMeters:      0,
+			AvgPowerInWatts:        0,
+			NormalizedPowerInWatts: 0,
+			AvgHeartRateInBpm:      0,
+			MaxHeartRateInBpm:      0,
+			AvgCadenceInRpm:        0,
 		})
 		repo := csv.NewCSVWorkoutRepository("test_workouts.csv")
 
-		Convey("When SaveToWriter is called with workout with only date field", func() {
+		Convey("When SaveToWriter is called", func() {
+			var buf bytes.Buffer
+			err := repo.SaveToWriter(workout, &buf)
+
+			Convey("Then error should be nil", func() {
+				So(err, ShouldBeNil)
+			})
+
+			Convey("And it should write a line with zeros", func() {
+				expected := "6/1/2024,Estrada,00:00,0,0.00,0,0,0,0,0,0\n"
+				So(buf.String(), ShouldEqual, expected)
+			})
+		})
+	})
+}
+
+func TestCSVWorkoutRepository_SaveToWriter_NoWorkoutSentinelValues(t *testing.T) {
+	Convey("Given a workout with only date and sentinel values for all other fields", t, func() {
+		workout := NewWorkout(&WorkoutParams{
+			ID:                     -1,
+			StartTime:              time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC),
+			WorkoutType:            None,
+			DistanceInKm:           -1.00,
+			DurationInMin:          -1,
+			ElevationInMeters:      -1,
+			AvgPowerInWatts:        -1,
+			NormalizedPowerInWatts: -1,
+			AvgHeartRateInBpm:      -1,
+			MaxHeartRateInBpm:      -1,
+			AvgCadenceInRpm:        -1,
+		})
+		repo := csv.NewCSVWorkoutRepository("test_workouts.csv")
+
+		Convey("When SaveToWriter is called", func() {
 			var buf bytes.Buffer
 			err := repo.SaveToWriter(workout, &buf)
 

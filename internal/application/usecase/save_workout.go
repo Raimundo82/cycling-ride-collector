@@ -23,7 +23,17 @@ func (useCase *SaveWorkout) Execute(date time.Time, minWorkoutDuration int) erro
 
 	if workout == nil {
 		workout = &domain.Workout{
-			StartTime: date,
+			ID:                     -1,
+			StartTime:              date,
+			WorkoutType:            domain.None,
+			DistanceInKm:           -1.00,
+			DurationInMin:          -1,
+			ElevationInMeters:      -1,
+			AvgPowerInWatts:        -1,
+			NormalizedPowerInWatts: -1,
+			AvgHeartRateInBpm:      -1,
+			MaxHeartRateInBpm:      -1,
+			AvgCadenceInRpm:        -1,
 		}
 	}
 
