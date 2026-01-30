@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/raimundo82/go-strava-weekly/internal/application/orchestration"
 	"github.com/raimundo82/go-strava-weekly/internal/application/usecase"
 	"github.com/raimundo82/go-strava-weekly/internal/config"
 	"github.com/raimundo82/go-strava-weekly/internal/infrastucture/csv"
@@ -28,7 +29,16 @@ func main() {
 		WorkoutRepo:     csv.NewCSVWorkoutRepository("workouts.csv"),
 		WorkoutProvider: strava.NewProvider(stravaClient),
 	}
-	err := save.Execute(time.Date(2026, 1, 26, 0, 0, 0, 0, time.UTC), 30)
+
+	orches := &orchestration.SaveWorkoutsOrchestrator{
+		SaveWorkoutUseCase: save,
+	}
+
+	startDate := orchestration.NewDate(2026, time.January, 5)
+	endDate := orchestration.NewDate(2026, time.January, 30)
+	period := orchestration.NewPeriod(startDate, endDate)
+
+	err := orches.SaveWorkoutsOverPeriod(period, 30)
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 	} else {
