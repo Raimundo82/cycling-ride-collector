@@ -2,6 +2,7 @@ package csv
 
 import (
 	"encoding/csv"
+	"fmt"
 	"io"
 	"os"
 	"strconv"
@@ -54,7 +55,7 @@ func (r *CSVWorkoutRepository) workoutToRecord(workout *domain.Workout) []string
 		workout.StartTime.Format("1/2/2006"),
 		workout.WorkoutType.String(),
 		startTime,
-		intValueOrEmpty(workout.DurationInMin),
+		durationInHoursAndMinutes(workout.DurationInMin),
 		floatValueOrEmpty(workout.DistanceInKm),
 		intValueOrEmpty(workout.ElevationInMeters),
 		intValueOrEmpty(workout.AvgPowerInWatts),
@@ -77,4 +78,13 @@ func floatValueOrEmpty(value float64) string {
 		return ""
 	}
 	return strconv.FormatFloat(value, 'f', 2, 64)
+}
+
+func durationInHoursAndMinutes(totalMinutes int) string {
+	if totalMinutes < 0 {
+		return ""
+	}
+	hours := totalMinutes / 60
+	minutes := totalMinutes % 60
+	return fmt.Sprintf("%dh%dm", hours, minutes)
 }
