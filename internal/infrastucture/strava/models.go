@@ -11,6 +11,8 @@ type ActivityDto struct {
 	Duration           int     `json:"moving_time"`
 	TotalElevationGain float64 `json:"total_elevation_gain"`
 	AveragePower       float64 `json:"average_watts"`
+	HasHeartRate       bool    `json:"has_heartrate"`
+	DeviceWatts        bool    `json:"device_watts"`
 	WeightedAvgPower   float64 `json:"weighted_average_watts"`
 	AverageHeartRate   float64 `json:"average_heartrate"`
 	MaxHeartRate       float64 `json:"max_heartrate"`
