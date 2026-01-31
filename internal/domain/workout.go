@@ -5,10 +5,10 @@ import "time"
 type WorkoutType int
 
 const (
-	None WorkoutType = iota
+	Descanso WorkoutType = iota
 	Estrada
 	Rolo
-	Mixed
+	Prova
 )
 
 type Workout struct {
@@ -61,9 +61,9 @@ func (wt WorkoutType) String() string {
 		return "Estrada"
 	case Rolo:
 		return "Rolo"
-	case Mixed:
-		return "Mixed"
+	case Prova:
+		return "Prova"
 	default:
-		return ""
+		return "Descanso"
 	}
 }

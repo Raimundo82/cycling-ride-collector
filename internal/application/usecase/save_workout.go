@@ -25,7 +25,7 @@ func (useCase *SaveWorkout) Execute(date time.Time, minWorkoutDuration int) erro
 		workout = &domain.Workout{
 			ID:                     -1,
 			StartTime:              date,
-			WorkoutType:            domain.None,
+			WorkoutType:            domain.Descanso,
 			DistanceInKm:           -1.00,
 			DurationInMin:          -1,
 			ElevationInMeters:      -1,

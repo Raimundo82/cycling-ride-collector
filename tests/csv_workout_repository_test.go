@@ -216,7 +216,7 @@ func TestCSVWorkoutRepository_SaveToWriter_NoWorkoutSentinelValues(t *testing.T)
 		workout := NewWorkout(&WorkoutParams{
 			ID:                     -1,
 			StartTime:              time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC),
-			WorkoutType:            None,
+			WorkoutType:            Descanso,
 			DistanceInKm:           -1.00,
 			DurationInMin:          -1,
 			ElevationInMeters:      -1,
@@ -237,7 +237,7 @@ func TestCSVWorkoutRepository_SaveToWriter_NoWorkoutSentinelValues(t *testing.T)
 			})
 
 			Convey("And it should write an empty line", func() {
-				expected := "6/1/2024,,,,,,,,,,\n"
+				expected := "6/1/2024,Descanso,,,,,,,,,\n"
 				So(buf.String(), ShouldEqual, expected)
 			})
 		})
