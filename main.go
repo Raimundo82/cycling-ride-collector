@@ -18,18 +18,18 @@ import (
 func main() {
 	// Load .env file
 	_ = godotenv.Load()
+	cfg := config.Load()
 
 	startDateStr := flag.String("start-date", "", "Start date in MM/DD/YYYY format")
 	endDateStr := flag.String("end-date", "", "End date in MM/DD/YYYY format")
 	accessToken := flag.String("access-token", "", "Strava API access token")
-	minimalWorkoutDuration := flag.Int("min-duration", 30, "Minimal workout duration in minutes")
+	minimalWorkoutDuration := flag.Int("min-duration", cfg.MinimalWorkoutDuration, "Minimal workout duration in minutes")
 	flag.Parse()
 
-	cfg := config.Load()
 	if *accessToken != "" {
 		cfg.StravaAccessToken = *accessToken
 	}
-	if *minimalWorkoutDuration > 0 {
+	if flag.Lookup("min-duration").Value.String() != fmt.Sprint(cfg.MinimalWorkoutDuration) {
 		cfg.MinimalWorkoutDuration = *minimalWorkoutDuration
 	}
 
@@ -50,7 +50,7 @@ func main() {
 	}
 
 	fmt.Printf("Start: %s\nEnd: %s\nAccess Token: %s\nMin Workout Duration: %d\n",
-		startDate.Format(time.RFC3339), endDate.Format(time.RFC3339), cfg.StravaAccessToken, cfg.MinimalWorkoutDuration)
+		startDate.Format(layout), endDate.Format(layout), cfg.StravaAccessToken, cfg.MinimalWorkoutDuration)
 
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 	stravaClient := strava.NewHttpClient(httpClient, cfg)
