@@ -20,13 +20,30 @@ type stubClient struct {
 
 var _ strava.Client = (*stubClient)(nil)
 
+// GetActivitiesByDate implements [strava.Client].
 func (s *stubClient) GetActivitiesByDate(ctx context.Context, d time.Time) ([]*strava.ActivityDto, error) {
 	return s.acts, s.activitiesErr
 }
 
+// GetWattsStream implements [strava.Client].
 func (s *stubClient) GetWattsStream(ctx context.Context, activityID int64) (*strava.WattsStreamDto, error) {
 	s.calls = append(s.calls, activityID)
 	return s.wattsStream, s.wattsStreamErr
+}
+
+// GetAthleteData implements [strava.Client].
+func (s *stubClient) GetAthleteData(ctx context.Context) (*strava.AthleteDto, error) {
+	panic("unimplemented")
+}
+
+// GetAthleteZones implements [strava.Client].
+func (s *stubClient) GetAthleteZones(ctx context.Context) (*strava.AthleteZonesDto, error) {
+	panic("unimplemented")
+}
+
+// GetDetailedActivityByID implements [strava.Client].
+func (s *stubClient) GetDetailedActivityByID(ctx context.Context, activityID int64) (*strava.DetailedActivityDto, error) {
+	panic("unimplemented")
 }
 
 func TestProvider_FiltersAndMapsRides(t *testing.T) {
