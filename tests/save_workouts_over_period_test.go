@@ -33,8 +33,8 @@ func TestSaveWorkoutsOverPeriodOf3DaysOnTheSameMonth(t *testing.T) {
 			SaveWorkoutUseCase: mockSaveWorkoutUseCase,
 		}
 		Convey("When SaveWorkoutsOverPeriod is called for a period of 3 days", func() {
-			startDate := NewDate(2024, 1, 1)
-			endDate := NewDate(2024, 1, 3)
+			startDate := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+			endDate := time.Date(2024, 1, 3, 0, 0, 0, 0, time.UTC)
 			period := NewPeriod(startDate, endDate)
 			minWorkoutDuration := 30
 			err := orchestrator.SaveWorkoutsOverPeriod(period, minWorkoutDuration)
@@ -61,8 +61,8 @@ func TestSaveWorkoutsOverPeriodOfSingleDay(t *testing.T) {
 			SaveWorkoutUseCase: mockSaveWorkoutUseCase,
 		}
 		Convey("When SaveWorkoutsOverPeriod is called for a period of a single day", func() {
-			startDate := NewDate(2024, 1, 1)
-			endDate := NewDate(2024, 1, 1)
+			startDate := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+			endDate := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 			period := NewPeriod(startDate, endDate)
 			minWorkoutDuration := 30
 			err := orchestrator.SaveWorkoutsOverPeriod(period, minWorkoutDuration)
@@ -89,8 +89,8 @@ func TestSaveWorkoutsOverPeriodCrossingMonths(t *testing.T) {
 			SaveWorkoutUseCase: mockSaveWorkoutUseCase,
 		}
 		Convey("When SaveWorkoutsOverPeriod is called for a period crossing months", func() {
-			startDate := NewDate(2024, 1, 31)
-			endDate := NewDate(2024, 2, 2)
+			startDate := time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC)
+			endDate := time.Date(2024, 2, 2, 0, 0, 0, 0, time.UTC)
 			period := NewPeriod(startDate, endDate)
 			minWorkoutDuration := 30
 			err := orchestrator.SaveWorkoutsOverPeriod(period, minWorkoutDuration)
@@ -117,8 +117,8 @@ func TestSaveWorkoutsOverPeriodCrossingYears(t *testing.T) {
 			SaveWorkoutUseCase: mockSaveWorkoutUseCase,
 		}
 		Convey("When SaveWorkoutsOverPeriod is called for a period crossing years", func() {
-			startDate := NewDate(2024, 12, 31)
-			endDate := NewDate(2025, 1, 2)
+			startDate := time.Date(2024, 12, 31, 0, 0, 0, 0, time.UTC)
+			endDate := time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC)
 			period := NewPeriod(startDate, endDate)
 			minWorkoutDuration := 30
 			err := orchestrator.SaveWorkoutsOverPeriod(period, minWorkoutDuration)
@@ -145,8 +145,8 @@ func TestSaveWorkoutsOverInvalidPeriod(t *testing.T) {
 			SaveWorkoutUseCase: mockSaveWorkoutUseCase,
 		}
 		Convey("When SaveWorkoutsOverPeriod is called for an invalid period", func() {
-			startDate := NewDate(2025, 1, 2)
-			endDate := NewDate(2024, 12, 31)
+			startDate := time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC)
+			endDate := time.Date(2024, 12, 31, 0, 0, 0, 0, time.UTC)
 			period := NewPeriod(startDate, endDate)
 			minWorkoutDuration := 30
 			err := orchestrator.SaveWorkoutsOverPeriod(period, minWorkoutDuration)
@@ -173,8 +173,8 @@ func TestSaveWorkoutsOverPeriodWithPropagatedErrors(t *testing.T) {
 			SaveWorkoutUseCase: mockSaveWorkoutUseCase,
 		}
 		Convey("When SaveWorkoutsOverPeriod is called for an invalid period", func() {
-			startDate := NewDate(2025, 1, 1)
-			endDate := NewDate(2025, 1, 3)
+			startDate := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
+			endDate := time.Date(2025, 1, 3, 0, 0, 0, 0, time.UTC)
 			period := NewPeriod(startDate, endDate)
 			minWorkoutDuration := 30
 			err := orchestrator.SaveWorkoutsOverPeriod(period, minWorkoutDuration)

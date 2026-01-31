@@ -1,7 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -15,12 +17,40 @@ import (
 
 func main() {
 	// Load .env file
-	if err := godotenv.Load(); err != nil {
-		fmt.Println("No .env file found or failed to load .env")
-	}
+	_ = godotenv.Load()
+
+	startDateStr := flag.String("start-date", "", "Start date in MM/DD/YYYY format")
+	endDateStr := flag.String("end-date", "", "End date in MM/DD/YYYY format")
+	accessToken := flag.String("access-token", "", "Strava API access token")
+	minimalWorkoutDuration := flag.Int("min-duration", 30, "Minimal workout duration in minutes")
+	flag.Parse()
 
 	cfg := config.Load()
-	fmt.Printf("Configuration loaded: %+v\n", cfg)
+	if *accessToken != "" {
+		cfg.StravaAccessToken = *accessToken
+	}
+	if *minimalWorkoutDuration > 0 {
+		cfg.MinimalWorkoutDuration = *minimalWorkoutDuration
+	}
+
+	//fmt.Printf("Configuration loaded: %+v\n", cfg)
+
+	// Parse dates (from flags only, or you can add to config if needed)
+	if *startDateStr == "" || *endDateStr == "" {
+		log.Fatal("Flags --start-date and --end-date are required")
+	}
+	const layout = "01/02/2006"
+	startDate, err := time.Parse(layout, *startDateStr)
+	if err != nil {
+		log.Fatalf("Invalid start date: %v", err)
+	}
+	endDate, err := time.Parse(layout, *endDateStr)
+	if err != nil {
+		log.Fatalf("Invalid end date: %v", err)
+	}
+
+	fmt.Printf("Start: %s\nEnd: %s\nAccess Token: %s\nMin Workout Duration: %d\n",
+		startDate.Format(time.RFC3339), endDate.Format(time.RFC3339), cfg.StravaAccessToken, cfg.MinimalWorkoutDuration)
 
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 	stravaClient := strava.NewHttpClient(httpClient, cfg)
@@ -33,14 +63,11 @@ func main() {
 	orches := &orchestration.SaveWorkoutsOrchestrator{
 		SaveWorkoutUseCase: save,
 	}
-
-	startDate := orchestration.NewDate(2026, time.January, 5)
-	endDate := orchestration.NewDate(2026, time.January, 30)
 	period := orchestration.NewPeriod(startDate, endDate)
 
-	err := orches.SaveWorkoutsOverPeriod(period, 30)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+	orchestrationError := orches.SaveWorkoutsOverPeriod(period, cfg.MinimalWorkoutDuration)
+	if orchestrationError != nil {
+		fmt.Printf("Error: %v\n", orchestrationError)
 	} else {
 		fmt.Println("Workout(s) processed and saved (if any).")
 	}

@@ -4,35 +4,16 @@ import (
 	"time"
 )
 
-type Date struct {
-	Year  int
-	Month time.Month
-	Day   int
-}
-
-func NewDate(year int, month time.Month, day int) Date {
-	return Date{
-		Year:  year,
-		Month: month,
-		Day:   day,
-	}
-}
-
-func (d Date) ToTime() time.Time {
-	return time.Date(d.Year, d.Month, d.Day, 0, 0, 0, 0, time.UTC)
-}
-
 type Period struct {
 	StartDate time.Time
 	EndDate   time.Time
 }
 
-func NewPeriod(startDate, endDate Date) Period {
-	s := startDate.ToTime()
-	e := endDate.ToTime()
+func NewPeriod(startDate, endDate time.Time) Period {
+
 	return Period{
-		StartDate: s,
-		EndDate:   e,
+		StartDate: startDate,
+		EndDate:   endDate,
 	}
 }
 
