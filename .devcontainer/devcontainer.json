@@ -18,7 +18,8 @@
 			},
 			"extensions": [
 				"golang.go",
-				"PKief.material-icon-theme"
+				"PKief.material-icon-theme",
+				"humao.rest-client"
 			]
 		}
 	},
