@@ -69,7 +69,7 @@ func TestProvider_HandlesWattsStreamErrorsGracefully(t *testing.T) {
 	Convey("Given a Strava provider where GetWattsStream fails", t, func() {
 		stub := &stubClient{
 			acts: []*strava.ActivityDto{
-				{ID: 1, SportType: "Ride", Commute: false},
+				{ID: 1, SportType: "Ride", Commute: false, DeviceWatts: true},
 				{ID: 2, SportType: "MountainBike", Commute: false},
 			},
 			wattsStreamErr: errors.New("watts stream unavailable"),
