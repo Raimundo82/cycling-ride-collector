@@ -33,7 +33,7 @@ func main() {
 		cfg.MinimalWorkoutDuration = *minimalWorkoutDuration
 	}
 
-	//fmt.Printf("Configuration loaded: %+v\n", cfg)
+	// fmt.Printf("Configuration loaded: %+v\n", cfg)
 
 	// Parse dates (from flags only, or you can add to config if needed)
 	if *startDateStr == "" || *endDateStr == "" {

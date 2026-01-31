@@ -10,7 +10,6 @@ type Period struct {
 }
 
 func NewPeriod(startDate, endDate time.Time) Period {
-
 	return Period{
 		StartDate: startDate,
 		EndDate:   endDate,
