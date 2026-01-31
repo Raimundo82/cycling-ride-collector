@@ -37,7 +37,7 @@ func TestCSVWorkoutRepository_SaveToWriter(t *testing.T) {
 			})
 
 			Convey("And the CSV output should be correct", func() {
-				expected := "6/1/2024,Estrada,10:30,60,25.50,500,200,220,150,180,90\n"
+				expected := "6/1/2024,Estrada,10:30,1h0m,25.50,500,200,220,150,180,90\n"
 				So(buf.String(), ShouldEqual, expected)
 			})
 		})
@@ -50,7 +50,7 @@ func TestCSVWorkoutRepository_Save_AppendsToFile(t *testing.T) {
 		So(err, ShouldBeNil)
 		defer func() { _ = os.Remove(tmpfile.Name()) }()
 
-		initialContent := "5/1/2024,Estrada,10:00,30,10.00,100,150,160,120,130,80\n"
+		initialContent := "5/1/2024,Estrada,10:00,0h30m,10.00,100,150,160,120,130,80\n"
 		_, err = tmpfile.WriteString(initialContent)
 		So(err, ShouldBeNil)
 		err = tmpfile.Close()
@@ -78,8 +78,8 @@ func TestCSVWorkoutRepository_Save_AppendsToFile(t *testing.T) {
 			lines := strings.Split(strings.TrimSpace(string(data)), "\n")
 			So(len(lines), ShouldEqual, 2)
 
-			expectedFirst := "5/1/2024,Estrada,10:00,30,10.00,100,150,160,120,130,80"
-			expectedSecond := "6/1/2024,Estrada,10:30,60,25.50,500,200,220,150,180,90"
+			expectedFirst := "5/1/2024,Estrada,10:00,0h30m,10.00,100,150,160,120,130,80"
+			expectedSecond := "6/1/2024,Estrada,10:30,1h0m,25.50,500,200,220,150,180,90"
 			So(lines[0], ShouldEqual, expectedFirst)
 			So(lines[1], ShouldEqual, expectedSecond)
 		})
@@ -110,7 +110,7 @@ func TestCSVWorkoutRepository_Save_CreatesFileIfNotExists(t *testing.T) {
 
 			data, err := os.ReadFile(filename)
 			So(err, ShouldBeNil)
-			expected := "6/1/2024,Estrada,10:30,60,25.50,500,200,220,150,180,90\n"
+			expected := "6/1/2024,Estrada,10:30,1h0m,25.50,500,200,220,150,180,90\n"
 			So(string(data), ShouldEqual, expected)
 		})
 	})
@@ -204,7 +204,7 @@ func TestCSVWorkoutRepositoryNoWorkout(t *testing.T) {
 			})
 
 			Convey("And it should write a line with zeros", func() {
-				expected := "6/1/2024,Estrada,00:00,0,0.00,0,0,0,0,0,0\n"
+				expected := "6/1/2024,Estrada,00:00,0h0m,0.00,0,0,0,0,0,0\n"
 				So(buf.String(), ShouldEqual, expected)
 			})
 		})
