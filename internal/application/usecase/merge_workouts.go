@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/raimundo82/go-strava-weekly/internal/domain"
+	"github.com/samber/lo"
 )
 
 func MergeWorkouts(workouts []*domain.Workout, minWorkoutDuration int) *domain.Workout {
@@ -23,37 +24,40 @@ func MergeWorkouts(workouts []*domain.Workout, minWorkoutDuration int) *domain.W
 	}
 
 	merged := &domain.Workout{}
-	sumAvgPower := 0
-	sumAvgHeartRate := 0
-	sumAvgCadence := 0
-	sumNormalizedPower := 0
+
 	for _, w := range longDurationWorkouts {
 		merged.DistanceInKm += w.DistanceInKm
 		merged.DurationInMin += w.DurationInMin
 		merged.ElevationInMeters += w.ElevationInMeters
-		sumAvgPower += w.AvgPowerInWatts * w.DurationInMin
-		sumAvgHeartRate += w.AvgHeartRateInBpm * w.DurationInMin
-		sumAvgCadence += w.AvgCadenceInRpm * w.DurationInMin
-		sumNormalizedPower += w.NormalizedPowerInWatts * w.DurationInMin
-		if merged.MaxHeartRateInBpm < w.MaxHeartRateInBpm {
-			merged.MaxHeartRateInBpm = w.MaxHeartRateInBpm
-		}
 
 	}
 	merged.ID = longDurationWorkouts[0].ID
 	merged.StartTime = longDurationWorkouts[0].StartTime
 	merged.WorkoutType = longDurationWorkouts[0].WorkoutType
-	merged.AvgPowerInWatts = weightedAvg(float64(sumAvgPower), merged.DurationInMin)
-	merged.AvgHeartRateInBpm = weightedAvg(float64(sumAvgHeartRate), merged.DurationInMin)
-	merged.AvgCadenceInRpm = weightedAvg(float64(sumAvgCadence), merged.DurationInMin)
-	merged.NormalizedPowerInWatts = weightedAvg(float64(sumNormalizedPower), merged.DurationInMin)
-
+	merged.AvgPowerInWatts = mergeMetric(workouts, func(w *domain.Workout) int { return w.AvgPowerInWatts })
+	merged.AvgHeartRateInBpm = mergeMetric(workouts, func(w *domain.Workout) int { return w.AvgHeartRateInBpm })
+	merged.AvgCadenceInRpm = mergeMetric(workouts, func(w *domain.Workout) int { return w.AvgCadenceInRpm })
+	merged.NormalizedPowerInWatts = mergeMetric(workouts, func(w *domain.Workout) int { return w.NormalizedPowerInWatts })
+	merged.MaxHeartRateInBpm = lo.Max(lo.Map(workouts, func(w *domain.Workout, _ int) int { return w.MaxHeartRateInBpm }))
 	return merged
 }
 
 func weightedAvg(sum float64, totalDuration int) int {
 	if totalDuration == 0 {
-		return 0
+		return -1
 	}
 	return int(math.Round(sum / float64(totalDuration)))
+}
+
+func mergeMetric(workouts []*domain.Workout, metric func(*domain.Workout) int) int {
+	sum := 0
+	duration := 0
+	for _, w := range workouts {
+		val := metric(w)
+		if val > 0 {
+			sum += val * w.DurationInMin
+			duration += w.DurationInMin
+		}
+	}
+	return weightedAvg(float64(sum), duration)
 }

@@ -149,3 +149,107 @@ func TestMergeWorkouts_AllLongDurations(t *testing.T) {
 		})
 	})
 }
+
+func TestMergeWorkouts_WithMissingHearRateAndPowerData(t *testing.T) {
+	Convey("Given a slice with all long duration workouts with some missing heart rate and power data", t, func() {
+		workout1 := NewWorkout(
+			&WorkoutParams{
+				ID:                     1,
+				WorkoutType:            Estrada,
+				StartTime:              time.Date(2023, time.January, 1, 9, 0, 0, 0, time.UTC),
+				DurationInMin:          50,
+				DistanceInKm:           20.0,
+				ElevationInMeters:      100,
+				AvgPowerInWatts:        -1,
+				AvgHeartRateInBpm:      -1,
+				AvgCadenceInRpm:        80,
+				MaxHeartRateInBpm:      -1,
+				NormalizedPowerInWatts: -1,
+			})
+		workout2 := NewWorkout(
+			&WorkoutParams{
+				ID:                     2,
+				WorkoutType:            Estrada,
+				StartTime:              time.Date(2023, time.January, 1, 15, 0, 0, 0, time.UTC),
+				DurationInMin:          100,
+				DistanceInKm:           30.0,
+				ElevationInMeters:      200,
+				AvgPowerInWatts:        200,
+				AvgHeartRateInBpm:      100,
+				AvgCadenceInRpm:        90,
+				NormalizedPowerInWatts: 225,
+				MaxHeartRateInBpm:      180,
+			})
+		workouts := []*Workout{workout1, workout2}
+
+		Convey("When MergeWorkouts is called", func() {
+			merged := MergeWorkouts(workouts, 30)
+
+			Convey("Then the result is a merged workout with summed duration and distance", func() {
+				So(merged.ID, ShouldEqual, 1)
+				So(merged.StartTime, ShouldEqual, time.Date(2023, time.January, 1, 9, 0, 0, 0, time.UTC))
+				So(merged.WorkoutType, ShouldEqual, Estrada)
+				So(merged.DurationInMin, ShouldEqual, 150)
+				So(merged.DistanceInKm, ShouldEqual, 50.0)
+				So(merged.ElevationInMeters, ShouldEqual, 300)
+				So(merged.AvgPowerInWatts, ShouldEqual, 200)
+				So(merged.AvgHeartRateInBpm, ShouldEqual, 100)
+				So(merged.AvgCadenceInRpm, ShouldEqual, 87)
+				So(merged.MaxHeartRateInBpm, ShouldEqual, 180)
+				So(merged.NormalizedPowerInWatts, ShouldEqual, 225)
+			})
+		})
+	})
+}
+
+func TestMergeWorkouts_WithMissingHearRateAndPowerDataInAllWorkouts(t *testing.T) {
+	Convey("Given a slice with all long duration workouts with some missing heart rate and power data", t, func() {
+		workout1 := NewWorkout(
+			&WorkoutParams{
+				ID:                     1,
+				WorkoutType:            Estrada,
+				StartTime:              time.Date(2023, time.January, 1, 9, 0, 0, 0, time.UTC),
+				DurationInMin:          50,
+				DistanceInKm:           20.0,
+				ElevationInMeters:      100,
+				AvgPowerInWatts:        -1,
+				AvgHeartRateInBpm:      -1,
+				AvgCadenceInRpm:        -1,
+				MaxHeartRateInBpm:      -1,
+				NormalizedPowerInWatts: -1,
+			})
+		workout2 := NewWorkout(
+			&WorkoutParams{
+				ID:                     2,
+				WorkoutType:            Estrada,
+				StartTime:              time.Date(2023, time.January, 1, 15, 0, 0, 0, time.UTC),
+				DurationInMin:          100,
+				DistanceInKm:           30.0,
+				ElevationInMeters:      200,
+				AvgPowerInWatts:        -1,
+				AvgHeartRateInBpm:      -1,
+				AvgCadenceInRpm:        -1,
+				NormalizedPowerInWatts: -1,
+				MaxHeartRateInBpm:      -1,
+			})
+		workouts := []*Workout{workout1, workout2}
+
+		Convey("When MergeWorkouts is called", func() {
+			merged := MergeWorkouts(workouts, 30)
+
+			Convey("Then the result is a merged workout with summed duration and distance", func() {
+				So(merged.ID, ShouldEqual, 1)
+				So(merged.StartTime, ShouldEqual, time.Date(2023, time.January, 1, 9, 0, 0, 0, time.UTC))
+				So(merged.WorkoutType, ShouldEqual, Estrada)
+				So(merged.DurationInMin, ShouldEqual, 150)
+				So(merged.DistanceInKm, ShouldEqual, 50.0)
+				So(merged.ElevationInMeters, ShouldEqual, 300)
+				So(merged.AvgPowerInWatts, ShouldEqual, -1)
+				So(merged.AvgHeartRateInBpm, ShouldEqual, -1)
+				So(merged.AvgCadenceInRpm, ShouldEqual, -1)
+				So(merged.MaxHeartRateInBpm, ShouldEqual, -1)
+				So(merged.NormalizedPowerInWatts, ShouldEqual, -1)
+			})
+		})
+	})
+}
