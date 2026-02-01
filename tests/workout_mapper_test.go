@@ -222,11 +222,11 @@ func TestMapToWorkoutDifferentWorkoutTypes(t *testing.T) {
 		})
 	})
 
-	Convey("Given ActivityDto without hearRate and deviceWatts data)", t, func() {
+	Convey("Given ActivityDto without hearRate and deviceWatts data", t, func() {
 		activity := newActivity(NoHeartRate, NoDeviceWatts)
 		Convey("When MapToWorkout is called", func() {
 			workout := strava.MapToWorkout(activity)
-			Convey("Then it should map to Rolo workout type", func() {
+			Convey("Then it should have sentinel values for missing data", func() {
 				So(workout.AvgHeartRateInBpm, ShouldEqual, -1)
 				So(workout.MaxHeartRateInBpm, ShouldEqual, -1)
 				So(workout.AvgPowerInWatts, ShouldEqual, -1)
@@ -235,15 +235,25 @@ func TestMapToWorkoutDifferentWorkoutTypes(t *testing.T) {
 		})
 	})
 
-	Convey("Given ActivityDto with hearRate and deviceWatts data)", t, func() {
+	Convey("Given ActivityDto with hearRate and deviceWatts data", t, func() {
 		activity := newActivity(HasHeartRate, HasDeviceWatts)
 		Convey("When MapToWorkout is called", func() {
 			workout := strava.MapToWorkout(activity)
-			Convey("Then it should map to Rolo workout type", func() {
+			Convey("Then it should have actual values for present data", func() {
 				So(workout.AvgHeartRateInBpm, ShouldEqual, 0)
 				So(workout.MaxHeartRateInBpm, ShouldEqual, 0)
 				So(workout.AvgPowerInWatts, ShouldEqual, 0)
 				So(workout.NormalizedPowerInWatts, ShouldEqual, 0)
+			})
+		})
+	})
+
+	Convey("Given ActivityDto with avg cadence of 0", t, func() {
+		activity := newActivity(HasHeartRate, HasDeviceWatts)
+		Convey("When MapToWorkout is called", func() {
+			workout := strava.MapToWorkout(activity)
+			Convey("Then it should have actual values for present data", func() {
+				So(workout.AvgCadenceInRpm, ShouldEqual, -1)
 			})
 		})
 	})
