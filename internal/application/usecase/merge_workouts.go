@@ -54,7 +54,7 @@ func mergeMetric(workouts []*domain.Workout, metric func(*domain.Workout) int) i
 	duration := 0
 	for _, w := range workouts {
 		val := metric(w)
-		if val > 0 {
+		if val != -1 {
 			sum += val * w.DurationInMin
 			duration += w.DurationInMin
 		}
