@@ -222,7 +222,7 @@ func TestMapToWorkoutDifferentWorkoutTypes(t *testing.T) {
 		})
 	})
 
-	Convey("Given ActivityDto without hearRate and deviceWatts data", t, func() {
+	Convey("Given ActivityDto without heartRate and deviceWatts data", t, func() {
 		activity := newActivity(NoHeartRate, NoDeviceWatts)
 		Convey("When MapToWorkout is called", func() {
 			workout := strava.MapToWorkout(activity)
@@ -235,7 +235,7 @@ func TestMapToWorkoutDifferentWorkoutTypes(t *testing.T) {
 		})
 	})
 
-	Convey("Given ActivityDto with hearRate and deviceWatts data", t, func() {
+	Convey("Given ActivityDto with heartRate and deviceWatts data", t, func() {
 		activity := newActivity(HasHeartRate, HasDeviceWatts)
 		Convey("When MapToWorkout is called", func() {
 			workout := strava.MapToWorkout(activity)
