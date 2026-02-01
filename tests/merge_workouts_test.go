@@ -253,3 +253,55 @@ func TestMergeWorkouts_WithMissingHeartRateAndPowerDataInAllWorkouts(t *testing.
 		})
 	})
 }
+
+func TestMergeShortAndLongWorkouts_WithMissingHeartRateAndPowerDataInAllWorkouts(t *testing.T) {
+	Convey("Given a slice with short and long duration workouts with some missing heart rate and power data", t, func() {
+		workout1 := NewWorkout(
+			&WorkoutParams{
+				ID:                     1,
+				WorkoutType:            Estrada,
+				StartTime:              time.Date(2023, time.January, 1, 9, 0, 0, 0, time.UTC),
+				DurationInMin:          20,
+				DistanceInKm:           20.0,
+				ElevationInMeters:      100,
+				AvgPowerInWatts:        -1,
+				AvgHeartRateInBpm:      -1,
+				AvgCadenceInRpm:        -1,
+				MaxHeartRateInBpm:      -1,
+				NormalizedPowerInWatts: -1,
+			})
+		workout2 := NewWorkout(
+			&WorkoutParams{
+				ID:                     2,
+				WorkoutType:            Estrada,
+				StartTime:              time.Date(2023, time.January, 1, 15, 0, 0, 0, time.UTC),
+				DurationInMin:          100,
+				DistanceInKm:           30.0,
+				ElevationInMeters:      200,
+				AvgPowerInWatts:        150,
+				AvgHeartRateInBpm:      120,
+				AvgCadenceInRpm:        90,
+				NormalizedPowerInWatts: 180,
+				MaxHeartRateInBpm:      140,
+			})
+		workouts := []*Workout{workout1, workout2}
+
+		Convey("When MergeWorkouts is called", func() {
+			merged := MergeWorkouts(workouts, 30)
+
+			Convey("Then the result is a merged workout with summed duration and distance", func() {
+				So(merged.ID, ShouldEqual, 2)
+				So(merged.StartTime, ShouldEqual, time.Date(2023, time.January, 1, 15, 0, 0, 0, time.UTC))
+				So(merged.WorkoutType, ShouldEqual, Estrada)
+				So(merged.DurationInMin, ShouldEqual, 100)
+				So(merged.DistanceInKm, ShouldEqual, 30.0)
+				So(merged.ElevationInMeters, ShouldEqual, 200)
+				So(merged.AvgPowerInWatts, ShouldEqual, 150)
+				So(merged.AvgHeartRateInBpm, ShouldEqual, 120)
+				So(merged.AvgCadenceInRpm, ShouldEqual, 90)
+				So(merged.MaxHeartRateInBpm, ShouldEqual, 140)
+				So(merged.NormalizedPowerInWatts, ShouldEqual, 180)
+			})
+		})
+	})
+}
