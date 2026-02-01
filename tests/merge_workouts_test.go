@@ -150,7 +150,8 @@ func TestMergeWorkouts_AllLongDurations(t *testing.T) {
 	})
 }
 
-func TestMergeWorkouts_WithMissingHearRateAndPowerData(t *testing.T) {
+
+func TestMergeWorkouts_WithMissingHeartRateAndPowerData(t *testing.T) {
 	Convey("Given a slice with all long duration workouts with some missing heart rate and power data", t, func() {
 		workout1 := NewWorkout(
 			&WorkoutParams{
