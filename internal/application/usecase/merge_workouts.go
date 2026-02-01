@@ -34,11 +34,11 @@ func MergeWorkouts(workouts []*domain.Workout, minWorkoutDuration int) *domain.W
 	merged.ID = longDurationWorkouts[0].ID
 	merged.StartTime = longDurationWorkouts[0].StartTime
 	merged.WorkoutType = longDurationWorkouts[0].WorkoutType
-	merged.AvgPowerInWatts = mergeMetric(workouts, func(w *domain.Workout) int { return w.AvgPowerInWatts })
-	merged.AvgHeartRateInBpm = mergeMetric(workouts, func(w *domain.Workout) int { return w.AvgHeartRateInBpm })
-	merged.AvgCadenceInRpm = mergeMetric(workouts, func(w *domain.Workout) int { return w.AvgCadenceInRpm })
-	merged.NormalizedPowerInWatts = mergeMetric(workouts, func(w *domain.Workout) int { return w.NormalizedPowerInWatts })
-	merged.MaxHeartRateInBpm = lo.Max(lo.Map(workouts, func(w *domain.Workout, _ int) int { return w.MaxHeartRateInBpm }))
+	merged.AvgPowerInWatts = mergeMetric(longDurationWorkouts, func(w *domain.Workout) int { return w.AvgPowerInWatts })
+	merged.AvgHeartRateInBpm = mergeMetric(longDurationWorkouts, func(w *domain.Workout) int { return w.AvgHeartRateInBpm })
+	merged.AvgCadenceInRpm = mergeMetric(longDurationWorkouts, func(w *domain.Workout) int { return w.AvgCadenceInRpm })
+	merged.NormalizedPowerInWatts = mergeMetric(longDurationWorkouts, func(w *domain.Workout) int { return w.NormalizedPowerInWatts })
+	merged.MaxHeartRateInBpm = lo.Max(lo.Map(longDurationWorkouts, func(w *domain.Workout, _ int) int { return w.MaxHeartRateInBpm }))
 	return merged
 }
 
