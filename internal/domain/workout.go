@@ -11,6 +11,17 @@ const (
 	Prova
 )
 
+type LegSensations string
+
+const (
+	VeryBad  LegSensations = "Muito Más"
+	Bad      LegSensations = "Más"
+	Medium   LegSensations = "Médias"
+	Good     LegSensations = "Boas"
+	VeryGood LegSensations = "Muito Boas"
+	Excelent LegSensations = "Excelentes"
+)
+
 type Workout struct {
 	ID                     int64
 	WorkoutType            WorkoutType
@@ -23,6 +34,7 @@ type Workout struct {
 	AvgHeartRateInBpm      int
 	MaxHeartRateInBpm      int
 	AvgCadenceInRpm        int
+	LegSensations          LegSensations
 }
 
 type WorkoutParams struct {
@@ -37,6 +49,7 @@ type WorkoutParams struct {
 	AvgHeartRateInBpm      int
 	MaxHeartRateInBpm      int
 	AvgCadenceInRpm        int
+	LegSensations          LegSensations
 }
 
 func NewWorkout(params *WorkoutParams) *Workout {
@@ -52,6 +65,7 @@ func NewWorkout(params *WorkoutParams) *Workout {
 		MaxHeartRateInBpm:      params.MaxHeartRateInBpm,
 		AvgHeartRateInBpm:      params.AvgHeartRateInBpm,
 		AvgCadenceInRpm:        params.AvgCadenceInRpm,
+		LegSensations:          params.LegSensations,
 	}
 }
 
