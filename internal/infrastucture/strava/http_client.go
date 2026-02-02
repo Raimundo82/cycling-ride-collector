@@ -113,56 +113,6 @@ func (c *stravaHttpClient) GetWattsStream(ctx context.Context, id int64) (*Watts
 	return &streams.Watts, nil
 }
 
-// GetAthleteData implements [Client].
-func (c *stravaHttpClient) GetAthleteData(ctx context.Context) (*AthleteDto, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", c.baseUrl+"/athlete", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("strava error: %s", resp.Status)
-	}
-
-	var athlete AthleteDto
-	if err := json.NewDecoder(resp.Body).Decode(&athlete); err != nil {
-		return nil, err
-	}
-
-	return &athlete, nil
-}
-
-// GetAthleteZones implements [Client].
-func (c *stravaHttpClient) GetAthleteZones(ctx context.Context) (*AthleteZonesDto, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", c.baseUrl+"/athlete/zones", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("strava error: %s", resp.Status)
-	}
-
-	var zones AthleteZonesDto
-	if err := json.NewDecoder(resp.Body).Decode(&zones); err != nil {
-		return nil, err
-	}
-
-	return &zones, nil
-}
-
 // GetDetailedActivityByID implements [Client].
 func (c *stravaHttpClient) GetDetailedActivityByID(ctx context.Context, activityID int64) (*DetailedActivityDto, error) {
 	u := fmt.Sprintf("%s/activities/%d", c.baseUrl, activityID)

@@ -31,16 +31,6 @@ func (s *stubClient) GetWattsStream(ctx context.Context, activityID int64) (*str
 	return s.wattsStream, s.wattsStreamErr
 }
 
-// GetAthleteData implements [strava.Client].
-func (s *stubClient) GetAthleteData(ctx context.Context) (*strava.AthleteDto, error) {
-	panic("unimplemented")
-}
-
-// GetAthleteZones implements [strava.Client].
-func (s *stubClient) GetAthleteZones(ctx context.Context) (*strava.AthleteZonesDto, error) {
-	panic("unimplemented")
-}
-
 // GetDetailedActivityByID implements [strava.Client].
 func (s *stubClient) GetDetailedActivityByID(ctx context.Context, activityID int64) (*strava.DetailedActivityDto, error) {
 	panic("unimplemented")
