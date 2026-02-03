@@ -11,11 +11,14 @@ import (
 )
 
 type stubClient struct {
-	acts           []*strava.ActivityDto
-	wattsStream    *strava.WattsStreamDto
-	activitiesErr  error
-	wattsStreamErr error
-	calls          []int64
+	acts             []*strava.ActivityDto
+	activitiesErr    error
+	wattsStream      *strava.WattsStreamDto
+	wattsStreamErr   error
+	calls            []int64
+	detailedAct      *strava.DetailedActivityDto
+	detailedActErr   error
+	detailedActCalls []int64
 }
 
 var _ strava.Client = (*stubClient)(nil)
@@ -33,7 +36,8 @@ func (s *stubClient) GetWattsStream(ctx context.Context, activityID int64) (*str
 
 // GetDetailedActivityByID implements [strava.Client].
 func (s *stubClient) GetDetailedActivityByID(ctx context.Context, activityID int64) (*strava.DetailedActivityDto, error) {
-	panic("unimplemented")
+	s.detailedActCalls = append(s.detailedActCalls, activityID)
+	return s.detailedAct, s.detailedActErr
 }
 
 func TestProvider_FiltersAndMapsRides(t *testing.T) {
@@ -47,6 +51,7 @@ func TestProvider_FiltersAndMapsRides(t *testing.T) {
 					{ID: 4, SportType: "Run"},
 				},
 				wattsStream: &strava.WattsStreamDto{WattsData: []int{100, 150, 200, 250, 300, 350, 400, 450}},
+				detailedAct: &strava.DetailedActivityDto{ID: 1, LegSensations: "Hard"},
 			}
 
 			p := strava.NewProvider(stub)
@@ -80,6 +85,7 @@ func TestProvider_HandlesWattsStreamErrorsGracefully(t *testing.T) {
 				{ID: 2, SportType: "MountainBike", Commute: false},
 			},
 			wattsStreamErr: errors.New("watts stream unavailable"),
+			detailedAct:    &strava.DetailedActivityDto{ID: 1, LegSensations: "Easy"},
 		}
 
 		p := strava.NewProvider(stub)

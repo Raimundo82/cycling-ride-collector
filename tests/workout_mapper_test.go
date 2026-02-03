@@ -31,6 +31,7 @@ func TestMapToWorkout_With29WattsDataPoints(t *testing.T) {
 				200, 200, 200, 200, 200, 200, 200, 200, 200, 200,
 				200, 200, 200, 200, 200, 200, 200, 200, 200,
 			}},
+			LegSensations: "Médias",
 		}
 
 		Convey("When MapToWorkout is called", func() {
@@ -38,6 +39,10 @@ func TestMapToWorkout_With29WattsDataPoints(t *testing.T) {
 
 			Convey("Then it should map to Estrada workout type", func() {
 				So(workout.WorkoutType, ShouldEqual, domain.Estrada)
+			})
+
+			Convey("And it should map to Leg sensations", func() {
+				So(workout.LegSensations, ShouldEqual, domain.Medium)
 			})
 
 			Convey("And it should correctly map all fields", func() {
@@ -81,6 +86,7 @@ func TestMapToWorkout_WithMoreThan30WattsDataPoints(t *testing.T) {
 				200, 200, 200, 200, 200, 200, 200, 200, 200, 200,
 				200, 200, 200, 200, 200, 200, 200, 200, 200, 200,
 			}},
+			LegSensations: "",
 		}
 
 		Convey("When MapToWorkout is called", func() {
@@ -89,7 +95,9 @@ func TestMapToWorkout_WithMoreThan30WattsDataPoints(t *testing.T) {
 			Convey("Then it should map to Rolo workout type", func() {
 				So(workout.WorkoutType, ShouldEqual, domain.Rolo)
 			})
-
+			Convey("And it should map to Leg sensations", func() {
+				So(workout.LegSensations, ShouldEqual, domain.Medium)
+			})
 			Convey("And it should correctly map all fields", func() {
 				So(workout.ID, ShouldEqual, int64(987654321))
 				So(workout.WorkoutType, ShouldEqual, domain.Rolo)
@@ -129,6 +137,7 @@ func TestMapToWorkout_WithMoreThan30WattsDataPoints(t *testing.T) {
 				300, 300, 300, 300, 300, 300, 300, 300, 300, 300,
 				300, 300, 300, 300, 300, 300, 300, 300, 300, 300,
 			}},
+			LegSensations: "Boas",
 		}
 
 		Convey("When MapToWorkout is called", func() {
@@ -136,6 +145,9 @@ func TestMapToWorkout_WithMoreThan30WattsDataPoints(t *testing.T) {
 
 			Convey("Then StartTime should be zero time", func() {
 				So(workout.StartTime, ShouldResemble, time.Time{})
+			})
+			Convey("And it should map to Leg sensations", func() {
+				So(workout.LegSensations, ShouldEqual, domain.Good)
 			})
 
 			Convey("And other fields should still be mapped correctly", func() {

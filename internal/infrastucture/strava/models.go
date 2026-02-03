@@ -17,10 +17,12 @@ type ActivityDto struct {
 	AverageHeartRate   float64 `json:"average_heartrate"`
 	MaxHeartRate       float64 `json:"max_heartrate"`
 	AverageCadence     float64 `json:"average_cadence"`
+	LegSensations      string
 	Watts              *WattsStreamDto
 }
 
 type DetailedActivityDto struct {
+	ID            int64  `json:"id"`
 	LegSensations string `json:"private_note"`
 }
 
