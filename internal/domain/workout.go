@@ -19,7 +19,7 @@ const (
 	Medium   LegSensations = "Médias"
 	Good     LegSensations = "Boas"
 	VeryGood LegSensations = "Muito Boas"
-	Excelent LegSensations = "Excelentes"
+	Excellent LegSensations = "Excelentes"
 )
 
 type Workout struct {
