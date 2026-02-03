@@ -10,6 +10,10 @@ var _ contracts.DailyWorkoutPolicy = (*LongestWorkout)(nil)
 
 type LongestWorkout struct{}
 
+func NewLongestWorkout() *LongestWorkout {
+	return &LongestWorkout{}
+}
+
 // GetDailyWorkout implements [contracts.DailyWorkoutPolicy].
 func (l *LongestWorkout) GetDailyWorkout(dailyWorkouts []*domain.Workout, minWorkoutDuration int) *domain.Workout {
 	filteredWorkouts := lo.Filter(dailyWorkouts, func(w *domain.Workout, _ int) bool { return w.DurationInMin >= minWorkoutDuration })

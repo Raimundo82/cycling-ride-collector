@@ -9,7 +9,7 @@ import (
 )
 
 func TestLongestWorkout_ForSingleWorkoutAboveMinDuration(t *testing.T) {
-	Convey("Given an long duration workout", t, func() {
+	Convey("Given a long duration workout", t, func() {
 		workouts := []*Workout{
 			NewWorkout(&WorkoutParams{ID: 1, DurationInMin: 90}),
 		}
@@ -26,7 +26,7 @@ func TestLongestWorkout_ForSingleWorkoutAboveMinDuration(t *testing.T) {
 }
 
 func TestLongestWorkout_ForSingleWorkoutUnderMinDuration(t *testing.T) {
-	Convey("Given an short duration workout", t, func() {
+	Convey("Given a short duration workout", t, func() {
 		workouts := []*Workout{
 			NewWorkout(&WorkoutParams{ID: 1, DurationInMin: 29}),
 		}
@@ -41,7 +41,7 @@ func TestLongestWorkout_ForSingleWorkoutUnderMinDuration(t *testing.T) {
 }
 
 func TestLongestWorkout_ForMultipleWorkoutsShortAndLongDuration(t *testing.T) {
-	Convey("Given an short and long duration workout", t, func() {
+	Convey("Given a short and long duration workout", t, func() {
 		workouts := []*Workout{
 			NewWorkout(&WorkoutParams{ID: 1, DurationInMin: 29}),
 			NewWorkout(&WorkoutParams{ID: 2, DurationInMin: 90}),

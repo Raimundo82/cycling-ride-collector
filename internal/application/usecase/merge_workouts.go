@@ -12,6 +12,11 @@ var _ contracts.DailyWorkoutPolicy = (*MergeWorkouts)(nil)
 
 type MergeWorkouts struct{}
 
+func NewMergeWorkouts() *MergeWorkouts {
+	return &MergeWorkouts{}
+}
+
+// GetDailyWorkout implements [contracts.DailyWorkoutPolicy].
 func (m *MergeWorkouts) GetDailyWorkout(workouts []*domain.Workout, minWorkoutDuration int) *domain.Workout {
 	longDurationWorkouts := []*domain.Workout{}
 	for _, workout := range workouts {

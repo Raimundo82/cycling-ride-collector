@@ -10,13 +10,25 @@ import (
 var _ contracts.SaveWorkoutUseCase = (*SaveWorkout)(nil)
 
 type SaveWorkout struct {
-	DailyWorkout    contracts.DailyWorkoutPolicy
-	WorkoutRepo     contracts.WorkoutRepository
-	WorkoutProvider contracts.WorkoutProvider
+	dailyWorkout    contracts.DailyWorkoutPolicy
+	workoutRepo     contracts.WorkoutRepository
+	workoutProvider contracts.WorkoutProvider
+}
+
+func NewSaveWorkout(
+	dailyWorkout contracts.DailyWorkoutPolicy,
+	workoutRepo contracts.WorkoutRepository,
+	workoutProvider contracts.WorkoutProvider,
+) *SaveWorkout {
+	return &SaveWorkout{
+		dailyWorkout:    dailyWorkout,
+		workoutRepo:     workoutRepo,
+		workoutProvider: workoutProvider,
+	}
 }
 
 func (saveWorkoutUseCase *SaveWorkout) Execute(date time.Time, minWorkoutDuration int) error {
-	workouts, err := saveWorkoutUseCase.WorkoutProvider.GetWorkoutsByDate(date)
+	workouts, err := saveWorkoutUseCase.workoutProvider.GetWorkoutsByDate(date)
 	if err != nil {
 		return err
 	}
@@ -24,14 +36,14 @@ func (saveWorkoutUseCase *SaveWorkout) Execute(date time.Time, minWorkoutDuratio
 	var workout *domain.Workout
 
 	if len(workouts) > 0 {
-		workout = saveWorkoutUseCase.DailyWorkout.GetDailyWorkout(workouts, minWorkoutDuration)
+		workout = saveWorkoutUseCase.dailyWorkout.GetDailyWorkout(workouts, minWorkoutDuration)
 	}
 
 	if workout == nil {
 		workout = saveWorkoutUseCase.newRestWorkout(date)
 	}
 
-	return saveWorkoutUseCase.WorkoutRepo.Save(workout)
+	return saveWorkoutUseCase.workoutRepo.Save(workout)
 }
 
 func (*SaveWorkout) newRestWorkout(date time.Time) *domain.Workout {

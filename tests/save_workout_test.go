@@ -85,12 +85,7 @@ func TestSaveWorkout(t *testing.T) {
 				Workout:               nil,
 			}
 
-			useCase := &SaveWorkout{
-				DailyWorkout:    mockDailyWorkoutPolicy,
-				WorkoutRepo:     mockRepo,
-				WorkoutProvider: mockProvider,
-			}
-
+			useCase := NewSaveWorkout(mockDailyWorkoutPolicy, mockRepo, mockProvider)
 			Convey("When Execute is called", func() {
 				date := time.Date(2023, time.June, 1, 0, 0, 0, 0, time.UTC)
 				err := useCase.Execute(date, 30)
@@ -122,11 +117,7 @@ func TestSaveWorkout_WithNoWorkouts(t *testing.T) {
 			GetDailyWorkoutCalled: 0,
 		}
 
-		useCase := &SaveWorkout{
-			DailyWorkout:    mockDailyWorkoutPolicy,
-			WorkoutRepo:     mockRepo,
-			WorkoutProvider: mockProvider,
-		}
+		useCase := NewSaveWorkout(mockDailyWorkoutPolicy, mockRepo, mockProvider)
 
 		Convey("When Execute is called", func() {
 			date := time.Date(2023, time.June, 1, 0, 0, 0, 0, time.UTC)
@@ -175,12 +166,7 @@ func TestSaveWorkout_WithLongWorkout(t *testing.T) {
 			Workout:               workout,
 		}
 
-		useCase := &SaveWorkout{
-			DailyWorkout:    mockDailyWorkoutPolicy,
-			WorkoutRepo:     mockRepo,
-			WorkoutProvider: mockProvider,
-		}
-
+		useCase := NewSaveWorkout(mockDailyWorkoutPolicy, mockRepo, mockProvider)
 		Convey("When Execute is called", func() {
 			err := useCase.Execute(date, 30)
 
@@ -225,11 +211,7 @@ func TestSaveWorkout_WithShortWorkout(t *testing.T) {
 			GetWorkoutByDateCalled: 0,
 		}
 
-		useCase := &SaveWorkout{
-			WorkoutRepo:     mockRepo,
-			WorkoutProvider: mockProvider,
-			DailyWorkout:    mockDailyWorkoutPolicy,
-		}
+		useCase := NewSaveWorkout(mockDailyWorkoutPolicy, mockRepo, mockProvider)
 
 		Convey("When Execute is called", func() {
 			err := useCase.Execute(date, 30)
@@ -265,11 +247,7 @@ func TestSaveWorkout_WithProviderError(t *testing.T) {
 			Err:                    providerErr,
 		}
 
-		useCase := &SaveWorkout{
-			WorkoutRepo:     mockRepo,
-			WorkoutProvider: mockProvider,
-			DailyWorkout:    mockDailyWorkoutPolicy,
-		}
+		useCase := NewSaveWorkout(mockDailyWorkoutPolicy, mockRepo, mockProvider)
 
 		Convey("When Execute is called", func() {
 			err := useCase.Execute(date, 30)
