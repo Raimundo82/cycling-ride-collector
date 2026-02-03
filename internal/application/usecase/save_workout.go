@@ -25,8 +25,6 @@ func (saveWorkoutUseCase *SaveWorkout) Execute(date time.Time, minWorkoutDuratio
 
 	if len(workouts) > 0 {
 		workout = saveWorkoutUseCase.DailyWorkout.GetDailyWorkout(workouts, minWorkoutDuration)
-	} else {
-		workout = nil
 	}
 
 	if workout == nil {
