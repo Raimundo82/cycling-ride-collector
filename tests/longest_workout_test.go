@@ -59,7 +59,7 @@ func TestLongestWorkout_ForMultipleWorkoutsShortAndLongDuration(t *testing.T) {
 }
 
 func TestLongestWorkout_ForMultipleWorkoutsOfShortDuration(t *testing.T) {
-	Convey("Given an short duration workouts", t, func() {
+	Convey("Given short duration workouts", t, func() {
 		workouts := []*Workout{
 			NewWorkout(&WorkoutParams{ID: 1, DurationInMin: 29}),
 			NewWorkout(&WorkoutParams{ID: 2, DurationInMin: 20}),
