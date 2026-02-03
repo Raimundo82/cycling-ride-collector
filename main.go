@@ -88,12 +88,11 @@ func setupOrchestrator(cfg *config.Config) *orchestration.SaveWorkoutsOrchestrat
 		dailyWorkoutPolicy = usecase.NewLongestWorkout()
 	}
 
-	save :=
-		usecase.NewSaveWorkout(
-			dailyWorkoutPolicy,
-			csv.NewCSVWorkoutRepository(cfg.OutputFilePath),
-			strava.NewProvider(stravaClient),
-		)
+	save := usecase.NewSaveWorkout(
+		dailyWorkoutPolicy,
+		csv.NewCSVWorkoutRepository(cfg.OutputFilePath),
+		strava.NewProvider(stravaClient),
+	)
 	return &orchestration.SaveWorkoutsOrchestrator{
 		SaveWorkoutUseCase: save,
 	}

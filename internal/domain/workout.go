@@ -14,11 +14,11 @@ const (
 type LegSensations string
 
 const (
-	VeryBad  LegSensations = "Muito Más"
-	Bad      LegSensations = "Más"
-	Medium   LegSensations = "Médias"
-	Good     LegSensations = "Boas"
-	VeryGood LegSensations = "Muito Boas"
+	VeryBad   LegSensations = "Muito Más"
+	Bad       LegSensations = "Más"
+	Medium    LegSensations = "Médias"
+	Good      LegSensations = "Boas"
+	VeryGood  LegSensations = "Muito Boas"
 	Excellent LegSensations = "Excelentes"
 )
 

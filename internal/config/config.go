@@ -17,7 +17,6 @@ type Config struct {
 }
 
 func Load() *Config {
-
 	minimalWorkoutDurationValue, err := strconv.Atoi(getEnv("MINIMAL_WORKOUT_DURATION"))
 	if err != nil || minimalWorkoutDurationValue <= 0 {
 		minimalWorkoutDurationValue = 30
