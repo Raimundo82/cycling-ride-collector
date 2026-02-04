@@ -28,7 +28,7 @@ func MapToWorkout(a *ActivityDto) *domain.Workout {
 		AvgHeartRateInBpm:      lo.Ternary(a.HasHeartRate, int(a.AverageHeartRate), -1),
 		MaxHeartRateInBpm:      lo.Ternary(a.HasHeartRate, int(a.MaxHeartRate), -1),
 		AvgCadenceInRpm:        lo.Ternary(a.AverageCadence > 0, int(a.AverageCadence), -1),
-		LegSensations:          lo.Ternary(a.LegSensations == "", domain.Medium, domain.LegSensations(a.LegSensations)),
+		LegSensations:          domain.LegSensations(a.LegSensations),
 	}
 }
 

@@ -96,7 +96,7 @@ func TestMapToWorkout_WithMoreThan30WattsDataPoints(t *testing.T) {
 				So(workout.WorkoutType, ShouldEqual, domain.Rolo)
 			})
 			Convey("And it should map to Leg sensations", func() {
-				So(workout.LegSensations, ShouldEqual, domain.Medium)
+				So(workout.LegSensations, ShouldEqual, domain.LegSensations(""))
 			})
 			Convey("And it should correctly map all fields", func() {
 				So(workout.ID, ShouldEqual, int64(987654321))
