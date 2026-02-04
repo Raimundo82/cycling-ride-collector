@@ -19,7 +19,8 @@
 			"extensions": [
 				"golang.go",
 				"PKief.material-icon-theme",
-				"humao.rest-client"
+				"humao.rest-client",
+				"openai.chatgpt"
 			]
 		}
 	},

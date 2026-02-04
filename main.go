@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -38,7 +37,7 @@ func parseFlagsAndConfig() *config.Config {
 	endDateStr := flag.String("end-date", "", "End date in MM/DD/YYYY format")
 	accessToken := flag.String("access-token", "", "Strava API access token")
 	outputFilePath := flag.String("output-file", "", "Output file path for the CSV")
-	minimalWorkoutDuration := flag.String("min-duration", "", "Minimal workout duration in minutes")
+	minimalWorkoutDuration := flag.Int("min-duration", 0, "Minimal workout duration in minutes")
 	dailyWorkoutPolicy := flag.String("daily-workout-policy", "", "Daily workout policy")
 	flag.Parse()
 
@@ -49,9 +48,10 @@ func parseFlagsAndConfig() *config.Config {
 		cfg.DailyWorkoutPolicy = *dailyWorkoutPolicy
 	}
 
-	if *minimalWorkoutDuration != "" {
-		cfg.MinimalWorkoutDuration, _ = strconv.Atoi(*minimalWorkoutDuration)
+	if *minimalWorkoutDuration > 0 {
+		cfg.MinimalWorkoutDuration = *minimalWorkoutDuration
 	}
+
 	if *startDateStr == "" || *endDateStr == "" {
 		log.Fatal("Flags --start-date and --end-date are required")
 	}
@@ -68,7 +68,9 @@ func parseFlagsAndConfig() *config.Config {
 	}
 	cfg.EndDate = endDate
 
-	if *outputFilePath == "" {
+	if *outputFilePath != "" {
+		cfg.OutputFilePath = *outputFilePath
+	} else if cfg.OutputFilePath == "" {
 		cfg.OutputFilePath = fmt.Sprintf("workouts_summary_%s_to_%s.csv", startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 	}
 	return cfg
