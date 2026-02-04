@@ -16,7 +16,7 @@ func MapToWorkout(a *ActivityDto) *domain.Workout {
 
 	wattsData := lo.Ternary(a.Watts != nil, a.Watts.WattsData, []int{})
 
-	return &domain.Workout{
+	return domain.NewWorkout(&domain.WorkoutParams{
 		ID:                     a.ID,
 		WorkoutType:            SetWorkoutType(a),
 		StartTime:              startTime,
@@ -28,8 +28,8 @@ func MapToWorkout(a *ActivityDto) *domain.Workout {
 		AvgHeartRateInBpm:      lo.Ternary(a.HasHeartRate, int(a.AverageHeartRate), -1),
 		MaxHeartRateInBpm:      lo.Ternary(a.HasHeartRate, int(a.MaxHeartRate), -1),
 		AvgCadenceInRpm:        lo.Ternary(a.AverageCadence > 0, int(a.AverageCadence), -1),
-		LegSensations:          domain.LegSensations(a.LegSensations),
-	}
+		LegSensations:          lo.Ternary(a.LegSensations == "", string(domain.Medium), a.LegSensations),
+	})
 }
 
 func SetWorkoutType(a *ActivityDto) domain.WorkoutType {

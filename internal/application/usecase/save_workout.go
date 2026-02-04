@@ -47,7 +47,7 @@ func (saveWorkoutUseCase *SaveWorkout) Execute(date time.Time, minWorkoutDuratio
 }
 
 func (*SaveWorkout) newRestWorkout(date time.Time) *domain.Workout {
-	return &domain.Workout{
+	return domain.NewWorkout(&domain.WorkoutParams{
 		ID:                     -1,
 		StartTime:              date,
 		WorkoutType:            domain.Descanso,
@@ -60,5 +60,5 @@ func (*SaveWorkout) newRestWorkout(date time.Time) *domain.Workout {
 		MaxHeartRateInBpm:      -1,
 		AvgCadenceInRpm:        -1,
 		LegSensations:          "",
-	}
+	})
 }
