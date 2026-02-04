@@ -436,40 +436,6 @@ func TestGetWattsStream_NoAuthHeaderWhenTokenEmpty(t *testing.T) {
 	})
 }
 
-func TestGetAthleteData_ConstructsCorrectRequestAndDecodesAthleteData(t *testing.T) {
-	Convey("Given a strava http server and a token", t, func() {
-		var gotAuthHeader string
-		var gotPath string
-
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			gotAuthHeader = r.Header.Get("Authorization")
-			gotPath = r.URL.Path
-			_, _ = w.Write([]byte(`{"id": 1, "weight": 75.0}`))
-		}))
-		defer server.Close()
-
-		client := strava.NewHttpClient(server.Client(), &config.Config{
-			StravaApiBaseUrl:  server.URL,
-			StravaAccessToken: "test_access_token_456",
-		})
-
-		Convey("When GetAthleteData is called", func() {
-			data, err := client.GetAthleteData(context.Background())
-
-			Convey("It should call the correct endpoint", func() {
-				So(err, ShouldBeNil)
-				So(gotPath, ShouldEqual, "/athlete")
-			})
-
-			Convey("It should decode athlete data", func() {
-				So(gotAuthHeader, ShouldEqual, "Bearer test_access_token_456")
-				So(data.ID, ShouldEqual, 1)
-				So(data.Weight, ShouldEqual, 75.0)
-			})
-		})
-	})
-}
-
 func TestGetDetailedActivityByID_ConstructsCorrectRequestAndDecodesActivity(t *testing.T) {
 	Convey("Given a strava http server and a token", t, func() {
 		var gotAuthHeader string
@@ -498,43 +464,7 @@ func TestGetDetailedActivityByID_ConstructsCorrectRequestAndDecodesActivity(t *t
 
 			Convey("It should decode detailed activity data", func() {
 				So(gotAuthHeader, ShouldEqual, "Bearer test_access_token_789")
-				So(data.Feelings, ShouldEqual, "Boas")
-			})
-		})
-	})
-}
-
-func TestGetAthleteZones_ConstructsCorrectRequestAndDecodesZones(t *testing.T) {
-	Convey("Given a strava http server and a token", t, func() {
-		var gotAuthHeader string
-		var gotPath string
-
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			gotAuthHeader = r.Header.Get("Authorization")
-			gotPath = r.URL.Path
-			_, _ = w.Write([]byte(`{"heart_rate": {"zones": [{ "min": 100, "max": 150 }]}, "power": {"zones": [{ "min": 200, "max": 250 }]}}`))
-		}))
-		defer server.Close()
-
-		client := strava.NewHttpClient(server.Client(), &config.Config{
-			StravaApiBaseUrl:  server.URL,
-			StravaAccessToken: "test_access_token_789",
-		})
-
-		Convey("When GetAthleteZones is called", func() {
-			data, err := client.GetAthleteZones(context.Background())
-
-			Convey("It should call the correct endpoint", func() {
-				So(err, ShouldBeNil)
-				So(gotPath, ShouldEqual, "/athlete/zones")
-			})
-
-			Convey("It should decode athlete zones data", func() {
-				So(gotAuthHeader, ShouldEqual, "Bearer test_access_token_789")
-				So(data.HeartRateZones.Zones[0].Min, ShouldEqual, 100)
-				So(data.HeartRateZones.Zones[0].Max, ShouldEqual, 150)
-				So(data.PowerZones.Zones[0].Min, ShouldEqual, 200)
-				So(data.PowerZones.Zones[0].Max, ShouldEqual, 250)
+				So(data.LegSensations, ShouldEqual, "Boas")
 			})
 		})
 	})

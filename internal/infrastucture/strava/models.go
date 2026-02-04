@@ -17,11 +17,13 @@ type ActivityDto struct {
 	AverageHeartRate   float64 `json:"average_heartrate"`
 	MaxHeartRate       float64 `json:"max_heartrate"`
 	AverageCadence     float64 `json:"average_cadence"`
+	LegSensations      string
 	Watts              *WattsStreamDto
 }
 
 type DetailedActivityDto struct {
-	Feelings string `json:"private_note"`
+	ID            int64  `json:"id"`
+	LegSensations string `json:"private_note"`
 }
 
 type WattsStreamDto struct {
@@ -30,25 +32,4 @@ type WattsStreamDto struct {
 
 type wattsStreamResponse struct {
 	Watts WattsStreamDto `json:"watts"`
-}
-
-type AthleteDto struct {
-	ID                    int64   `json:"id"`
-	Weight                float64 `json:"weight"`
-	HrAerobicThreshold    int
-	PowerAerobicThreshold int
-}
-
-type AthleteZonesDto struct {
-	HeartRateZones ZonesDto `json:"heart_rate"`
-	PowerZones     ZonesDto `json:"power"`
-}
-
-type ZonesDto struct {
-	Zones []ZoneDto `json:"zones"`
-}
-
-type ZoneDto struct {
-	Min int `json:"min"`
-	Max int `json:"max"`
 }

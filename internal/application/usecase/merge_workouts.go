@@ -3,11 +3,21 @@ package usecase
 import (
 	"math"
 
+	"github.com/raimundo82/go-strava-weekly/internal/application/contracts"
 	"github.com/raimundo82/go-strava-weekly/internal/domain"
 	"github.com/samber/lo"
 )
 
-func MergeWorkouts(workouts []*domain.Workout, minWorkoutDuration int) *domain.Workout {
+var _ contracts.DailyWorkoutPolicy = (*MergeWorkouts)(nil)
+
+type MergeWorkouts struct{}
+
+func NewMergeWorkouts() *MergeWorkouts {
+	return &MergeWorkouts{}
+}
+
+// GetDailyWorkout implements [contracts.DailyWorkoutPolicy].
+func (m *MergeWorkouts) GetDailyWorkout(workouts []*domain.Workout, minWorkoutDuration int) *domain.Workout {
 	longDurationWorkouts := []*domain.Workout{}
 	for _, workout := range workouts {
 		if workout.DurationInMin >= minWorkoutDuration {
@@ -34,6 +44,7 @@ func MergeWorkouts(workouts []*domain.Workout, minWorkoutDuration int) *domain.W
 	merged.ID = longDurationWorkouts[0].ID
 	merged.StartTime = longDurationWorkouts[0].StartTime
 	merged.WorkoutType = longDurationWorkouts[0].WorkoutType
+	merged.SetLegSensations(string(longDurationWorkouts[0].LegSensations()))
 	merged.AvgPowerInWatts = mergeMetric(longDurationWorkouts, func(w *domain.Workout) int { return w.AvgPowerInWatts })
 	merged.AvgHeartRateInBpm = mergeMetric(longDurationWorkouts, func(w *domain.Workout) int { return w.AvgHeartRateInBpm })
 	merged.AvgCadenceInRpm = mergeMetric(longDurationWorkouts, func(w *domain.Workout) int { return w.AvgCadenceInRpm })
