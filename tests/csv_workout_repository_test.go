@@ -14,7 +14,7 @@ import (
 
 func TestCSVWorkoutRepository_SaveToWriter(t *testing.T) {
 	Convey("Given a Workout", t, func() {
-		workout := &Workout{
+		workoutParams := &WorkoutParams{
 			WorkoutType:            Estrada,
 			StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
 			DurationInMin:          60,
@@ -25,7 +25,9 @@ func TestCSVWorkoutRepository_SaveToWriter(t *testing.T) {
 			AvgHeartRateInBpm:      150,
 			MaxHeartRateInBpm:      180,
 			AvgCadenceInRpm:        90,
+			LegSensations:          "Boas",
 		}
+		workout := NewWorkout(workoutParams)
 		repo := csv.NewCSVWorkoutRepository("test_workouts.csv")
 
 		Convey("When SaveToWriter is called", func() {
@@ -37,7 +39,7 @@ func TestCSVWorkoutRepository_SaveToWriter(t *testing.T) {
 			})
 
 			Convey("And the CSV output should be correct", func() {
-				expected := "6/1/2024,Estrada,10:30,1h0m,25.50,500,200,220,150,180,90\n"
+				expected := "6/1/2024,Estrada,10:30,1h0m,25.50,500,200,220,150,180,90,Boas\n"
 				So(buf.String(), ShouldEqual, expected)
 			})
 		})
@@ -50,14 +52,14 @@ func TestCSVWorkoutRepository_Save_AppendsToFile(t *testing.T) {
 		So(err, ShouldBeNil)
 		defer func() { _ = os.Remove(tmpfile.Name()) }()
 
-		initialContent := "5/1/2024,Estrada,10:00,0h30m,10.00,100,150,160,120,130,80\n"
+		initialContent := "5/1/2024,Estrada,10:00,0h30m,10.00,100,150,160,120,130,80,Boas\n"
 		_, err = tmpfile.WriteString(initialContent)
 		So(err, ShouldBeNil)
 		err = tmpfile.Close()
 		So(err, ShouldBeNil)
 
 		repo := csv.NewCSVWorkoutRepository(tmpfile.Name())
-		workout := &Workout{
+		workoutParams := &WorkoutParams{
 			WorkoutType:            Estrada,
 			StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
 			DurationInMin:          60,
@@ -68,7 +70,9 @@ func TestCSVWorkoutRepository_Save_AppendsToFile(t *testing.T) {
 			AvgHeartRateInBpm:      150,
 			MaxHeartRateInBpm:      180,
 			AvgCadenceInRpm:        90,
+			LegSensations:          "Médias",
 		}
+		workout := NewWorkout(workoutParams)
 		Convey("When Save is called", func() {
 			err = repo.Save(workout)
 			So(err, ShouldBeNil)
@@ -78,8 +82,8 @@ func TestCSVWorkoutRepository_Save_AppendsToFile(t *testing.T) {
 			lines := strings.Split(strings.TrimSpace(string(data)), "\n")
 			So(len(lines), ShouldEqual, 2)
 
-			expectedFirst := "5/1/2024,Estrada,10:00,0h30m,10.00,100,150,160,120,130,80"
-			expectedSecond := "6/1/2024,Estrada,10:30,1h0m,25.50,500,200,220,150,180,90"
+			expectedFirst := "5/1/2024,Estrada,10:00,0h30m,10.00,100,150,160,120,130,80,Boas"
+			expectedSecond := "6/1/2024,Estrada,10:30,1h0m,25.50,500,200,220,150,180,90,Médias"
 			So(lines[0], ShouldEqual, expectedFirst)
 			So(lines[1], ShouldEqual, expectedSecond)
 		})
@@ -92,7 +96,8 @@ func TestCSVWorkoutRepository_Save_CreatesFileIfNotExists(t *testing.T) {
 		_ = os.Remove(filename)
 		defer func() { _ = os.Remove(filename) }()
 		repo := csv.NewCSVWorkoutRepository(filename)
-		workout := &Workout{
+
+		workout := NewWorkout(&WorkoutParams{
 			WorkoutType:            Estrada,
 			StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
 			DurationInMin:          60,
@@ -103,14 +108,16 @@ func TestCSVWorkoutRepository_Save_CreatesFileIfNotExists(t *testing.T) {
 			AvgHeartRateInBpm:      150,
 			MaxHeartRateInBpm:      180,
 			AvgCadenceInRpm:        90,
-		}
+			LegSensations:          "Muito Boas",
+		})
+
 		Convey("When Save is called", func() {
 			err := repo.Save(workout)
 			So(err, ShouldBeNil)
 
 			data, err := os.ReadFile(filename)
 			So(err, ShouldBeNil)
-			expected := "6/1/2024,Estrada,10:30,1h0m,25.50,500,200,220,150,180,90\n"
+			expected := "6/1/2024,Estrada,10:30,1h0m,25.50,500,200,220,150,180,90,Muito Boas\n"
 			So(string(data), ShouldEqual, expected)
 		})
 	})
@@ -192,6 +199,7 @@ func TestCSVWorkoutRepositoryNoWorkout(t *testing.T) {
 			AvgHeartRateInBpm:      0,
 			MaxHeartRateInBpm:      0,
 			AvgCadenceInRpm:        0,
+			LegSensations:          "Médias",
 		})
 		repo := csv.NewCSVWorkoutRepository("test_workouts.csv")
 
@@ -204,7 +212,7 @@ func TestCSVWorkoutRepositoryNoWorkout(t *testing.T) {
 			})
 
 			Convey("And it should write a line with zeros", func() {
-				expected := "6/1/2024,Estrada,00:00,0h0m,0.00,0,0,0,0,0,0\n"
+				expected := "6/1/2024,Estrada,00:00,0h0m,0.00,0,0,0,0,0,0,Médias\n"
 				So(buf.String(), ShouldEqual, expected)
 			})
 		})
@@ -225,6 +233,7 @@ func TestCSVWorkoutRepository_SaveToWriter_NoWorkoutSentinelValues(t *testing.T)
 			AvgHeartRateInBpm:      -1,
 			MaxHeartRateInBpm:      -1,
 			AvgCadenceInRpm:        -1,
+			LegSensations:          "",
 		})
 		repo := csv.NewCSVWorkoutRepository("test_workouts.csv")
 
@@ -237,7 +246,7 @@ func TestCSVWorkoutRepository_SaveToWriter_NoWorkoutSentinelValues(t *testing.T)
 			})
 
 			Convey("And it should write an empty line", func() {
-				expected := "6/1/2024,Descanso,,,,,,,,,\n"
+				expected := "6/1/2024,Descanso,,,,,,,,,,\n"
 				So(buf.String(), ShouldEqual, expected)
 			})
 		})

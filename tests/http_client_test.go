@@ -435,3 +435,37 @@ func TestGetWattsStream_NoAuthHeaderWhenTokenEmpty(t *testing.T) {
 		})
 	})
 }
+
+func TestGetDetailedActivityByID_ConstructsCorrectRequestAndDecodesActivity(t *testing.T) {
+	Convey("Given a strava http server and a token", t, func() {
+		var gotAuthHeader string
+		var gotPath string
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			gotAuthHeader = r.Header.Get("Authorization")
+			gotPath = r.URL.Path
+			_, _ = w.Write([]byte(`{"private_note": "Boas"}`))
+		}))
+		defer server.Close()
+
+		client := strava.NewHttpClient(server.Client(), &config.Config{
+			StravaApiBaseUrl:  server.URL,
+			StravaAccessToken: "test_access_token_789",
+		})
+
+		Convey("When GetDetailedActivityByID is called", func() {
+			activityID := int64(98765)
+			data, err := client.GetDetailedActivityByID(context.Background(), activityID)
+
+			Convey("It should call the correct endpoint", func() {
+				So(err, ShouldBeNil)
+				So(gotPath, ShouldEqual, fmt.Sprintf("/activities/%d", activityID))
+			})
+
+			Convey("It should decode detailed activity data", func() {
+				So(gotAuthHeader, ShouldEqual, "Bearer test_access_token_789")
+				So(data.LegSensations, ShouldEqual, "Boas")
+			})
+		})
+	})
+}

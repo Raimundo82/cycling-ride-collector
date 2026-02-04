@@ -50,6 +50,7 @@ func NewHttpClient(httpClient *http.Client, cfg *config.Config) *stravaHttpClien
 	}
 }
 
+// GetActivitiesByDate implements [Client].
 func (c *stravaHttpClient) GetActivitiesByDate(ctx context.Context, date time.Time) ([]*ActivityDto, error) {
 	start := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 	end := start.Add(time.Hour * 24)
@@ -81,6 +82,7 @@ func (c *stravaHttpClient) GetActivitiesByDate(ctx context.Context, date time.Ti
 	return acts, nil
 }
 
+// GetWattsStream implements [Client].
 func (c *stravaHttpClient) GetWattsStream(ctx context.Context, id int64) (*WattsStreamDto, error) {
 	u := fmt.Sprintf("%s/activities/%d/streams?keys=watts&key_by_type=true", c.baseUrl, id)
 
@@ -109,4 +111,31 @@ func (c *stravaHttpClient) GetWattsStream(ctx context.Context, id int64) (*Watts
 	}
 
 	return &streams.Watts, nil
+}
+
+// GetDetailedActivityByID implements [Client].
+func (c *stravaHttpClient) GetDetailedActivityByID(ctx context.Context, activityID int64) (*DetailedActivityDto, error) {
+	u := fmt.Sprintf("%s/activities/%d", c.baseUrl, activityID)
+
+	req, err := http.NewRequestWithContext(ctx, "GET", u, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("strava error: %s", resp.Status)
+	}
+
+	var act DetailedActivityDto
+	if err := json.NewDecoder(resp.Body).Decode(&act); err != nil {
+		return nil, err
+	}
+
+	return &act, nil
 }

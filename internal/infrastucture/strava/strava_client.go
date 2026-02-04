@@ -7,5 +7,6 @@ import (
 
 type Client interface {
 	GetActivitiesByDate(ctx context.Context, date time.Time) ([]*ActivityDto, error)
+	GetDetailedActivityByID(ctx context.Context, activityID int64) (*DetailedActivityDto, error)
 	GetWattsStream(ctx context.Context, activityID int64) (*WattsStreamDto, error)
 }

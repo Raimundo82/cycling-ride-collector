@@ -63,6 +63,7 @@ func (r *CSVWorkoutRepository) workoutToRecord(workout *domain.Workout) []string
 		intValueOrEmpty(workout.AvgHeartRateInBpm),
 		intValueOrEmpty(workout.MaxHeartRateInBpm),
 		intValueOrEmpty(workout.AvgCadenceInRpm),
+		string(workout.LegSensations()),
 	}
 }
 
