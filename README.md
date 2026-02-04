@@ -1,28 +1,31 @@
 # go-strava-weekly
 
-A Go application for syncing Strava workout data to Google Sheets on a weekly basis.
+A Go application for collecting Strava workout data and exporting daily summaries to CSV.
 
 ## Overview
 
-This application fetches workout data from Strava and exports it to Google Sheets, helping you track and analyze your weekly cycling performance. The application merges multiple workouts from the same day and calculates weighted averages for key metrics.
+This application fetches workout data from Strava and exports daily workout summaries to CSV, helping you track and analyze your cycling performance. It supports multiple strategies to select a "daily workout" when more than one ride exists on the same day.
 
 ## Features
 
 - 📊 Fetch workout data from Strava API
 - 📈 Merge multiple workouts from the same day with intelligent averaging
+- 🧭 Configurable daily workout policy (`longest` or `merge`)
 - ⚡ Support for power metrics (average, normalized)
 - ❤️ Heart rate tracking (average, maximum)
 - 🚴 Cadence and elevation tracking
-- 🔄 Sync data to Google Sheets
+- 🦵 Leg sensations mapping from Strava private notes
+- 🗂️ Export to CSV
 - 🐳 Docker support for easy deployment
 - ⚙️ Configurable minimum workout duration filter
 
 ## Workout Types
 
-The application supports three types of workouts:
+The application supports the following workout types:
 - **Estrada** - Road cycling
 - **Rolo** - Indoor trainer/roller
-- **Mixed** - Combined workouts
+- **Prova** - Race
+- **Descanso** - Rest day
 
 ## Architecture
 
@@ -87,9 +90,10 @@ The application can be configured using environment variables:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `MINIMAL_WORKOUT_DURATION` | Minimum workout duration in minutes to include | `30` |
-| `STRAVA_BASE_URL` | Strava OAuth base URL | `https://www.strava.com` |
 | `STRAVA_API_BASE_URL` | Strava API base URL | `https://www.strava.com/api/v3` |
 | `STRAVA_ACCESS_TOKEN` | Current Strava access token | - |
+| `OUTPUT_FILE_PATH` | Output CSV path | auto-generated when `--output-file` is omitted |
+| `DAILY_WORKOUT_POLICY` | Daily workout selection policy (`longest` or `merge`) | `longest` |
 
 ### Strava Authentication
 
@@ -107,7 +111,8 @@ All API requests will include the access token in the `Authorization: Bearer <to
 
 ```bash
 export MINIMAL_WORKOUT_DURATION=45
-./strava-weekly
+export DAILY_WORKOUT_POLICY=merge
+./strava-weekly --start-date 01/01/2026 --end-date 01/07/2026
 ```
 
 ## Usage
@@ -115,13 +120,24 @@ export MINIMAL_WORKOUT_DURATION=45
 ### Running Locally
 
 ```bash
-./strava-weekly
+./strava-weekly \
+  --start-date 01/01/2026 \
+  --end-date 01/07/2026 \
+  --access-token "$STRAVA_ACCESS_TOKEN" \
+  --daily-workout-policy merge \
+  --min-duration 30 \
+  --output-file workouts_summary_2026-01-01_to_2026-01-07.csv
 ```
 
 ### Running with Docker
 
 ```bash
-docker run -e MINIMAL_WORKOUT_DURATION=30 strava-weekly
+docker run --rm \
+  -e STRAVA_API_BASE_URL=https://www.strava.com/api/v3 \
+  -e STRAVA_ACCESS_TOKEN="$STRAVA_ACCESS_TOKEN" \
+  strava-weekly \
+  --start-date 01/01/2026 \
+  --end-date 01/07/2026
 ```
 
 ## Development
@@ -186,23 +202,25 @@ make lint
 
 ## How It Works
 
-1. **Fetch Workouts**: The application fetches workout data from Strava for a specified date range (typically the last 7 days)
+1. **Fetch Workouts**: The application fetches workout data from Strava for each day in a user-provided date range.
 
 2. **Filter Workouts**: Only workouts meeting the minimum duration threshold are processed
 
-3. **Merge Workouts**: If multiple workouts exist on the same day, they are intelligently merged:
-   - Distance, duration, and elevation are summed
-   - Power, heart rate, and cadence are weighted by duration
-   - Maximum heart rate is preserved
+3. **Select Daily Workout**: If multiple workouts exist on the same day, the selected policy is applied:
+   - **`longest`**: pick the longest workout above the minimum duration.
+   - **`merge`**: merge all workouts above the minimum duration:
+     - distance, duration, and elevation are summed
+     - power, heart rate, and cadence are weighted by duration
+     - maximum heart rate is preserved
 
-4. **Save Data**: Merged workout data is saved to the configured destination (Google Sheets)
+4. **Save Data**: The resulting workout for each day is saved as a CSV row.
 
 ## Data Model
 
 Each workout includes the following metrics:
 
 - **ID**: Unique workout identifier
-- **Workout Type**: Road (Estrada), Trainer (Rolo), or Mixed
+- **Workout Type**: Estrada, Rolo, Prova, or Descanso
 - **Start Time**: When the workout began
 - **Distance**: Total distance in kilometers
 - **Duration**: Total duration in minutes
@@ -214,10 +232,11 @@ Each workout includes the following metrics:
   - Average Heart Rate (bpm)
   - Maximum Heart Rate (bpm)
 - **Cadence**: Average cadence in RPM
+- **Leg Sensations**: Optional perceived legs condition (from Strava private note mapping)
 
 ## Project Status
 
-🚧 **In Development** - The Strava API integration and Google Sheets export features are currently being implemented.
+🚧 **In Development** - Core Strava ingestion and CSV export are implemented and evolving.
 
 ## Contributing
 

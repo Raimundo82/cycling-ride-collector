@@ -29,6 +29,9 @@ func (p *Provider) GetWorkoutsByDate(date time.Time) ([]*domain.Workout, error) 
 		if a.SportType == "Ride" && !a.Commute {
 			stream, err := p.client.GetWattsStream(context.Background(), a.ID)
 			a.Watts = lo.Ternary(err == nil, stream, &WattsStreamDto{WattsData: []int{}})
+			if detailedActivity, err := p.client.GetDetailedActivityByID(context.Background(), a.ID); err == nil && detailedActivity != nil {
+				a.LegSensations = detailedActivity.LegSensations
+			}
 			return MapToWorkout(a), true
 		}
 		return nil, false

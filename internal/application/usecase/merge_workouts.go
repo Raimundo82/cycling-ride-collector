@@ -44,6 +44,7 @@ func (m *MergeWorkouts) GetDailyWorkout(workouts []*domain.Workout, minWorkoutDu
 	merged.ID = longDurationWorkouts[0].ID
 	merged.StartTime = longDurationWorkouts[0].StartTime
 	merged.WorkoutType = longDurationWorkouts[0].WorkoutType
+	merged.SetLegSensations(string(longDurationWorkouts[0].LegSensations()))
 	merged.AvgPowerInWatts = mergeMetric(longDurationWorkouts, func(w *domain.Workout) int { return w.AvgPowerInWatts })
 	merged.AvgHeartRateInBpm = mergeMetric(longDurationWorkouts, func(w *domain.Workout) int { return w.AvgHeartRateInBpm })
 	merged.AvgCadenceInRpm = mergeMetric(longDurationWorkouts, func(w *domain.Workout) int { return w.AvgCadenceInRpm })
