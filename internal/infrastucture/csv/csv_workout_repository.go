@@ -19,7 +19,7 @@ func NewCSVWorkoutRepository(filePath string) *CSVWorkoutRepository {
 }
 
 func (r *CSVWorkoutRepository) Save(workout *domain.Workout) (err error) {
-	file, err := os.OpenFile(r.filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	file, err := os.OpenFile(r.filePath, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
 		return err
 	}

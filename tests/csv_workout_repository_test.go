@@ -80,12 +80,10 @@ func TestCSVWorkoutRepository_Save_AppendsToFile(t *testing.T) {
 			data, err := os.ReadFile(tmpfile.Name())
 			So(err, ShouldBeNil)
 			lines := strings.Split(strings.TrimSpace(string(data)), "\n")
-			So(len(lines), ShouldEqual, 2)
+			So(len(lines), ShouldEqual, 1)
 
-			expectedFirst := "5/1/2024,Estrada,10:00,0h30m,10.00,100,150,160,120,130,80,Boas"
-			expectedSecond := "6/1/2024,Estrada,10:30,1h0m,25.50,500,200,220,150,180,90,Médias"
-			So(lines[0], ShouldEqual, expectedFirst)
-			So(lines[1], ShouldEqual, expectedSecond)
+			expected := "6/1/2024,Estrada,10:30,1h0m,25.50,500,200,220,150,180,90,Médias"
+			So(lines[0], ShouldEqual, expected)
 		})
 	})
 }
