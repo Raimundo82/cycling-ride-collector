@@ -32,6 +32,20 @@ func (r *CSVWorkoutRepository) Save(workout *domain.Workout) (err error) {
 	return r.SaveToWriter(workout, file)
 }
 
+func (r *CSVWorkoutRepository) SaveAll(workouts []*domain.Workout) (err error) {
+	file, err := os.OpenFile(r.filePath, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil && err == nil {
+			err = closeErr
+		}
+	}()
+
+	return r.SaveToWriterAll(workouts, file)
+}
+
 func (r *CSVWorkoutRepository) SaveToWriter(workout *domain.Workout, w io.Writer) (err error) {
 	writer := csv.NewWriter(w)
 	defer func() {
@@ -43,6 +57,23 @@ func (r *CSVWorkoutRepository) SaveToWriter(workout *domain.Workout, w io.Writer
 
 	record := r.workoutToRecord(workout)
 	return writer.Write(record)
+}
+
+func (r *CSVWorkoutRepository) SaveToWriterAll(workouts []*domain.Workout, w io.Writer) (err error) {
+	writer := csv.NewWriter(w)
+	defer func() {
+		writer.Flush()
+		if flushErr := writer.Error(); flushErr != nil && err == nil {
+			err = flushErr
+		}
+	}()
+
+	records := make([][]string, 0, len(workouts))
+	for _, workout := range workouts {
+		record := r.workoutToRecord(workout)
+		records = append(records, record)
+	}
+	return writer.WriteAll(records)
 }
 
 func (r *CSVWorkoutRepository) workoutToRecord(workout *domain.Workout) []string {

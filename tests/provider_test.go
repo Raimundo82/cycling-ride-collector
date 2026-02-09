@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/raimundo82/go-strava-weekly/internal/application/usecase/input"
 	"github.com/raimundo82/go-strava-weekly/internal/domain"
 	"github.com/raimundo82/go-strava-weekly/internal/infrastucture/strava"
 	. "github.com/smartystreets/goconvey/convey"
@@ -27,6 +28,11 @@ var _ strava.Client = (*stubClient)(nil)
 // GetActivitiesByDate implements [strava.Client].
 func (s *stubClient) GetActivitiesByDate(ctx context.Context, d time.Time) ([]*strava.ActivityDto, error) {
 	return s.acts, s.activitiesErr
+}
+
+// GetActivitiesByPeriod implements [strava.Client].
+func (s *stubClient) GetActivitiesByPeriod(ctx context.Context, period input.Period) ([]*strava.ActivityDto, error) {
+	panic("unimplemented")
 }
 
 // GetWattsStream implements [strava.Client].

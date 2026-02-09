@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/raimundo82/go-strava-weekly/internal/application/usecase/input"
 	"github.com/raimundo82/go-strava-weekly/internal/config"
 )
 
@@ -138,4 +139,38 @@ func (c *stravaHttpClient) GetDetailedActivityByID(ctx context.Context, activity
 	}
 
 	return &act, nil
+}
+
+// GetActivitiesByPeriod implements [Client].
+func (c *stravaHttpClient) GetActivitiesByPeriod(ctx context.Context, period input.Period) ([]*ActivityDto, error) {
+	startDate := period.StartDate()
+	endDate := period.EndDate()
+	start := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, startDate.Location())
+	end := time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 23, 59, 59, 0, endDate.Location())
+	req, err := http.NewRequestWithContext(ctx, "GET", c.baseUrl+"/athlete/activities", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	q := req.URL.Query()
+	q.Set("after", fmt.Sprint(start.Unix()))
+	q.Set("before", fmt.Sprint(end.Unix()))
+	req.URL.RawQuery = q.Encode()
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("strava error: %s", resp.Status)
+	}
+
+	var acts []*ActivityDto
+	if err := json.NewDecoder(resp.Body).Decode(&acts); err != nil {
+		return nil, err
+	}
+
+	return acts, nil
 }

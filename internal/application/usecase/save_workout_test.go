@@ -1,44 +1,38 @@
-package test
+package usecase
 
 import (
 	"fmt"
 	"testing"
 	"time"
 
-	. "github.com/raimundo82/go-strava-weekly/internal/application/usecase"
+	"github.com/raimundo82/go-strava-weekly/internal/application/contracts"
 	. "github.com/raimundo82/go-strava-weekly/internal/domain"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-type MockWorkoutRepository struct {
+type mockWorkoutRepository struct {
 	Workouts   []*Workout
 	SaveCalled int
 }
 
-type MockWorkoutProvider struct {
-	Workouts               []*Workout
-	GetWorkoutByDateCalled int
-	Err                    error
+var _ contracts.WorkoutSaver = (*mockWorkoutRepository)(nil)
+
+type mockWorkoutProvider struct {
+	Workouts                []*Workout
+	GetWorkoutsByDateCalled int
+	Err                     error
 }
 
-type MockDailyWorkoutPolicy struct {
-	GetDailyWorkoutCalled int
-	Workout               *Workout
-}
+var _ contracts.SingleWorkoutProvider = (*mockWorkoutProvider)(nil)
 
-func (m *MockDailyWorkoutPolicy) GetDailyWorkout(workouts []*Workout, minWorkoutDuration int) *Workout {
-	m.GetDailyWorkoutCalled++
-	return m.Workout
-}
-
-func (m *MockWorkoutRepository) Save(workout *Workout) error {
+func (m *mockWorkoutRepository) Save(workout *Workout) error {
 	m.Workouts = append(m.Workouts, workout)
 	m.SaveCalled++
 	return nil
 }
 
-func (m *MockWorkoutProvider) GetWorkoutsByDate(date time.Time) ([]*Workout, error) {
-	m.GetWorkoutByDateCalled++
+func (m *mockWorkoutProvider) GetWorkoutsByDate(date time.Time) ([]*Workout, error) {
+	m.GetWorkoutsByDateCalled++
 	if m.Err != nil {
 		return nil, m.Err
 	}
@@ -70,17 +64,17 @@ func TestSaveWorkout(t *testing.T) {
 
 	for _, tc := range testCases {
 		Convey(tc.name, t, func() {
-			mockRepo := &MockWorkoutRepository{
+			mockRepo := &mockWorkoutRepository{
 				Workouts:   []*Workout{},
 				SaveCalled: 0,
 			}
 
-			mockProvider := &MockWorkoutProvider{
-				Workouts:               tc.workouts,
-				GetWorkoutByDateCalled: 0,
+			mockProvider := &mockWorkoutProvider{
+				Workouts:                tc.workouts,
+				GetWorkoutsByDateCalled: 0,
 			}
 
-			mockDailyWorkoutPolicy := &MockDailyWorkoutPolicy{
+			mockDailyWorkoutPolicy := &mockDailyWorkoutPolicy{
 				GetDailyWorkoutCalled: 0,
 				Workout:               nil,
 			}
@@ -92,7 +86,7 @@ func TestSaveWorkout(t *testing.T) {
 
 				Convey("Then asserting saves match expectations", func() {
 					So(err, ShouldBeNil)
-					So(mockProvider.GetWorkoutByDateCalled, ShouldEqual, tc.getWorkoutByDateCalled)
+					So(mockProvider.GetWorkoutsByDateCalled, ShouldEqual, tc.getWorkoutByDateCalled)
 					So(mockDailyWorkoutPolicy.GetDailyWorkoutCalled, ShouldEqual, tc.getDailyWorkoutCalled)
 					So(mockRepo.SaveCalled, ShouldEqual, tc.saveCalls)
 				})
@@ -103,17 +97,17 @@ func TestSaveWorkout(t *testing.T) {
 
 func TestSaveWorkout_WithNoWorkouts(t *testing.T) {
 	Convey("Given a SaveWorkout use case with no workouts from provider", t, func() {
-		mockRepo := &MockWorkoutRepository{
+		mockRepo := &mockWorkoutRepository{
 			Workouts:   []*Workout{},
 			SaveCalled: 0,
 		}
 
-		mockProvider := &MockWorkoutProvider{
-			Workouts:               []*Workout{},
-			GetWorkoutByDateCalled: 0,
+		mockProvider := &mockWorkoutProvider{
+			Workouts:                []*Workout{},
+			GetWorkoutsByDateCalled: 0,
 		}
 
-		mockDailyWorkoutPolicy := &MockDailyWorkoutPolicy{
+		mockDailyWorkoutPolicy := &mockDailyWorkoutPolicy{
 			GetDailyWorkoutCalled: 0,
 		}
 
@@ -127,7 +121,7 @@ func TestSaveWorkout_WithNoWorkouts(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(mockRepo.SaveCalled, ShouldEqual, 1)
 				So(mockDailyWorkoutPolicy.GetDailyWorkoutCalled, ShouldEqual, 0)
-				So(mockProvider.GetWorkoutByDateCalled, ShouldEqual, 1)
+				So(mockProvider.GetWorkoutsByDateCalled, ShouldEqual, 1)
 				So(len(mockRepo.Workouts), ShouldEqual, 1)
 			})
 		})
@@ -151,17 +145,17 @@ func TestSaveWorkout_WithLongWorkout(t *testing.T) {
 			AvgPowerInWatts:   225,
 		})
 
-		mockRepo := &MockWorkoutRepository{
+		mockRepo := &mockWorkoutRepository{
 			Workouts:   []*Workout{},
 			SaveCalled: 0,
 		}
 
-		mockProvider := &MockWorkoutProvider{
-			Workouts:               []*Workout{workout},
-			GetWorkoutByDateCalled: 0,
+		mockProvider := &mockWorkoutProvider{
+			Workouts:                []*Workout{workout},
+			GetWorkoutsByDateCalled: 0,
 		}
 
-		mockDailyWorkoutPolicy := &MockDailyWorkoutPolicy{
+		mockDailyWorkoutPolicy := &mockDailyWorkoutPolicy{
 			GetDailyWorkoutCalled: 0,
 			Workout:               workout,
 		}
@@ -172,7 +166,7 @@ func TestSaveWorkout_WithLongWorkout(t *testing.T) {
 
 			Convey("Then no error occurs and a workout is saved", func() {
 				So(err, ShouldBeNil)
-				So(mockProvider.GetWorkoutByDateCalled, ShouldEqual, 1)
+				So(mockProvider.GetWorkoutsByDateCalled, ShouldEqual, 1)
 				So(mockDailyWorkoutPolicy.GetDailyWorkoutCalled, ShouldEqual, 1)
 				So(mockRepo.SaveCalled, ShouldEqual, 1)
 				So(len(mockRepo.Workouts), ShouldEqual, 1)
@@ -198,17 +192,17 @@ func TestSaveWorkout_WithShortWorkout(t *testing.T) {
 			AvgPowerInWatts:   225,
 		})
 
-		mockRepo := &MockWorkoutRepository{
+		mockRepo := &mockWorkoutRepository{
 			Workouts:   []*Workout{},
 			SaveCalled: 0,
 		}
-		mockDailyWorkoutPolicy := &MockDailyWorkoutPolicy{
+		mockDailyWorkoutPolicy := &mockDailyWorkoutPolicy{
 			GetDailyWorkoutCalled: 0,
 			Workout:               workout,
 		}
-		mockProvider := &MockWorkoutProvider{
-			Workouts:               []*Workout{workout},
-			GetWorkoutByDateCalled: 0,
+		mockProvider := &mockWorkoutProvider{
+			Workouts:                []*Workout{workout},
+			GetWorkoutsByDateCalled: 0,
 		}
 
 		useCase := NewSaveWorkout(mockDailyWorkoutPolicy, mockRepo, mockProvider)
@@ -218,7 +212,7 @@ func TestSaveWorkout_WithShortWorkout(t *testing.T) {
 
 			Convey("Then no error occurs and no workout is saved", func() {
 				So(err, ShouldBeNil)
-				So(mockProvider.GetWorkoutByDateCalled, ShouldEqual, 1)
+				So(mockProvider.GetWorkoutsByDateCalled, ShouldEqual, 1)
 				So(mockRepo.SaveCalled, ShouldEqual, 1)
 				So(mockDailyWorkoutPolicy.GetDailyWorkoutCalled, ShouldEqual, 1)
 				So(len(mockRepo.Workouts), ShouldEqual, 1)
@@ -230,21 +224,21 @@ func TestSaveWorkout_WithShortWorkout(t *testing.T) {
 func TestSaveWorkout_WithProviderError(t *testing.T) {
 	Convey("Given a SaveWorkout use case with a provider that returns an error", t, func() {
 		date := time.Date(2023, time.June, 1, 10, 0, 0, 0, time.UTC)
-		mockRepo := &MockWorkoutRepository{
+		mockRepo := &mockWorkoutRepository{
 			Workouts:   []*Workout{},
 			SaveCalled: 0,
 		}
 
-		mockDailyWorkoutPolicy := &MockDailyWorkoutPolicy{
+		mockDailyWorkoutPolicy := &mockDailyWorkoutPolicy{
 			GetDailyWorkoutCalled: 0,
 			Workout:               nil,
 		}
 
 		providerErr := fmt.Errorf("provider connection failed")
-		mockProvider := &MockWorkoutProvider{
-			Workouts:               nil,
-			GetWorkoutByDateCalled: 0,
-			Err:                    providerErr,
+		mockProvider := &mockWorkoutProvider{
+			Workouts:                nil,
+			GetWorkoutsByDateCalled: 0,
+			Err:                     providerErr,
 		}
 
 		useCase := NewSaveWorkout(mockDailyWorkoutPolicy, mockRepo, mockProvider)
@@ -254,7 +248,7 @@ func TestSaveWorkout_WithProviderError(t *testing.T) {
 
 			Convey("Then the error is propagated and no workout is saved", func() {
 				So(err, ShouldEqual, providerErr)
-				So(mockProvider.GetWorkoutByDateCalled, ShouldEqual, 1)
+				So(mockProvider.GetWorkoutsByDateCalled, ShouldEqual, 1)
 				So(mockDailyWorkoutPolicy.GetDailyWorkoutCalled, ShouldEqual, 0)
 				So(mockRepo.SaveCalled, ShouldEqual, 0)
 				So(len(mockRepo.Workouts), ShouldEqual, 0)

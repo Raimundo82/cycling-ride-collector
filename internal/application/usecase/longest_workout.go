@@ -6,16 +6,16 @@ import (
 	"github.com/samber/lo"
 )
 
-var _ contracts.DailyWorkoutPolicy = (*LongestWorkout)(nil)
+var _ contracts.DailyWorkoutPolicy = (*longestWorkout)(nil)
 
-type LongestWorkout struct{}
+type longestWorkout struct{}
 
-func NewLongestWorkout() *LongestWorkout {
-	return &LongestWorkout{}
+func NewLongestWorkout() contracts.DailyWorkoutPolicy {
+	return &longestWorkout{}
 }
 
 // GetDailyWorkout implements [contracts.DailyWorkoutPolicy].
-func (l *LongestWorkout) GetDailyWorkout(dailyWorkouts []*domain.Workout, minWorkoutDuration int) *domain.Workout {
+func (l *longestWorkout) GetDailyWorkout(dailyWorkouts []*domain.Workout, minWorkoutDuration int) *domain.Workout {
 	filteredWorkouts := lo.Filter(dailyWorkouts, func(w *domain.Workout, _ int) bool { return w.DurationInMin >= minWorkoutDuration })
 	return lo.MaxBy(filteredWorkouts, func(a, b *domain.Workout) bool { return a.DurationInMin > b.DurationInMin })
 }

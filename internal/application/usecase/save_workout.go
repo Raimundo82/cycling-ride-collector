@@ -7,27 +7,31 @@ import (
 	"github.com/raimundo82/go-strava-weekly/internal/domain"
 )
 
-var _ contracts.SaveWorkoutUseCase = (*SaveWorkout)(nil)
+type SaveWorkoutUseCase interface {
+	Execute(date time.Time, minWorkoutDuration int) error
+}
 
-type SaveWorkout struct {
+var _ SaveWorkoutUseCase = (*saveWorkout)(nil)
+
+type saveWorkout struct {
 	dailyWorkout    contracts.DailyWorkoutPolicy
-	workoutRepo     contracts.WorkoutRepository
-	workoutProvider contracts.WorkoutProvider
+	workoutRepo     contracts.WorkoutSaver
+	workoutProvider contracts.SingleWorkoutProvider
 }
 
 func NewSaveWorkout(
 	dailyWorkout contracts.DailyWorkoutPolicy,
-	workoutRepo contracts.WorkoutRepository,
-	workoutProvider contracts.WorkoutProvider,
-) *SaveWorkout {
-	return &SaveWorkout{
+	workoutRepo contracts.WorkoutSaver,
+	workoutProvider contracts.SingleWorkoutProvider,
+) SaveWorkoutUseCase {
+	return &saveWorkout{
 		dailyWorkout:    dailyWorkout,
 		workoutRepo:     workoutRepo,
 		workoutProvider: workoutProvider,
 	}
 }
 
-func (saveWorkoutUseCase *SaveWorkout) Execute(date time.Time, minWorkoutDuration int) error {
+func (saveWorkoutUseCase *saveWorkout) Execute(date time.Time, minWorkoutDuration int) error {
 	workouts, err := saveWorkoutUseCase.workoutProvider.GetWorkoutsByDate(date)
 	if err != nil {
 		return err
@@ -46,7 +50,7 @@ func (saveWorkoutUseCase *SaveWorkout) Execute(date time.Time, minWorkoutDuratio
 	return saveWorkoutUseCase.workoutRepo.Save(workout)
 }
 
-func (*SaveWorkout) newRestWorkout(date time.Time) *domain.Workout {
+func (*saveWorkout) newRestWorkout(date time.Time) *domain.Workout {
 	return domain.NewWorkout(&domain.WorkoutParams{
 		ID:                     -1,
 		StartTime:              date,
