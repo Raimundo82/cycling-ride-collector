@@ -43,8 +43,8 @@ func TestNewPeriod_GivenInvalidStartDate_WhenInvoked_ThenErrorIsReturned(t *test
 
 func TestNewPeriod_GivenInvalidEndDate_WhenInvoked_ThenErrorIsReturned(t *testing.T) {
 	Convey("Given an invalid end date", t, func() {
-		startDate := time.Time{}
-		endDate := time.Date(2024, 6, 2, 0, 0, 0, 0, time.UTC)
+		startDate := time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC)
+		endDate := time.Time{}
 
 		Convey("When NewPeriod is invoked", func() {
 			p, err := NewPeriod(startDate, endDate)
