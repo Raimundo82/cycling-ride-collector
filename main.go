@@ -12,6 +12,7 @@ import (
 	"github.com/raimundo82/go-strava-weekly/internal/application/usecase"
 	"github.com/raimundo82/go-strava-weekly/internal/application/usecase/input"
 	"github.com/raimundo82/go-strava-weekly/internal/config"
+	"github.com/raimundo82/go-strava-weekly/internal/domain"
 	"github.com/raimundo82/go-strava-weekly/internal/infrastucture/csv"
 	"github.com/raimundo82/go-strava-weekly/internal/infrastucture/strava"
 )
@@ -53,7 +54,7 @@ func parseFlagsAndConfig() (*config.Config, *input.SaveWorkoutPeriodRequest) {
 		log.Fatalf("Invalid end date: %v", err)
 	}
 
-	period, err := input.NewPeriod(startDate, endDate)
+	period, err := domain.NewPeriod(startDate, endDate)
 	if err != nil {
 		log.Fatalf("Invalid period: %v", err)
 	}

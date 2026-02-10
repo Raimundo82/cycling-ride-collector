@@ -4,12 +4,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/raimundo82/go-strava-weekly/internal/domain"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestNewSaveWorkoutPeriodRequest_GivenValidPeriodAndMinimalWorkoutDurationAndPolicies_WhenNewSaveWorkoutPeriodRequestIsInvoked_ThenValidRequestIsReturned(t *testing.T) {
 	Convey("Given a valid period, minimal workout duration and daily workout policy", t, func() {
-		p, _ := NewPeriod(
+		p, _ := domain.NewPeriod(
 			time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC),
 			time.Date(2024, 6, 30, 0, 0, 0, 0, time.UTC),
 		)
@@ -29,7 +30,7 @@ func TestNewSaveWorkoutPeriodRequest_GivenValidPeriodAndMinimalWorkoutDurationAn
 
 func TestNewSaveWorkoutPeriodRequest_GivenInvalidPeriodAndMinimalWorkoutDurationAndPolicies_WhenNewSaveWorkoutPeriodRequestIsInvoked_ThenErrorIsReturned(t *testing.T) {
 	Convey("Given an invalid period, minimal workout duration and daily workout policy", t, func() {
-		var p Period
+		var p domain.Period
 		minDuration := 30
 		policy := "longest"
 
@@ -46,7 +47,7 @@ func TestNewSaveWorkoutPeriodRequest_GivenInvalidPeriodAndMinimalWorkoutDuration
 
 func TestNewSaveWorkoutPeriodRequest_GivenInvalidMinimalWorkoutDuration_WhenNewSaveWorkoutPeriodRequestIsInvoked_ThenErrorIsReturned(t *testing.T) {
 	Convey("Given an invalid period, minimal workout duration and daily workout policy", t, func() {
-		p, _ := NewPeriod(
+		p, _ := domain.NewPeriod(
 			time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC),
 			time.Date(2024, 6, 30, 0, 0, 0, 0, time.UTC),
 		)
@@ -66,7 +67,7 @@ func TestNewSaveWorkoutPeriodRequest_GivenInvalidMinimalWorkoutDuration_WhenNewS
 
 func TestNewSaveWorkoutPeriodRequest_GivenInvalidPolicy_WhenNewSaveWorkoutPeriodRequestIsInvoked_ThenErrorIsReturned(t *testing.T) {
 	Convey("Given an invalid period, minimal workout duration and daily workout policy", t, func() {
-		p, _ := NewPeriod(
+		p, _ := domain.NewPeriod(
 			time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC),
 			time.Date(2024, 6, 30, 0, 0, 0, 0, time.UTC),
 		)

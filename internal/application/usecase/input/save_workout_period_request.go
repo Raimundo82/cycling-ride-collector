@@ -1,14 +1,18 @@
 package input
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/raimundo82/go-strava-weekly/internal/domain"
+)
 
 type SaveWorkoutPeriodRequest struct {
-	Period                 Period
+	Period                 domain.Period
 	DailyWorkoutPolicy     string
 	MinimalWorkoutDuration int
 }
 
-func NewSaveWorkoutPeriodRequest(period Period, dailyWorkoutPolicy string, minimalWorkoutDuration int) (*SaveWorkoutPeriodRequest, error) {
+func NewSaveWorkoutPeriodRequest(period domain.Period, dailyWorkoutPolicy string, minimalWorkoutDuration int) (*SaveWorkoutPeriodRequest, error) {
 	if period == nil {
 		return nil, errors.New("period must be provided")
 	}

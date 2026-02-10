@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/raimundo82/go-strava-weekly/internal/application/usecase/input"
 	"github.com/raimundo82/go-strava-weekly/internal/config"
+	"github.com/raimundo82/go-strava-weekly/internal/domain"
 )
 
 type stravaHttpClient struct {
@@ -142,7 +142,7 @@ func (c *stravaHttpClient) GetDetailedActivityByID(ctx context.Context, activity
 }
 
 // GetActivitiesByPeriod implements [Client].
-func (c *stravaHttpClient) GetActivitiesByPeriod(ctx context.Context, period input.Period) ([]*ActivityDto, error) {
+func (c *stravaHttpClient) GetActivitiesByPeriod(ctx context.Context, period domain.Period) ([]*ActivityDto, error) {
 	startDate := period.StartDate()
 	endDate := period.EndDate()
 	start := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, startDate.Location())

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/raimundo82/go-strava-weekly/internal/application/contracts"
-	"github.com/raimundo82/go-strava-weekly/internal/application/usecase/input"
 	. "github.com/raimundo82/go-strava-weekly/internal/domain"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -34,7 +33,7 @@ func (m *mockWorkoutPeriodSaver) SaveAll(workouts []*Workout) error {
 }
 
 // GetWorkoutsByPeriod implements [contracts.PeriodWorkoutProvider].
-func (m *mockPeriodWorkoutProvider) GetWorkoutsByPeriod(period input.Period) ([]*Workout, error) {
+func (m *mockPeriodWorkoutProvider) GetWorkoutsByPeriod(period Period) ([]*Workout, error) {
 	m.GetWorkoutsByPeriodCalled++
 	if m.Err != nil {
 		return nil, m.Err
@@ -59,7 +58,7 @@ func TestSaveWorkoutPeriod_GivenWorkoutsForPeriod_WhenExecute_ThenWorkoutsSaved(
 
 		saveWorkoutPeriod := NewSaveWorkoutPeriod(NewLongestWorkout(), workoutRepo, workoutProvider)
 
-		period, _ := input.NewPeriod(time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC), time.Date(2024, 6, 3, 0, 0, 0, 0, time.UTC))
+		period, _ := NewPeriod(time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC), time.Date(2024, 6, 3, 0, 0, 0, 0, time.UTC))
 
 		minWorkoutDuration := 30
 
@@ -84,7 +83,7 @@ func TestSaveWorkoutPeriod_GivenNoWorkouts_WhenExecute_ThenNoWorkoutsSaved(t *te
 		workoutProvider := &mockPeriodWorkoutProvider{Workouts: []*Workout{}, GetWorkoutsByPeriodCalled: 0}
 		workoutRepo := &mockWorkoutPeriodSaver{Workouts: []*Workout{}, SaveAllCalled: 0}
 		saveWorkoutPeriod := NewSaveWorkoutPeriod(NewLongestWorkout(), workoutRepo, workoutProvider)
-		period, _ := input.NewPeriod(time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC), time.Date(2024, 6, 7, 0, 0, 0, 0, time.UTC))
+		period, _ := NewPeriod(time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC), time.Date(2024, 6, 7, 0, 0, 0, 0, time.UTC))
 		minWorkoutDuration := 30
 
 		Convey("When execute", func() {
@@ -105,7 +104,7 @@ func TestSaveWorkoutPeriod_GivenProviderError_WhenExecute_ThenReturnsError(t *te
 		workoutProvider := &mockPeriodWorkoutProvider{Workouts: []*Workout{}, GetWorkoutsByPeriodCalled: 0, Err: errors.New("provider error")}
 		workoutRepo := &mockWorkoutPeriodSaver{Workouts: []*Workout{}, SaveAllCalled: 0}
 		saveWorkoutPeriod := NewSaveWorkoutPeriod(NewLongestWorkout(), workoutRepo, workoutProvider)
-		period, _ := input.NewPeriod(time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC), time.Date(2024, 6, 7, 0, 0, 0, 0, time.UTC))
+		period, _ := NewPeriod(time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC), time.Date(2024, 6, 7, 0, 0, 0, 0, time.UTC))
 		minWorkoutDuration := 30
 
 		Convey("When execute", func() {

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/raimundo82/go-strava-weekly/internal/application/contracts"
-	"github.com/raimundo82/go-strava-weekly/internal/application/usecase/input"
 	"github.com/raimundo82/go-strava-weekly/internal/domain"
 	"github.com/samber/lo"
 )
@@ -43,7 +42,7 @@ func (p *Provider) GetWorkoutsByDate(date time.Time) ([]*domain.Workout, error) 
 }
 
 // GetWorkoutsByPeriod implements [contracts.WorkoutProvider].
-func (p *Provider) GetWorkoutsByPeriod(period input.Period) ([]*domain.Workout, error) {
+func (p *Provider) GetWorkoutsByPeriod(period domain.Period) ([]*domain.Workout, error) {
 	acts, err := p.client.GetActivitiesByPeriod(context.Background(), period)
 	if err != nil {
 		return nil, err

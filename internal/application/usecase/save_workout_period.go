@@ -4,13 +4,12 @@ import (
 	"time"
 
 	"github.com/raimundo82/go-strava-weekly/internal/application/contracts"
-	"github.com/raimundo82/go-strava-weekly/internal/application/usecase/input"
 	"github.com/raimundo82/go-strava-weekly/internal/domain"
 	"github.com/samber/lo"
 )
 
 type SaveWorkoutPeriodUseCase interface {
-	Execute(period input.Period, minimalWorkoutDuration int) error
+	Execute(period domain.Period, minimalWorkoutDuration int) error
 }
 
 type saveWorkoutPeriod struct {
@@ -31,7 +30,7 @@ func NewSaveWorkoutPeriod(
 	}
 }
 
-func (saveWorkoutPeriod *saveWorkoutPeriod) Execute(period input.Period, minimalWorkoutDuration int) error {
+func (saveWorkoutPeriod *saveWorkoutPeriod) Execute(period domain.Period, minimalWorkoutDuration int) error {
 	periodWorkouts, err := saveWorkoutPeriod.workoutProvider.GetWorkoutsByPeriod(period)
 	if err != nil {
 		return err
