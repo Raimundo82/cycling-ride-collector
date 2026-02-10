@@ -14,7 +14,6 @@ func Load() *Config {
 	return &Config{
 		StravaApiBaseUrl:  getEnv("STRAVA_API_BASE_URL"),
 		StravaAccessToken: getEnv("STRAVA_ACCESS_TOKEN"),
-		OutputFilePath:    getEnv("OUTPUT_FILE_PATH"),
 	}
 }
 
