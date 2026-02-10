@@ -57,7 +57,7 @@ func TestNewPeriod_GivenInvalidEndDate_WhenInvoked_ThenErrorIsReturned(t *testin
 	})
 }
 
-func TestNewPeriod_GivenEndDateInTheSameDayAsStartDate_WhenInvoked_ThenErrorIsReturned(t *testing.T) {
+func TestNewPeriod_GivenEndDateInTheSameDayAsStartDate_WhenInvoked_ThenAOneDayPeriodIsReturned(t *testing.T) {
 	Convey("Given a start date and an end date that is the same day", t, func() {
 		startDate := time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC)
 		endDate := time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC)
@@ -65,10 +65,11 @@ func TestNewPeriod_GivenEndDateInTheSameDayAsStartDate_WhenInvoked_ThenErrorIsRe
 		Convey("When NewPeriod is invoked", func() {
 			p, err := NewPeriod(startDate, endDate)
 
-			Convey("Then an error is returned", func() {
-				So(err, ShouldNotBeNil)
-				So(p, ShouldBeNil)
-				So(err.Error(), ShouldEqual, "start date must be before end date")
+			Convey("Then a valid Period is returned", func() {
+				So(err, ShouldBeNil)
+				So(p, ShouldNotBeNil)
+				So(p.StartDate().Equal(startDate), ShouldBeTrue)
+				So(p.EndDate().Equal(endDate), ShouldBeTrue)
 			})
 		})
 	})

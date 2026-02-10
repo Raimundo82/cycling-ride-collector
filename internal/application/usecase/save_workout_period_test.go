@@ -78,7 +78,39 @@ func TestSaveWorkoutPeriod_GivenWorkoutsForPeriod_WhenExecute_ThenWorkoutsSaved(
 	})
 }
 
-func TestSaveWorkoutPeriod_GivenNoWorkouts_WhenExecute_ThenNoWorkoutsSaved(t *testing.T) {
+func TestSaveWorkoutPeriod_GivenWorkoutsForOneDayPeriod_WhenExecute_ThenWorkoutIsSavedForOneDay(t *testing.T) {
+	Convey("Given workouts for one day period from the provider", t, func() {
+		workoutProvider := &mockPeriodWorkoutProvider{
+			Workouts: []*Workout{
+				{ID: 1, StartTime: time.Date(2024, 6, 1, 10, 0, 0, 0, time.UTC), DurationInMin: 90},
+				{ID: 2, StartTime: time.Date(2024, 6, 2, 9, 0, 0, 0, time.UTC), DurationInMin: 30},
+			},
+			GetWorkoutsByPeriodCalled: 0,
+		}
+
+		workoutRepo := &mockWorkoutPeriodSaver{Workouts: []*Workout{}, SaveAllCalled: 0}
+
+		saveWorkoutPeriod := NewSaveWorkoutPeriod(NewLongestWorkout(), workoutRepo, workoutProvider)
+
+		period, _ := NewPeriod(time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC), time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC))
+
+		minWorkoutDuration := 30
+
+		Convey("When execute", func() {
+			err := saveWorkoutPeriod.Execute(period, minWorkoutDuration)
+
+			Convey("Then 1 workout is saved", func() {
+				So(workoutProvider.GetWorkoutsByPeriodCalled, ShouldEqual, 1)
+				So(err, ShouldBeNil)
+				So(workoutRepo.SaveAllCalled, ShouldEqual, 1)
+				So(workoutRepo.Workouts, ShouldHaveLength, 1)
+				So(workoutRepo.Workouts[0].ID, ShouldEqual, 1)
+			})
+		})
+	})
+}
+
+func TestSaveWorkoutPeriod_GivenNoWorkouts_WhenExecute_ThenRestWorkoutsAreSaved(t *testing.T) {
 	Convey("Given no workouts for the period from the provider", t, func() {
 		workoutProvider := &mockPeriodWorkoutProvider{Workouts: []*Workout{}, GetWorkoutsByPeriodCalled: 0}
 		workoutRepo := &mockWorkoutPeriodSaver{Workouts: []*Workout{}, SaveAllCalled: 0}
@@ -89,11 +121,11 @@ func TestSaveWorkoutPeriod_GivenNoWorkouts_WhenExecute_ThenNoWorkoutsSaved(t *te
 		Convey("When execute", func() {
 			err := saveWorkoutPeriod.Execute(period, minWorkoutDuration)
 
-			Convey("Then no workouts are saved", func() {
+			Convey("Then rest workouts are saved", func() {
 				So(workoutProvider.GetWorkoutsByPeriodCalled, ShouldEqual, 1)
 				So(err, ShouldBeNil)
-				So(workoutRepo.SaveAllCalled, ShouldEqual, 0)
-				So(workoutRepo.Workouts, ShouldHaveLength, 0)
+				So(workoutRepo.SaveAllCalled, ShouldEqual, 1)
+				So(workoutRepo.Workouts, ShouldHaveLength, 7)
 			})
 		})
 	})

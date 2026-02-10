@@ -36,10 +36,6 @@ func (saveWorkoutPeriod *saveWorkoutPeriod) Execute(period domain.Period, minima
 		return err
 	}
 
-	if len(periodWorkouts) == 0 {
-		return nil
-	}
-
 	workouts := make([]*domain.Workout, 0)
 	for date := period.StartDate(); !date.After(period.EndDate()); date = date.AddDate(0, 0, 1) {
 		dailyWorkouts := lo.Filter(periodWorkouts, func(w *domain.Workout, _ int) bool {

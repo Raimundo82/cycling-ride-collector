@@ -20,7 +20,7 @@ func NewPeriod(startDate, endDate time.Time) (Period, error) {
 		return nil, errors.New("start date and end date must be valid")
 	}
 
-	if startDate.After(endDate) || startDate.Equal(endDate) {
+	if startDate.After(endDate) {
 		return nil, errors.New("start date must be before end date")
 	}
 	return &period{
