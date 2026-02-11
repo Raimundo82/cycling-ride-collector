@@ -1,6 +1,7 @@
 package csv
 
 import (
+	"encoding/csv"
 	"os"
 
 	"github.com/raimundo82/go-strava-weekly/internal/application/contracts"
@@ -26,8 +27,21 @@ func (c *csvWorkoutPeriodSaver) SaveAll(workouts []*domain.Workout) error {
 	return c.SaveToWriterAll(workouts, file)
 }
 
-func (c *csvWorkoutPeriodSaver) SaveToWriterAll(workouts []*domain.Workout, file *os.File) error {
-	panic("unimplemented")
+func (c *csvWorkoutPeriodSaver) SaveToWriterAll(workouts []*domain.Workout, file *os.File) (err error) {
+	writer := csv.NewWriter(file)
+	defer func() {
+		writer.Flush()
+		if flushErr := writer.Error(); flushErr != nil && err == nil {
+			err = flushErr
+		}
+	}()
+
+	records := make([][]string, 0, len(workouts))
+	for _, workout := range workouts {
+		record := workoutToRecord(workout)
+		records = append(records, record)
+	}
+	return writer.WriteAll(records)
 }
 
 func NewCSVWorkoutPeriodSaver(filePath string) contracts.WorkoutRepository {

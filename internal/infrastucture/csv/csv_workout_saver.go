@@ -2,10 +2,8 @@ package csv
 
 import (
 	"encoding/csv"
-	"fmt"
 	"io"
 	"os"
-	"strconv"
 
 	"github.com/raimundo82/go-strava-weekly/internal/application/contracts"
 	"github.com/raimundo82/go-strava-weekly/internal/domain"
@@ -61,7 +59,7 @@ func (r *csvWorkoutSaver) SaveToWriter(workout *domain.Workout, w io.Writer) (er
 		}
 	}()
 
-	record := r.workoutToRecord(workout)
+	record := workoutToRecord(workout)
 	return writer.Write(record)
 }
 
@@ -76,53 +74,8 @@ func (r *csvWorkoutSaver) SaveToWriterAll(workouts []*domain.Workout, w io.Write
 
 	records := make([][]string, 0, len(workouts))
 	for _, workout := range workouts {
-		record := r.workoutToRecord(workout)
+		record := workoutToRecord(workout)
 		records = append(records, record)
 	}
 	return writer.WriteAll(records)
-}
-
-func (r *csvWorkoutSaver) workoutToRecord(workout *domain.Workout) []string {
-	startTime := ""
-	if workout.ID >= 0 {
-		startTime = workout.StartTime.Format("15:04")
-	}
-
-	return []string{
-		workout.StartTime.Format("1/2/2006"),
-		workout.WorkoutType.String(),
-		startTime,
-		durationInHoursAndMinutes(workout.DurationInMin),
-		floatValueOrEmpty(workout.DistanceInKm),
-		intValueOrEmpty(workout.ElevationInMeters),
-		intValueOrEmpty(workout.AvgPowerInWatts),
-		intValueOrEmpty(workout.NormalizedPowerInWatts),
-		intValueOrEmpty(workout.AvgHeartRateInBpm),
-		intValueOrEmpty(workout.MaxHeartRateInBpm),
-		intValueOrEmpty(workout.AvgCadenceInRpm),
-		string(workout.LegSensations()),
-	}
-}
-
-func intValueOrEmpty(value int) string {
-	if value < 0 {
-		return ""
-	}
-	return strconv.Itoa(value)
-}
-
-func floatValueOrEmpty(value float64) string {
-	if value < 0 {
-		return ""
-	}
-	return strconv.FormatFloat(value, 'f', 2, 64)
-}
-
-func durationInHoursAndMinutes(totalMinutes int) string {
-	if totalMinutes < 0 {
-		return ""
-	}
-	hours := totalMinutes / 60
-	minutes := totalMinutes % 60
-	return fmt.Sprintf("%dh%dm", hours, minutes)
 }
