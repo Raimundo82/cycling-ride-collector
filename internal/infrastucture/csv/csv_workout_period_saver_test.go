@@ -232,7 +232,8 @@ func TestCsvWorkoutPeriodSaver_GivenAReadOnlyFile_WhenSaveIsCalled_ThenAnErrorIs
 				AvgHeartRateInBpm:      150,
 				MaxHeartRateInBpm:      180,
 				AvgCadenceInRpm:        90,
-			})}
+			}),
+		}
 
 		Convey("When Save is called", func() {
 			err := saver.SaveAll(workouts)
@@ -260,7 +261,8 @@ func TestCsvWorkoutPeriodSaver_GivenWorkoutWithZeroValues_WhenSaveIsCalled_ThenN
 				MaxHeartRateInBpm:      0,
 				AvgCadenceInRpm:        0,
 				LegSensations:          "Médias",
-			})}
+			}),
+		}
 		saver := &csvWorkoutPeriodSaver{filePath: "test_workouts.csv"}
 
 		Convey("When SaveToWriter is called", func() {
@@ -295,7 +297,8 @@ func TestCsvWorkoutPeriodSaver_GivenWorkoutWithSentinelValues_WhenSaveIsCalled_T
 				MaxHeartRateInBpm:      -1,
 				AvgCadenceInRpm:        -1,
 				LegSensations:          "",
-			})}
+			}),
+		}
 		saver := &csvWorkoutPeriodSaver{filePath: "test_workouts.csv"}
 
 		Convey("When SaveToWriter is called", func() {
