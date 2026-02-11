@@ -15,7 +15,6 @@ func (m *WorkoutCsvRecordMapper) Map(workout *domain.Workout) []string {
 }
 
 func (m *WorkoutCsvRecordMapper) workoutToRecord(workout *domain.Workout) []string {
-
 	return []string{
 		workout.StartTime.Format("1/2/2006"),
 		workout.WorkoutType.String(),
