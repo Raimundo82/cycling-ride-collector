@@ -13,13 +13,13 @@ type SaveWorkoutPeriodUseCase interface {
 
 type saveWorkoutPeriod struct {
 	dailyWorkout    contracts.DailyWorkoutPolicy
-	workoutRepo     contracts.WorkoutPeriodSaver
+	workoutRepo     contracts.WorkoutRepository
 	workoutProvider contracts.PeriodWorkoutProvider
 }
 
 func NewSaveWorkoutPeriod(
 	dailyWorkout contracts.DailyWorkoutPolicy,
-	workoutRepo contracts.WorkoutPeriodSaver,
+	workoutRepo contracts.WorkoutRepository,
 	workoutProvider contracts.PeriodWorkoutProvider,
 ) SaveWorkoutPeriodUseCase {
 	return &saveWorkoutPeriod{
