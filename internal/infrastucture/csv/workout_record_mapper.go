@@ -5,46 +5,49 @@ import (
 	"strconv"
 
 	"github.com/raimundo82/go-strava-weekly/internal/domain"
+	"github.com/samber/lo"
 )
 
-func workoutToRecord(workout *domain.Workout) []string {
-	startTime := ""
-	if workout.ID >= 0 {
-		startTime = workout.StartTime.Format("15:04")
-	}
+type WorkoutCsvRecordMapper struct{}
+
+func (m *WorkoutCsvRecordMapper) Map(workout *domain.Workout) []string {
+	return m.workoutToRecord(workout)
+}
+
+func (m *WorkoutCsvRecordMapper) workoutToRecord(workout *domain.Workout) []string {
 
 	return []string{
 		workout.StartTime.Format("1/2/2006"),
 		workout.WorkoutType.String(),
-		startTime,
-		durationInHoursAndMinutes(workout.DurationInMin),
-		floatValueOrEmpty(workout.DistanceInKm),
-		intValueOrEmpty(workout.ElevationInMeters),
-		intValueOrEmpty(workout.AvgPowerInWatts),
-		intValueOrEmpty(workout.NormalizedPowerInWatts),
-		intValueOrEmpty(workout.AvgHeartRateInBpm),
-		intValueOrEmpty(workout.MaxHeartRateInBpm),
-		intValueOrEmpty(workout.AvgCadenceInRpm),
+		lo.Ternary(workout.IsRestDay(), "", workout.StartTime.Format("15:04")),
+		formatDurationOrEmpty(workout, workout.DurationInMin),
+		formatFloatOrEmpty(workout, workout.DistanceInKm),
+		formatIntOrEmpty(workout, workout.ElevationInMeters),
+		formatIntOrEmpty(workout, workout.AvgPowerInWatts),
+		formatIntOrEmpty(workout, workout.NormalizedPowerInWatts),
+		formatIntOrEmpty(workout, workout.AvgHeartRateInBpm),
+		formatIntOrEmpty(workout, workout.MaxHeartRateInBpm),
+		formatIntOrEmpty(workout, workout.AvgCadenceInRpm),
 		string(workout.LegSensations()),
 	}
 }
 
-func intValueOrEmpty(value int) string {
-	if value < 0 {
+func formatIntOrEmpty(workout *domain.Workout, value int) string {
+	if workout.IsRestDay() {
 		return ""
 	}
 	return strconv.Itoa(value)
 }
 
-func floatValueOrEmpty(value float64) string {
-	if value < 0 {
+func formatFloatOrEmpty(workout *domain.Workout, value float64) string {
+	if workout.IsRestDay() {
 		return ""
 	}
 	return strconv.FormatFloat(value, 'f', 2, 64)
 }
 
-func durationInHoursAndMinutes(totalMinutes int) string {
-	if totalMinutes < 0 {
+func formatDurationOrEmpty(workout *domain.Workout, totalMinutes int) string {
+	if workout.IsRestDay() {
 		return ""
 	}
 	hours := totalMinutes / 60

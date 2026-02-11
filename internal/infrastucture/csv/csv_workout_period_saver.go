@@ -10,6 +10,7 @@ import (
 
 type csvWorkoutPeriodSaver struct {
 	filePath string
+	mapper   WorkoutCsvRecordMapper
 }
 
 // SaveAll implements [contracts.WorkoutPeriodSaver].
@@ -38,7 +39,7 @@ func (c *csvWorkoutPeriodSaver) SaveToWriterAll(workouts []*domain.Workout, file
 
 	records := make([][]string, 0, len(workouts))
 	for _, workout := range workouts {
-		record := workoutToRecord(workout)
+		record := c.mapper.Map(workout)
 		records = append(records, record)
 	}
 	return writer.WriteAll(records)
