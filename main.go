@@ -98,7 +98,7 @@ func setupSaveWorkoutPeriodUseCase(cfg *config.Config, workoutPolicy string) use
 
 	return usecase.NewSaveWorkoutPeriod(
 		dailyWorkoutPolicy,
-		csv.NewCSVWorkoutRepository(cfg.OutputFilePath),
+		csv.NewCSVWorkoutPeriodSaver(cfg.OutputFilePath),
 		strava.NewProvider(strava.NewHttpClient(&http.Client{Timeout: 10 * time.Second}, cfg)),
 	)
 }
