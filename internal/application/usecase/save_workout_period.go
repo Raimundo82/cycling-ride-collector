@@ -5,7 +5,6 @@ import (
 
 	"github.com/raimundo82/go-strava-weekly/internal/application/contracts"
 	"github.com/raimundo82/go-strava-weekly/internal/domain"
-	"github.com/samber/lo"
 )
 
 type SaveWorkoutPeriodUseCase interface {
@@ -36,13 +35,13 @@ func (saveWorkoutPeriod *saveWorkoutPeriod) Execute(period domain.Period, minima
 		return err
 	}
 
+	workoutsByDate := saveWorkoutPeriod.groupWorkoutsByDate(periodWorkouts)
 	workouts := make([]*domain.Workout, 0)
 	for date := period.StartDate(); !date.After(period.EndDate()); date = date.AddDate(0, 0, 1) {
-		dailyWorkouts := lo.Filter(periodWorkouts, func(w *domain.Workout, _ int) bool {
-			return time.Date(w.StartTime.Year(), w.StartTime.Month(), w.StartTime.Day(), 0, 0, 0, 0, w.StartTime.Location()).Equal(date)
-		})
-		var workout *domain.Workout
+		normalizedDate := normalizeToDate(date)
+		dailyWorkouts := workoutsByDate[normalizedDate]
 
+		var workout *domain.Workout
 		if len(dailyWorkouts) > 0 {
 			workout = saveWorkoutPeriod.dailyWorkout.GetDailyWorkout(dailyWorkouts, minimalWorkoutDuration)
 		}
@@ -55,6 +54,20 @@ func (saveWorkoutPeriod *saveWorkoutPeriod) Execute(period domain.Period, minima
 	}
 
 	return saveWorkoutPeriod.workoutRepo.SaveAll(workouts)
+}
+
+func (saveWorkoutPeriod *saveWorkoutPeriod) groupWorkoutsByDate(workouts []*domain.Workout) map[time.Time][]*domain.Workout {
+	workoutsByDate := make(map[time.Time][]*domain.Workout)
+	for _, workout := range workouts {
+		date := normalizeToDate(workout.StartTime)
+		workoutsByDate[date] = append(workoutsByDate[date], workout)
+	}
+	return workoutsByDate
+}
+
+func normalizeToDate(t time.Time) time.Time {
+	year, month, day := t.Date()
+	return time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 }
 
 func (*saveWorkoutPeriod) newRestWorkout(date time.Time) *domain.Workout {
