@@ -15,7 +15,7 @@ type mockWorkoutPeriodSaver struct {
 	SaveAllCalled int
 }
 
-var _ contracts.WorkoutPeriodSaver = (*mockWorkoutPeriodSaver)(nil)
+var _ contracts.WorkoutRepository = (*mockWorkoutPeriodSaver)(nil)
 
 type mockPeriodWorkoutProvider struct {
 	Workouts                  []*Workout
@@ -25,7 +25,7 @@ type mockPeriodWorkoutProvider struct {
 
 var _ contracts.PeriodWorkoutProvider = (*mockPeriodWorkoutProvider)(nil)
 
-// SaveAll implements [contracts.WorkoutPeriodSaver].
+// SaveAll implements [contracts.WorkoutRepository].
 func (m *mockWorkoutPeriodSaver) SaveAll(workouts []*Workout) error {
 	m.Workouts = append(m.Workouts, workouts...)
 	m.SaveAllCalled++

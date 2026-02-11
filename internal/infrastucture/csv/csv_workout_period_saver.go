@@ -2,6 +2,7 @@ package csv
 
 import (
 	"encoding/csv"
+	"io"
 	"os"
 
 	"github.com/raimundo82/go-strava-weekly/internal/application/contracts"
@@ -28,8 +29,8 @@ func (c *csvWorkoutPeriodSaver) SaveAll(workouts []*domain.Workout) error {
 	return c.SaveToWriterAll(workouts, file)
 }
 
-func (c *csvWorkoutPeriodSaver) SaveToWriterAll(workouts []*domain.Workout, file *os.File) (err error) {
-	writer := csv.NewWriter(file)
+func (c *csvWorkoutPeriodSaver) SaveToWriterAll(workouts []*domain.Workout, w io.Writer) (err error) {
+	writer := csv.NewWriter(w)
 	defer func() {
 		writer.Flush()
 		if flushErr := writer.Error(); flushErr != nil && err == nil {

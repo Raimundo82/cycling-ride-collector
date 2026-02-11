@@ -28,7 +28,6 @@ func TestWorkoutCsvRecordMapper_GivenWorkout_WhenMapping_ThenItReturnsTheExpecte
 		Convey("When mapping", func() {
 			record := mapper.Map(workout)
 			Convey("Then it returns the expected csv string line", func() {
-
 				expected := []string{"6/1/2024", "Estrada", "10:30", "1h0m", "25.50", "500", "200", "220", "150", "180", "90", "Boas"}
 				So(record, ShouldResemble, expected)
 			})
@@ -56,7 +55,6 @@ func TestWorkoutCsvRecordMapper_GivenRestWorkout_WhenMapping_ThenItReturnsTheExp
 		Convey("When mapping", func() {
 			record := mapper.Map(workout)
 			Convey("Then it returns the expected csv string line", func() {
-
 				expected := []string{"6/1/2024", "Descanso", "", "", "", "", "", "", "", "", "", ""}
 				So(record, ShouldResemble, expected)
 			})
