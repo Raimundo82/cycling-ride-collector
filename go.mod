@@ -1,4 +1,4 @@
-module github.com/raimundo82/go-strava-weekly
+module github.com/raimundo82/cycling-ride-collector
 
 go 1.25.3
 

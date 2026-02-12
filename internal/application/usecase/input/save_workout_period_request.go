@@ -3,7 +3,7 @@ package input
 import (
 	"errors"
 
-	"github.com/raimundo82/go-strava-weekly/internal/domain"
+	"github.com/raimundo82/cycling-ride-collector/internal/domain"
 )
 
 type SaveWorkoutPeriodRequest struct {

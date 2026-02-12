@@ -8,13 +8,13 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/raimundo82/go-strava-weekly/internal/application/contracts"
-	"github.com/raimundo82/go-strava-weekly/internal/application/usecase"
-	"github.com/raimundo82/go-strava-weekly/internal/application/usecase/input"
-	"github.com/raimundo82/go-strava-weekly/internal/config"
-	"github.com/raimundo82/go-strava-weekly/internal/domain"
-	"github.com/raimundo82/go-strava-weekly/internal/infrastucture/csv"
-	"github.com/raimundo82/go-strava-weekly/internal/infrastucture/strava"
+	"github.com/raimundo82/cycling-ride-collector/internal/application/contracts"
+	"github.com/raimundo82/cycling-ride-collector/internal/application/usecase"
+	"github.com/raimundo82/cycling-ride-collector/internal/application/usecase/input"
+	"github.com/raimundo82/cycling-ride-collector/internal/config"
+	"github.com/raimundo82/cycling-ride-collector/internal/domain"
+	"github.com/raimundo82/cycling-ride-collector/internal/infrastucture/csv"
+	"github.com/raimundo82/cycling-ride-collector/internal/infrastucture/strava"
 )
 
 func main() {

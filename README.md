@@ -1,4 +1,4 @@
-# go-strava-weekly
+# cycling-ride-collector
 
 A Go application for collecting Strava workout data and exporting daily summaries to CSV.
 
@@ -62,8 +62,8 @@ These diagrams render automatically in GitHub's markdown viewer. See the [diagra
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/Raimundo82/go-strava-weekly.git
-cd go-strava-weekly
+git clone https://github.com/Raimundo82/cycling-ride-collector.git
+cd cycling-ride-collector
 ```
 
 2. Install dependencies:
