@@ -32,21 +32,21 @@ func (m *WorkoutCsvRecordMapper) workoutToRecord(workout *domain.Workout) []stri
 }
 
 func formatIntOrEmpty(workout *domain.Workout, value int) string {
-	if workout.IsRestDay() {
+	if workout.IsRestDay() || value < 0 {
 		return ""
 	}
 	return strconv.Itoa(value)
 }
 
 func formatFloatOrEmpty(workout *domain.Workout, value float64) string {
-	if workout.IsRestDay() {
+	if workout.IsRestDay() || value < 0 {
 		return ""
 	}
 	return strconv.FormatFloat(value, 'f', 2, 64)
 }
 
 func formatDurationOrEmpty(workout *domain.Workout, totalMinutes int) string {
-	if workout.IsRestDay() {
+	if workout.IsRestDay() || totalMinutes < 0 {
 		return ""
 	}
 	hours := totalMinutes / 60
