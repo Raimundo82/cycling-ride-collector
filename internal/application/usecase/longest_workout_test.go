@@ -3,7 +3,7 @@ package usecase
 import (
 	"testing"
 
-	. "github.com/raimundo82/go-strava-weekly/internal/domain"
+	. "github.com/raimundo82/cycling-ride-collector/internal/domain"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

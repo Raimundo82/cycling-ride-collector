@@ -37,3 +37,4 @@ go.work.sum
 *.xlsx
 stava_client.http
 training-log*
+cycling-ride-collector
