@@ -39,7 +39,7 @@ func TestGetActivitiesByPeriod_GivenStravaHttpServerAndPeriod_WhenGetActivitiesB
 			})
 			Convey("Then it should include day range", func() {
 				start := startDate.Unix()
-				end := endtDate.Unix()
+				end := endtDate.Add(24 * time.Hour).Unix()
 
 				So(gotQuery, ShouldContainSubstring, fmt.Sprintf("after=%d", start))
 				So(gotQuery, ShouldContainSubstring, fmt.Sprintf("before=%d", end))
@@ -76,7 +76,7 @@ func TestGetActivitiesByPeriod_GivenNoActivitiesForPeriod_WhenGetActivitiesByPer
 			})
 			Convey("It should include day range", func() {
 				start := startDate.Unix()
-				end := endtDate.Unix()
+				end := endtDate.Add(24 * time.Hour).Unix()
 
 				So(gotQuery, ShouldContainSubstring, fmt.Sprintf("after=%d", start))
 				So(gotQuery, ShouldContainSubstring, fmt.Sprintf("before=%d", end))

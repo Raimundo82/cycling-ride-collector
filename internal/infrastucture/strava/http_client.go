@@ -115,7 +115,7 @@ func (c *stravaHttpClient) GetActivitiesByPeriod(ctx context.Context, period dom
 	endDate := period.EndDate()
 
 	start := getDate(startDate)
-	end := getDate(endDate)
+	end := getDate(endDate).Add(24 * time.Hour)
 	req, err := http.NewRequestWithContext(ctx, "GET", c.baseUrl+"/athlete/activities", nil)
 	if err != nil {
 		return nil, err
