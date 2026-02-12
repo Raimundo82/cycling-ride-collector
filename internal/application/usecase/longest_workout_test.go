@@ -1,9 +1,8 @@
-package test
+package usecase
 
 import (
 	"testing"
 
-	. "github.com/raimundo82/go-strava-weekly/internal/application/usecase"
 	. "github.com/raimundo82/go-strava-weekly/internal/domain"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -15,7 +14,7 @@ func TestLongestWorkout_ForSingleWorkoutAboveMinDuration(t *testing.T) {
 		}
 
 		Convey("When LongestWorkout is called", func() {
-			longest := (&LongestWorkout{}).GetDailyWorkout(workouts, 30)
+			longest := NewLongestWorkout().GetDailyWorkout(workouts, 30)
 			Convey("Then the result is the longest workout", func() {
 				So(longest, ShouldNotBeNil)
 				So(longest.ID, ShouldEqual, 1)
@@ -32,7 +31,7 @@ func TestLongestWorkout_ForSingleWorkoutUnderMinDuration(t *testing.T) {
 		}
 
 		Convey("When LongestWorkout is called", func() {
-			longest := (&LongestWorkout{}).GetDailyWorkout(workouts, 30)
+			longest := NewLongestWorkout().GetDailyWorkout(workouts, 30)
 			Convey("Then the result is nil", func() {
 				So(longest, ShouldBeNil)
 			})
@@ -48,7 +47,7 @@ func TestLongestWorkout_ForMultipleWorkoutsShortAndLongDuration(t *testing.T) {
 		}
 
 		Convey("When LongestWorkout is called", func() {
-			longest := (&LongestWorkout{}).GetDailyWorkout(workouts, 30)
+			longest := NewLongestWorkout().GetDailyWorkout(workouts, 30)
 			Convey("Then the result is workout with Id 2", func() {
 				So(longest, ShouldNotBeNil)
 				So(longest.ID, ShouldEqual, 2)
@@ -66,7 +65,7 @@ func TestLongestWorkout_ForMultipleWorkoutsOfShortDuration(t *testing.T) {
 		}
 
 		Convey("When LongestWorkout is called", func() {
-			longest := (&LongestWorkout{}).GetDailyWorkout(workouts, 30)
+			longest := NewLongestWorkout().GetDailyWorkout(workouts, 30)
 			Convey("Then the result is nil", func() {
 				So(longest, ShouldBeNil)
 			})
@@ -82,7 +81,7 @@ func TestLongestWorkout_ForMultipleWorkoutsOfLongDuration(t *testing.T) {
 		}
 
 		Convey("When LongestWorkout is called", func() {
-			longest := (&LongestWorkout{}).GetDailyWorkout(workouts, 30)
+			longest := NewLongestWorkout().GetDailyWorkout(workouts, 30)
 			Convey("Then the result is the longest workout", func() {
 				So(longest, ShouldNotBeNil)
 				So(longest.ID, ShouldEqual, 1)

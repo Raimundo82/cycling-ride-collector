@@ -105,3 +105,7 @@ func (w *Workout) SetLegSensations(ls string) {
 func (w *Workout) LegSensations() LegSensations {
 	return w.legSensations
 }
+
+func (w *Workout) IsRestDay() bool {
+	return w.WorkoutType == Descanso
+}

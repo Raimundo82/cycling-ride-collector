@@ -8,16 +8,16 @@ import (
 	"github.com/samber/lo"
 )
 
-var _ contracts.DailyWorkoutPolicy = (*MergeWorkouts)(nil)
+var _ contracts.DailyWorkoutPolicy = (*mergeWorkouts)(nil)
 
-type MergeWorkouts struct{}
+type mergeWorkouts struct{}
 
-func NewMergeWorkouts() *MergeWorkouts {
-	return &MergeWorkouts{}
+func NewMergeWorkouts() contracts.DailyWorkoutPolicy {
+	return &mergeWorkouts{}
 }
 
 // GetDailyWorkout implements [contracts.DailyWorkoutPolicy].
-func (m *MergeWorkouts) GetDailyWorkout(workouts []*domain.Workout, minWorkoutDuration int) *domain.Workout {
+func (m *mergeWorkouts) GetDailyWorkout(workouts []*domain.Workout, minWorkoutDuration int) *domain.Workout {
 	longDurationWorkouts := []*domain.Workout{}
 	for _, workout := range workouts {
 		if workout.DurationInMin >= minWorkoutDuration {

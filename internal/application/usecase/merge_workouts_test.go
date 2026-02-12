@@ -1,10 +1,9 @@
-package test
+package usecase
 
 import (
 	"testing"
 	"time"
 
-	. "github.com/raimundo82/go-strava-weekly/internal/application/usecase"
 	. "github.com/raimundo82/go-strava-weekly/internal/domain"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -14,7 +13,7 @@ func TestMergeWorkouts_EmptyWorkouts(t *testing.T) {
 		workouts := []*Workout{}
 
 		Convey("When MergeWorkouts is called", func() {
-			merged := (&MergeWorkouts{}).GetDailyWorkout(workouts, 30)
+			merged := NewMergeWorkouts().GetDailyWorkout(workouts, 30)
 
 			Convey("Then the result is nil", func() {
 				So(merged, ShouldBeNil)
@@ -31,7 +30,7 @@ func TestMergeWorkouts_NoDuration(t *testing.T) {
 		workouts := []*Workout{workout}
 
 		Convey("When MergeWorkouts is called", func() {
-			merged := (&MergeWorkouts{}).GetDailyWorkout(workouts, 30)
+			merged := NewMergeWorkouts().GetDailyWorkout(workouts, 30)
 
 			Convey("Then the result should be nil", func() {
 				So(merged, ShouldBeNil)
@@ -49,7 +48,7 @@ func TestMergeWorkouts_SingleShortDuration(t *testing.T) {
 		workouts := []*Workout{workout}
 
 		Convey("When MergeWorkouts is called", func() {
-			merged := (&MergeWorkouts{}).GetDailyWorkout(workouts, 30)
+			merged := NewMergeWorkouts().GetDailyWorkout(workouts, 30)
 
 			Convey("Then the result should be nil", func() {
 				So(merged, ShouldBeNil)
@@ -67,7 +66,7 @@ func TestMergeWorkouts_SingleLongDuration(t *testing.T) {
 		workouts := []*Workout{workout}
 
 		Convey("When MergeWorkouts is called", func() {
-			merged := (&MergeWorkouts{}).GetDailyWorkout(workouts, 30)
+			merged := NewMergeWorkouts().GetDailyWorkout(workouts, 30)
 
 			Convey("Then the result is the same workout", func() {
 				So(merged, ShouldEqual, workout)
@@ -89,7 +88,7 @@ func TestMergeWorkouts_MixedShortAndLong(t *testing.T) {
 		workouts := []*Workout{shortWorkout, longWorkout}
 
 		Convey("When MergeWorkouts is called", func() {
-			merged := (&MergeWorkouts{}).GetDailyWorkout(workouts, 30)
+			merged := NewMergeWorkouts().GetDailyWorkout(workouts, 30)
 
 			Convey("Then the result should be the long workout", func() {
 				So(merged, ShouldEqual, longWorkout)
@@ -131,7 +130,7 @@ func TestMergeWorkouts_AllLongDurations(t *testing.T) {
 		workouts := []*Workout{workout1, workout2}
 
 		Convey("When MergeWorkouts is called", func() {
-			merged := (&MergeWorkouts{}).GetDailyWorkout(workouts, 30)
+			merged := NewMergeWorkouts().GetDailyWorkout(workouts, 30)
 
 			Convey("Then the result is a merged workout with summed duration and distance", func() {
 				So(merged.ID, ShouldEqual, 1)
@@ -183,7 +182,7 @@ func TestMergeWorkouts_WithMissingHeartRateAndPowerData(t *testing.T) {
 		workouts := []*Workout{workout1, workout2}
 
 		Convey("When MergeWorkouts is called", func() {
-			merged := (&MergeWorkouts{}).GetDailyWorkout(workouts, 30)
+			merged := NewMergeWorkouts().GetDailyWorkout(workouts, 30)
 
 			Convey("Then the result is a merged workout with summed duration and distance", func() {
 				So(merged.ID, ShouldEqual, 1)
@@ -235,7 +234,7 @@ func TestMergeWorkouts_WithMissingHeartRateAndPowerDataInAllWorkouts(t *testing.
 		workouts := []*Workout{workout1, workout2}
 
 		Convey("When MergeWorkouts is called", func() {
-			merged := (&MergeWorkouts{}).GetDailyWorkout(workouts, 30)
+			merged := NewMergeWorkouts().GetDailyWorkout(workouts, 30)
 
 			Convey("Then the result is a merged workout with summed duration and distance", func() {
 				So(merged.ID, ShouldEqual, 1)
@@ -287,7 +286,7 @@ func TestMergeShortAndLongWorkouts_WithMissingHeartRateAndPowerDataInAllWorkouts
 		workouts := []*Workout{workout1, workout2}
 
 		Convey("When MergeWorkouts is called", func() {
-			merged := (&MergeWorkouts{}).GetDailyWorkout(workouts, 30)
+			merged := NewMergeWorkouts().GetDailyWorkout(workouts, 30)
 
 			Convey("Then the result is a merged workout with summed duration and distance", func() {
 				So(merged.ID, ShouldEqual, 2)
@@ -339,7 +338,7 @@ func TestMergeLongWorkouts_WithNoMissingHeartRateAndPowerDataInAllWorkouts(t *te
 		workouts := []*Workout{workout1, workout2}
 
 		Convey("When MergeWorkouts is called", func() {
-			merged := (&MergeWorkouts{}).GetDailyWorkout(workouts, 30)
+			merged := NewMergeWorkouts().GetDailyWorkout(workouts, 30)
 
 			Convey("Then the result is a merged workout with summed duration and distance", func() {
 				So(merged.ID, ShouldEqual, 1)
