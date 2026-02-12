@@ -23,7 +23,7 @@ type mockPeriodWorkoutProvider struct {
 	Err                       error
 }
 
-var _ contracts.PeriodWorkoutProvider = (*mockPeriodWorkoutProvider)(nil)
+var _ contracts.WorkoutProvider = (*mockPeriodWorkoutProvider)(nil)
 
 // SaveAll implements [contracts.WorkoutRepository].
 func (m *mockWorkoutPeriodSaver) SaveAll(workouts []*Workout) error {
