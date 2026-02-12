@@ -11,13 +11,12 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/smartystreets/goconvey/convey"
-
 	"github.com/raimundo82/cycling-ride-collector/internal/application/usecase"
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
 	"github.com/raimundo82/cycling-ride-collector/internal/infrastucture/csv"
 	"github.com/raimundo82/cycling-ride-collector/internal/infrastucture/strava"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestStravaToCSVIntegration(t *testing.T) {
