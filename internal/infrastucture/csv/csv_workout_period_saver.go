@@ -14,7 +14,7 @@ type csvWorkoutPeriodSaver struct {
 	mapper   WorkoutCsvRecordMapper
 }
 
-// SaveAll implements [contracts.WorkoutPeriodSaver].
+// SaveAll implements [contracts.WorkoutRepository].
 func (c *csvWorkoutPeriodSaver) SaveAll(workouts []*domain.Workout) error {
 	file, err := os.OpenFile(c.filePath, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
