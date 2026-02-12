@@ -16,6 +16,11 @@ lint:
 test:
 	go test ./... -v
 
+test-integration:
+	go test -tags=integration -v ./internal/tests/integration/...
+
+test-all: test test-integration
+
 # --- Combined checks for pre-commit ---
 precommit: check-format lint test
 
