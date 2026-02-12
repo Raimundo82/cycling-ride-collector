@@ -31,7 +31,7 @@ func (a *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 var (
-	_ Client            = (*stravaHttpClient)(nil)
+	_ StravaClient      = (*stravaHttpClient)(nil)
 	_ http.RoundTripper = (*authTransport)(nil)
 )
 
@@ -51,39 +51,7 @@ func NewHttpClient(httpClient *http.Client, cfg *config.Config) *stravaHttpClien
 	}
 }
 
-// GetActivitiesByDate implements [Client].
-func (c *stravaHttpClient) GetActivitiesByDate(ctx context.Context, date time.Time) ([]*ActivityDto, error) {
-	start := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
-	end := start.Add(time.Hour * 24)
-	req, err := http.NewRequestWithContext(ctx, "GET", c.baseUrl+"/athlete/activities", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	q := req.URL.Query()
-	q.Set("after", fmt.Sprint(start.Unix()))
-	q.Set("before", fmt.Sprint(end.Unix()))
-	req.URL.RawQuery = q.Encode()
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("strava error: %s", resp.Status)
-	}
-
-	var acts []*ActivityDto
-	if err := json.NewDecoder(resp.Body).Decode(&acts); err != nil {
-		return nil, err
-	}
-
-	return acts, nil
-}
-
-// GetWattsStream implements [Client].
+// GetWattsStream implements [StravaClient].
 func (c *stravaHttpClient) GetWattsStream(ctx context.Context, id int64) (*WattsStreamDto, error) {
 	u := fmt.Sprintf("%s/activities/%d/streams?keys=watts&key_by_type=true", c.baseUrl, id)
 
@@ -114,7 +82,7 @@ func (c *stravaHttpClient) GetWattsStream(ctx context.Context, id int64) (*Watts
 	return &streams.Watts, nil
 }
 
-// GetDetailedActivityByID implements [Client].
+// GetDetailedActivityByID implements [StravaClient].
 func (c *stravaHttpClient) GetDetailedActivityByID(ctx context.Context, activityID int64) (*DetailedActivityDto, error) {
 	u := fmt.Sprintf("%s/activities/%d", c.baseUrl, activityID)
 
@@ -141,12 +109,13 @@ func (c *stravaHttpClient) GetDetailedActivityByID(ctx context.Context, activity
 	return &act, nil
 }
 
-// GetActivitiesByPeriod implements [Client].
+// GetActivitiesByPeriod implements [StravaClient].
 func (c *stravaHttpClient) GetActivitiesByPeriod(ctx context.Context, period domain.Period) ([]*ActivityDto, error) {
 	startDate := period.StartDate()
 	endDate := period.EndDate()
-	start := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, startDate.Location())
-	end := time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 23, 59, 59, 0, endDate.Location())
+
+	start := getDate(startDate)
+	end := getDate(endDate)
 	req, err := http.NewRequestWithContext(ctx, "GET", c.baseUrl+"/athlete/activities", nil)
 	if err != nil {
 		return nil, err
@@ -173,4 +142,8 @@ func (c *stravaHttpClient) GetActivitiesByPeriod(ctx context.Context, period dom
 	}
 
 	return acts, nil
+}
+
+func getDate(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }

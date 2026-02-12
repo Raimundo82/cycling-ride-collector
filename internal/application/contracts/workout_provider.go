@@ -15,6 +15,5 @@ type PeriodWorkoutProvider interface {
 }
 
 type WorkoutProvider interface {
-	GetWorkoutsByDate(date time.Time) ([]*domain.Workout, error)
 	GetWorkoutsByPeriod(period domain.Period) ([]*domain.Workout, error)
 }
