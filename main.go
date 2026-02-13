@@ -40,7 +40,7 @@ func runCLI(cfg *config.Config) {
 
 func runCron(cfg *config.Config) {
 	app := gofr.New()
-	app.AddCronJob("0 0 19 * * 0", "weekly_sunday_7pm", func(ctx *gofr.Context) {
+	app.AddCronJob("0 19 * * 0", "weekly_sunday_7pm", func(ctx *gofr.Context) {
 		endDate := time.Now()
 		startDate := endDate.Add(-6 * 24 * time.Hour)
 		ctx.Logger.Infof("Processing workouts from %s to %s", startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
@@ -60,6 +60,7 @@ func runCron(cfg *config.Config) {
 
 		executeAndReport(uc, period, 30, cfg.OutputFilePath)
 	})
+	app.Run()
 }
 
 func executeAndReport(uc usecase.SaveWorkoutPeriodUseCase, period domain.Period, minDuration int, outputPath string) {
