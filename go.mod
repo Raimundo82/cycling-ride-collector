@@ -37,12 +37,10 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.11 // indirect
 	github.com/googleapis/gax-go/v2 v2.16.0 // indirect
-	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.7 // indirect
-	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/lib/pq v1.11.1 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -62,7 +60,6 @@ require (
 	github.com/redis/go-redis/v9 v9.17.3 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/segmentio/kafka-go v0.4.50 // indirect
-	github.com/smarty/assertions v1.15.0 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
@@ -84,7 +81,6 @@ require (
 	go.opentelemetry.io/proto/otlp v1.9.0 // indirect
 	go.uber.org/mock v0.6.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
-	gofr.dev v1.54.3 // indirect
 	golang.org/x/crypto v0.47.0 // indirect
 	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546 // indirect
 	golang.org/x/net v0.49.0 // indirect
@@ -92,7 +88,6 @@ require (
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.40.0 // indirect
 	golang.org/x/term v0.39.0 // indirect
-	golang.org/x/text v0.33.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	google.golang.org/api v0.264.0 // indirect
 	google.golang.org/genproto v0.0.0-20251202230838-ff82c1b0f217 // indirect
@@ -105,4 +100,12 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 	modernc.org/sqlite v1.44.3 // indirect
+)
+
+require (
+	github.com/gopherjs/gopherjs v1.17.2 // indirect
+	github.com/jtolds/gls v4.20.0+incompatible // indirect
+	github.com/smarty/assertions v1.15.0 // indirect
+	gofr.dev v1.54.3
+	golang.org/x/text v0.33.0 // indirect
 )

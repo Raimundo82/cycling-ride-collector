@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -15,22 +16,61 @@ import (
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
 	"github.com/raimundo82/cycling-ride-collector/internal/infrastucture/csv"
 	"github.com/raimundo82/cycling-ride-collector/internal/infrastucture/strava"
+	"gofr.dev/pkg/gofr"
 )
 
 func main() {
 	_ = godotenv.Load()
-	cfg, request := parseFlagsAndConfig()
+	cfg := config.Load()
 
-	if err := setupSaveWorkoutPeriodUseCase(cfg, request.DailyWorkoutPolicy).Execute(request.Period, request.MinimalWorkoutDuration); err != nil {
+	if isCronMode() {
+		runCron(cfg)
+		return
+	}
+
+	runCLI(cfg)
+}
+
+func runCLI(cfg *config.Config) {
+	cfg, request := parseFlagsAndConfig(cfg)
+
+	uc := setupSaveWorkoutPeriodUseCase(cfg, request.DailyWorkoutPolicy)
+	executeAndReport(uc, request.Period, request.MinimalWorkoutDuration, cfg.OutputFilePath)
+}
+
+func runCron(cfg *config.Config) {
+	app := gofr.New()
+	app.AddCronJob("0 0 19 * * 0", "weekly_sunday_7pm", func(ctx *gofr.Context) {
+		endDate := time.Now()
+		startDate := endDate.Add(-6 * 24 * time.Hour)
+		ctx.Logger.Infof("Processing workouts from %s to %s", startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+
+		period, err := domain.NewPeriod(startDate, endDate)
+		if err != nil {
+			ctx.Logger.Errorf("invalid period: %v", err)
+			return
+		}
+
+		cfg.OutputFilePath = generateOutputFilePath(startDate, endDate)
+
+		uc := usecase.NewSaveWorkoutPeriod(
+			usecase.NewLongestWorkout(),
+			csv.NewCSVWorkoutPeriodSaver(cfg.OutputFilePath),
+			strava.NewProvider(strava.NewHttpClient(&http.Client{Timeout: 10 * time.Second}, cfg)))
+
+		executeAndReport(uc, period, 30, cfg.OutputFilePath)
+	})
+}
+
+func executeAndReport(uc usecase.SaveWorkoutPeriodUseCase, period domain.Period, minDuration int, outputPath string) {
+	if err := uc.Execute(period, minDuration); err != nil {
 		fmt.Printf("Error: %v\n", err)
 	} else {
-		fmt.Printf("Workout(s) processed and saved to %s (if any).\n", cfg.OutputFilePath)
+		fmt.Printf("Workout(s) processed and saved to %s (if any).\n", outputPath)
 	}
 }
 
-func parseFlagsAndConfig() (*config.Config, *input.SaveWorkoutPeriodRequest) {
-	cfg := config.Load()
-
+func parseFlagsAndConfig(cfg *config.Config) (*config.Config, *input.SaveWorkoutPeriodRequest) {
 	startDateStr := flag.String("start-date", "", "Start date in MM/DD/YYYY format")
 	endDateStr := flag.String("end-date", "", "End date in MM/DD/YYYY format")
 	accessToken := flag.String("access-token", "", "Strava API access token")
@@ -68,7 +108,7 @@ func parseFlagsAndConfig() (*config.Config, *input.SaveWorkoutPeriodRequest) {
 	}
 
 	if *outputFilePath == "" {
-		*outputFilePath = fmt.Sprintf("workouts_summary_%s_to_%s.csv", startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+		*outputFilePath = generateOutputFilePath(startDate, endDate)
 	}
 	cfg.OutputFilePath = *outputFilePath
 
@@ -101,4 +141,17 @@ func setupSaveWorkoutPeriodUseCase(cfg *config.Config, workoutPolicy string) use
 		csv.NewCSVWorkoutPeriodSaver(cfg.OutputFilePath),
 		strava.NewProvider(strava.NewHttpClient(&http.Client{Timeout: 10 * time.Second}, cfg)),
 	)
+}
+
+func isCronMode() bool {
+	for _, arg := range os.Args[1:] {
+		if arg == "--cron" || arg == "-cron" {
+			return true
+		}
+	}
+	return false
+}
+
+func generateOutputFilePath(startDate, endDate time.Time) string {
+	return fmt.Sprintf("workouts_summary_%s_to_%s.csv", startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 }
