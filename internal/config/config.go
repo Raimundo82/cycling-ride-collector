@@ -7,7 +7,6 @@ import (
 type Config struct {
 	StravaApiBaseUrl  string
 	StravaAccessToken string
-	OutputFilePath    string
 }
 
 func Load() *Config {
