@@ -59,7 +59,7 @@ func TestProvider_FiltersAndMapsRides(t *testing.T) {
 				detailedAct: &DetailedActivityDto{ID: 1, LegSensations: "Boas"},
 			}
 
-			p := &Provider{apiClient: stub}
+			p := &ApiProvider{apiClient: stub}
 			period, _ := domain.NewPeriod(time.Now(), time.Now().Add(24*time.Hour))
 			workouts, err := p.GetWorkoutsByPeriod(period)
 
@@ -74,7 +74,7 @@ func TestProvider_FiltersAndMapsRides(t *testing.T) {
 		})
 		Convey("When the client errors", func() {
 			stub := &stubApiClient{activitiesErr: errors.New("boom")}
-			p := &Provider{apiClient: stub}
+			p := &ApiProvider{apiClient: stub}
 
 			period, _ := domain.NewPeriod(time.Now(), time.Now().Add(24*time.Hour))
 			_, err := p.GetWorkoutsByPeriod(period)
@@ -97,7 +97,7 @@ func TestProvider_HandlesWattsStreamErrorsGracefully(t *testing.T) {
 			detailedAct:    &DetailedActivityDto{ID: 1, LegSensations: "Más"},
 		}
 
-		p := &Provider{apiClient: stub}
+		p := &ApiProvider{apiClient: stub}
 		period, _ := domain.NewPeriod(time.Now(), time.Now().Add(24*time.Hour))
 		workouts, err := p.GetWorkoutsByPeriod(period)
 

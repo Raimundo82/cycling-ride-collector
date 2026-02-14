@@ -35,19 +35,19 @@ var (
 	_ http.RoundTripper = (*authTransport)(nil)
 )
 
-func NewStravaApiHttpClient(httpClient *http.Client, cfg *config.Config) *stravaApiHttpClient {
+func NewStravaApiHttpClient(httpClient *http.Client, cfg *config.Config, accessToken string) *stravaApiHttpClient {
 	if httpClient.Transport == nil {
 		httpClient.Transport = http.DefaultTransport
 	}
 	httpClient.Transport = &authTransport{
 		underlying:  httpClient.Transport,
-		accessToken: cfg.StravaAccessToken,
+		accessToken: accessToken,
 	}
 
 	return &stravaApiHttpClient{
 		httpClient:  httpClient,
 		baseUrl:     cfg.StravaApiBaseUrl,
-		accessToken: cfg.StravaAccessToken,
+		accessToken: accessToken,
 	}
 }
 

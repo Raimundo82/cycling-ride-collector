@@ -33,7 +33,7 @@ func TestRefreshAccessToken_GivenStravaOauthHttpServerAndRefreshToken_WhenRefres
 			_, _ = w.Write([]byte(`{"token_type":"Bearer","access_token":"new-access-token","expires_at":1771095847,"expires_in":21600,"refresh_token":"test-refresh-token"}`))
 		}))
 		defer server.Close()
-		client := NewStravaOauthHttpClient(server.Client(), &config.Config{StravaOauthBaseUrl: server.URL})
+		client := NewStravaOAuthHttpClient(server.Client(), &config.Config{StravaOauthBaseUrl: server.URL})
 
 		Convey("When RefreshAccessToken is called", func() {
 			resp, err := client.RefreshAccessToken(request)
@@ -72,7 +72,7 @@ func TestRefreshAccessToken_GivenStravaOauthHttpServerAndRefreshToken_WhenRefres
 			http.Error(w, "Bad Request", http.StatusBadRequest)
 		}))
 		defer server.Close()
-		client := NewStravaOauthHttpClient(server.Client(), &config.Config{StravaOauthBaseUrl: server.URL})
+		client := NewStravaOAuthHttpClient(server.Client(), &config.Config{StravaOauthBaseUrl: server.URL})
 
 		Convey("When RefreshAccessToken is called", func() {
 			resp, err := client.RefreshAccessToken(request)
@@ -98,7 +98,7 @@ func TestRefreshAccessToken_GivenStravaOauthHttpServerAndRefreshToken_WhenRefres
 			_, _ = w.Write([]byte(`invalid-json`))
 		}))
 		defer server.Close()
-		client := NewStravaOauthHttpClient(server.Client(), &config.Config{StravaOauthBaseUrl: server.URL})
+		client := NewStravaOAuthHttpClient(server.Client(), &config.Config{StravaOauthBaseUrl: server.URL})
 
 		Convey("When RefreshAccessToken is called", func() {
 			resp, err := client.RefreshAccessToken(request)

@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -15,13 +14,25 @@ import (
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
 	"github.com/raimundo82/cycling-ride-collector/internal/infrastucture/csv"
 	"github.com/raimundo82/cycling-ride-collector/internal/infrastucture/strava"
+	token_store "github.com/raimundo82/cycling-ride-collector/internal/infrastucture/token"
 )
 
 func main() {
 	_ = godotenv.Load()
 	cfg, request := parseFlagsAndConfig()
 
-	if err := setupSaveWorkoutPeriodUseCase(cfg, request.DailyWorkoutPolicy).Execute(request.Period, request.MinimalWorkoutDuration); err != nil {
+	tokenUsecase := usecase.GetAccessToken{
+		TokenProvider:   strava.NewOAuthProvider(cfg),
+		TokenRepository: token_store.NewTokenStore(cfg.TokenFilePath),
+	}
+
+	token, err := tokenUsecase.Execute()
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	if err := setupSaveWorkoutPeriodUseCase(cfg, request.DailyWorkoutPolicy, token.AccessToken).Execute(request.Period, request.MinimalWorkoutDuration); err != nil {
 		fmt.Printf("Error: %v\n", err)
 	} else {
 		fmt.Printf("Workout(s) processed and saved to %s (if any).\n", cfg.OutputFilePath)
@@ -33,7 +44,6 @@ func parseFlagsAndConfig() (*config.Config, *input.SaveWorkoutPeriodRequest) {
 
 	startDateStr := flag.String("start-date", "", "Start date in MM/DD/YYYY format")
 	endDateStr := flag.String("end-date", "", "End date in MM/DD/YYYY format")
-	accessToken := flag.String("access-token", "", "Strava API access token")
 	outputFilePath := flag.String("output-file", "", "Output file path for the CSV")
 	minimalWorkoutDuration := flag.Int("min-duration", 30, "Minimal workout duration in minutes")
 	dailyWorkoutPolicy := flag.String("daily-workout-policy", "longest", "Daily workout policy")
@@ -72,10 +82,6 @@ func parseFlagsAndConfig() (*config.Config, *input.SaveWorkoutPeriodRequest) {
 	}
 	cfg.OutputFilePath = *outputFilePath
 
-	if *accessToken != "" {
-		cfg.StravaAccessToken = *accessToken
-	}
-
 	request, err := input.NewSaveWorkoutPeriodRequest(period, *dailyWorkoutPolicy, *minimalWorkoutDuration)
 	if err != nil {
 		log.Fatalf("Invalid input: %v", err)
@@ -84,7 +90,7 @@ func parseFlagsAndConfig() (*config.Config, *input.SaveWorkoutPeriodRequest) {
 	return cfg, request
 }
 
-func setupSaveWorkoutPeriodUseCase(cfg *config.Config, workoutPolicy string) usecase.SaveWorkoutPeriodUseCase {
+func setupSaveWorkoutPeriodUseCase(cfg *config.Config, workoutPolicy string, accessToken string) usecase.SaveWorkoutPeriodUseCase {
 	var dailyWorkoutPolicy contracts.DailyWorkoutPolicy
 
 	switch workoutPolicy {
@@ -99,6 +105,6 @@ func setupSaveWorkoutPeriodUseCase(cfg *config.Config, workoutPolicy string) use
 	return usecase.NewSaveWorkoutPeriod(
 		dailyWorkoutPolicy,
 		csv.NewCSVWorkoutPeriodSaver(cfg.OutputFilePath),
-		strava.NewProvider(strava.NewHttpClient(&http.Client{Timeout: 10 * time.Second}, cfg)),
+		strava.NewApiProvider(cfg, accessToken),
 	)
 }

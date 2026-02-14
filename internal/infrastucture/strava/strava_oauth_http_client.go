@@ -16,7 +16,7 @@ type stravaOAuthHttpClient struct {
 
 var _ StravaOAuthClient = (*stravaOAuthHttpClient)(nil)
 
-func NewStravaOauthHttpClient(httpClient *http.Client, cfg *config.Config) *stravaOAuthHttpClient {
+func NewStravaOAuthHttpClient(httpClient *http.Client, cfg *config.Config) *stravaOAuthHttpClient {
 	return &stravaOAuthHttpClient{
 		httpClient: httpClient,
 		baseUrl:    cfg.StravaOauthBaseUrl,

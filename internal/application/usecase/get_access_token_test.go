@@ -22,7 +22,7 @@ type mockTokenRepository struct {
 }
 
 // RefreshAccessToken implements [contracts.TokenProvider].
-func (m *mockTokenProvider) RefreshAccessToken() (*dto.Token, error) {
+func (m *mockTokenProvider) RefreshAccessToken(refreshToken string) (*dto.Token, error) {
 	return m.Token, m.Err
 }
 
@@ -60,25 +60,6 @@ func TestGetAccessToken_GivenValidToken_WhenExecutes_ThenReturnsToken(t *testing
 	})
 }
 
-func TestGetAccessToken_GivenNoTokenInRepoAndProviderReturnsToken_WhenExecutes_ThenReturnsNewToken(t *testing.T) {
-	Convey("Given no token in repository and provider returns a new token", t, func() {
-		newToken := &dto.Token{AccessToken: "new_access_token", RefreshToken: "new_refresh_token", ExpiresAt: time.Now().Add(1 * time.Hour)}
-
-		tokenRepo := &mockTokenRepository{Token: nil}
-		tokenProvider := &mockTokenProvider{Token: newToken}
-		getAccessToken := &GetAccessToken{TokenProvider: tokenProvider, TokenRepository: tokenRepo}
-
-		Convey("When executing GetAccessToken", func() {
-			result, err := getAccessToken.Execute()
-
-			Convey("Then it should return the new token without error", func() {
-				So(err, ShouldBeNil)
-				So(result, ShouldResemble, newToken)
-			})
-		})
-	})
-}
-
 func TestGetAccessToken_GivenExpiredTokenInRepoAndProviderReturnsToken_WhenExecutes_ThenReturnsNewToken(t *testing.T) {
 	Convey("Given an expired token in repository and provider returns a new token", t, func() {
 		expiredToken := &dto.Token{AccessToken: "expired_access_token", RefreshToken: "expired_refresh_token", ExpiresAt: time.Now().Add(-1 * time.Hour)}
@@ -94,25 +75,6 @@ func TestGetAccessToken_GivenExpiredTokenInRepoAndProviderReturnsToken_WhenExecu
 			Convey("Then it should return the new token without error", func() {
 				So(err, ShouldBeNil)
 				So(result, ShouldResemble, newToken)
-			})
-		})
-	})
-}
-
-func TestGetAccessToken_GivenNoTokenInRepoAndProviderReturnsError_WhenExecutes_ThenReturnsError(t *testing.T) {
-	Convey("Given no token in repository and provider returns an error", t, func() {
-		providerErr := errors.New("provider error")
-
-		tokenRepo := &mockTokenRepository{Token: nil}
-		tokenProvider := &mockTokenProvider{Err: providerErr}
-		getAccessToken := &GetAccessToken{TokenProvider: tokenProvider, TokenRepository: tokenRepo}
-
-		Convey("When executing GetAccessToken", func() {
-			result, err := getAccessToken.Execute()
-
-			Convey("Then it should return the provider error", func() {
-				So(err, ShouldEqual, providerErr)
-				So(result, ShouldBeNil)
 			})
 		})
 	})

@@ -24,6 +24,7 @@ var _ StravaOAuthClient = (*stubOAuthClient)(nil)
 
 func TestStravaOAuthHttpClient_GivenStravaOAuthClient_WhenRequestIsValid_ThenItShouldReturnNewAccessToken(t *testing.T) {
 	Convey("Given a Strava OAuth HTTP client", t, func() {
+
 		refreshTokenResponse := &RefreshAccessTokenResponse{
 			TokenType:   "Bearer",
 			AccessToken: "new-access-token",
@@ -37,9 +38,8 @@ func TestStravaOAuthHttpClient_GivenStravaOAuthClient_WhenRequestIsValid_ThenItS
 			RefreshToken: "test-refresh-token",
 			GrantType:    "refresh_token",
 		}
-
-		client := &stubOAuthClient{token: refreshTokenResponse}
-
+		provider := &OAuthProvider{oauthClient: &stubOAuthClient{token: refreshTokenResponse}}
+		client := provider.oauthClient
 		Convey("When the request is valid", func() {
 			resp, err := client.RefreshAccessToken(refreshTokenRequest)
 
@@ -54,14 +54,15 @@ func TestStravaOAuthHttpClient_GivenStravaOAuthClient_WhenRequestIsValid_ThenItS
 
 func TestStravaOAuthHttpClient_GivenStravaOAuthClient_WhenRequestIsInvalid_ThenItShouldReturnError(t *testing.T) {
 	Convey("Given a Strava OAuth HTTP client that returns an error", t, func() {
+		provider := &OAuthProvider{oauthClient: &stubOAuthClient{err: http.ErrServerClosed}}
+		client := provider.oauthClient
+
 		refreshTokenRequest := &RefreshAccessTokenRequest{
 			ClientID:     "test-client-id",
 			ClientSecret: "test-client-secret",
 			RefreshToken: "test-refresh-token",
 			GrantType:    "refresh_token",
 		}
-		errTest := http.ErrServerClosed
-		client := &stubOAuthClient{err: errTest}
 
 		Convey("When the request is invalid", func() {
 			resp, err := client.RefreshAccessToken(refreshTokenRequest)
@@ -99,7 +100,10 @@ func TestRefreshAccessToken_GivenStravaOauthHttpServerAndRefreshToken_WhenRefres
 		}))
 
 		defer server.Close()
-		client := NewStravaOauthHttpClient(server.Client(), &config.Config{StravaOauthBaseUrl: server.URL})
+
+		provider := &OAuthProvider{oauthClient: NewStravaOAuthHttpClient(server.Client(), &config.Config{StravaOauthBaseUrl: server.URL})}
+		client := provider.oauthClient
+
 		Convey("When RefreshAccessToken is called", func() {
 			resp, _ := client.RefreshAccessToken(request)
 

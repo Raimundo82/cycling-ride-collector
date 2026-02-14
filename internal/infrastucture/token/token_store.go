@@ -1,4 +1,4 @@
-package token
+package token_store
 
 import (
 	"encoding/json"
@@ -12,6 +12,10 @@ import (
 type tokenStore struct {
 	token    dto.Token
 	filePath string
+}
+
+func NewTokenStore(filePath string) contracts.TokenRepository {
+	return &tokenStore{filePath: filePath}
 }
 
 // GetTokens implements [contracts.TokenRepository].

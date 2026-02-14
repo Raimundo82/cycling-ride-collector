@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"log"
+
 	"github.com/raimundo82/cycling-ride-collector/internal/application/contracts"
 	"github.com/raimundo82/cycling-ride-collector/internal/application/dto"
 )
@@ -17,7 +19,8 @@ func (uc *GetAccessToken) Execute() (*dto.Token, error) {
 	}
 
 	if token == nil || token.IsExpired() {
-		token, err = uc.TokenProvider.RefreshAccessToken()
+		log.Println("Access token is missing or expired. Refreshing access token...")
+		token, err = uc.TokenProvider.RefreshAccessToken(token.RefreshToken)
 		if err != nil {
 			return nil, err
 		}
@@ -26,5 +29,6 @@ func (uc *GetAccessToken) Execute() (*dto.Token, error) {
 			return nil, err
 		}
 	}
+
 	return token, nil
 }

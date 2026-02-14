@@ -1,4 +1,4 @@
-package token
+package token_store
 
 import (
 	"encoding/json"
