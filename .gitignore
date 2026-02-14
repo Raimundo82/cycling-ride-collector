@@ -38,3 +38,4 @@ go.work.sum
 stava_client.http
 training-log*
 cycling-ride-collector
+token.json
