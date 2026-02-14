@@ -13,7 +13,7 @@ import (
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
 	"github.com/raimundo82/cycling-ride-collector/internal/infrastucture/csv"
 	"github.com/raimundo82/cycling-ride-collector/internal/infrastucture/strava"
-	"gofr.dev/pkg/gofr"
+	"github.com/robfig/cron/v3"
 )
 
 func main() {
@@ -62,23 +62,25 @@ func runCLI(cfg *config.Config, flags *flags) error {
 }
 
 func runCron(cfg *config.Config, flags *flags) {
-	app := gofr.New()
-	app.AddCronJob("0 19 * * 0", "weekly_sunday_7pm", func(ctx *gofr.Context) {
-		endDate := time.Now()
-		startDate := endDate.AddDate(0, 0, -6)
-		ctx.Logger.Infof("Processing workouts from %s to %s", startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+	endDate := time.Now()
+	startDate := endDate.AddDate(0, 0, -6)
+	period, err := domain.NewPeriod(startDate, endDate)
+	if err != nil {
+		return
+	}
+	outputFilePath := generateOutputFilePath(period)
+	minimalWorkoutDuration := getMinWorkoutDuration(flags.minimalWorkoutDuration)
 
-		period, err := domain.NewPeriod(startDate, endDate)
-		if err != nil {
-			ctx.Logger.Errorf("invalid period: %v", err)
-			return
-		}
-
-		outputFilePath := generateOutputFilePath(period)
-		minimalWorkoutDuration := getMinWorkoutDuration(flags.minimalWorkoutDuration)
+	c := cron.New()
+	_, err = c.AddFunc("0 19 * * 0", func() {
 		executeUsecase(cfg, &period, flags.dailyWorkoutPolicy, minimalWorkoutDuration, outputFilePath)
 	})
-	app.Run()
+	if err != nil {
+		fmt.Printf("Error scheduling cron job: %v\n", err)
+		return
+	}
+	c.Start()
+	fmt.Println("Cron job scheduled to run every Sunday at 7 PM. Press Ctrl+C to exit.")
 }
 
 func executeUsecase(cfg *config.Config, period *domain.Period, workoutPolicy string, minimalWorkoutDuration int, outputPath string) {
