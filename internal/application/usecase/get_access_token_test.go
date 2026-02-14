@@ -36,8 +36,10 @@ func (m *mockTokenRepository) SaveTokens(token *dto.Token) error {
 	return m.SaveErr
 }
 
-var _ contracts.TokenProvider = (*mockTokenProvider)(nil)
-var _ contracts.TokenRepository = (*mockTokenRepository)(nil)
+var (
+	_ contracts.TokenProvider   = (*mockTokenProvider)(nil)
+	_ contracts.TokenRepository = (*mockTokenRepository)(nil)
+)
 
 func TestGetAccessToken_GivenValidToken_WhenExecutes_ThenReturnsToken(t *testing.T) {
 	Convey("Given a valid token", t, func() {
@@ -55,7 +57,6 @@ func TestGetAccessToken_GivenValidToken_WhenExecutes_ThenReturnsToken(t *testing
 				So(result, ShouldResemble, token)
 			})
 		})
-
 	})
 }
 
