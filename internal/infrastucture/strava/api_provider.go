@@ -11,9 +11,7 @@ import (
 	"github.com/samber/lo"
 )
 
-var (
-	_ contracts.WorkoutProvider = (*ApiProvider)(nil)
-)
+var _ contracts.WorkoutProvider = (*ApiProvider)(nil)
 
 type ApiProvider struct {
 	apiClient StravaApiClient

@@ -9,9 +9,7 @@ import (
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
 )
 
-var (
-	_ contracts.TokenProvider = (*OAuthProvider)(nil)
-)
+var _ contracts.TokenProvider = (*OAuthProvider)(nil)
 
 type OAuthProvider struct {
 	oauthClient StravaOAuthClient

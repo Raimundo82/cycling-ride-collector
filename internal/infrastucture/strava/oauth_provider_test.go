@@ -24,7 +24,6 @@ var _ StravaOAuthClient = (*stubOAuthClient)(nil)
 
 func TestStravaOAuthHttpClient_GivenStravaOAuthClient_WhenRequestIsValid_ThenItShouldReturnNewAccessToken(t *testing.T) {
 	Convey("Given a Strava OAuth HTTP client", t, func() {
-
 		refreshTokenResponse := &RefreshAccessTokenResponse{
 			TokenType:   "Bearer",
 			AccessToken: "new-access-token",
