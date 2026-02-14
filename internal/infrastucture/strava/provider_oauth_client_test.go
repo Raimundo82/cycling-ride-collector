@@ -51,6 +51,7 @@ func TestStravaOAuthHttpClient_GivenStravaOAuthClient_WhenRequestIsValid_ThenItS
 		})
 	})
 }
+
 func TestStravaOAuthHttpClient_GivenStravaOAuthClient_WhenRequestIsInvalid_ThenItShouldReturnError(t *testing.T) {
 	Convey("Given a Strava OAuth HTTP client that returns an error", t, func() {
 		refreshTokenRequest := &RefreshAccessTokenRequest{

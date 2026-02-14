@@ -10,7 +10,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-type stubClient struct {
+type stubApiClient struct {
 	acts             []*ActivityDto
 	activitiesErr    error
 	wattsStream      *WattsStreamDto
@@ -21,26 +21,26 @@ type stubClient struct {
 	detailedActCalls []int64
 }
 
-var _ StravaClient = (*stubClient)(nil)
+var _ StravaApiClient = (*stubApiClient)(nil)
 
-// GetActivitiesByDate implements [StravaClient].
-func (s *stubClient) GetActivitiesByDate(ctx context.Context, d time.Time) ([]*ActivityDto, error) {
+// GetActivitiesByDate implements [StravaApiClient].
+func (s *stubApiClient) GetActivitiesByDate(ctx context.Context, d time.Time) ([]*ActivityDto, error) {
 	return s.acts, s.activitiesErr
 }
 
-// GetActivitiesByPeriod implements [StravaClient].
-func (s *stubClient) GetActivitiesByPeriod(ctx context.Context, period domain.Period) ([]*ActivityDto, error) {
+// GetActivitiesByPeriod implements [StravaApiClient].
+func (s *stubApiClient) GetActivitiesByPeriod(ctx context.Context, period domain.Period) ([]*ActivityDto, error) {
 	return s.acts, s.activitiesErr
 }
 
-// GetWattsStream implements [StravaClient].
-func (s *stubClient) GetWattsStream(ctx context.Context, activityID int64) (*WattsStreamDto, error) {
+// GetWattsStream implements [StravaApiClient].
+func (s *stubApiClient) GetWattsStream(ctx context.Context, activityID int64) (*WattsStreamDto, error) {
 	s.calls = append(s.calls, activityID)
 	return s.wattsStream, s.wattsStreamErr
 }
 
-// GetDetailedActivityByID implements [StravaClient].
-func (s *stubClient) GetDetailedActivityByID(ctx context.Context, activityID int64) (*DetailedActivityDto, error) {
+// GetDetailedActivityByID implements [StravaApiClient].
+func (s *stubApiClient) GetDetailedActivityByID(ctx context.Context, activityID int64) (*DetailedActivityDto, error) {
 	s.detailedActCalls = append(s.detailedActCalls, activityID)
 	return s.detailedAct, s.detailedActErr
 }
@@ -48,7 +48,7 @@ func (s *stubClient) GetDetailedActivityByID(ctx context.Context, activityID int
 func TestProvider_FiltersAndMapsRides(t *testing.T) {
 	Convey("Given a Strava provider", t, func() {
 		Convey("When the client returns rides and non-rides", func() {
-			stub := &stubClient{
+			stub := &stubApiClient{
 				acts: []*ActivityDto{
 					{ID: 1, SportType: "Ride", Commute: false},
 					{ID: 2, SportType: "Ride", Commute: true},
@@ -59,7 +59,7 @@ func TestProvider_FiltersAndMapsRides(t *testing.T) {
 				detailedAct: &DetailedActivityDto{ID: 1, LegSensations: "Boas"},
 			}
 
-			p := NewProvider(stub)
+			p := &Provider{apiClient: stub}
 			period, _ := domain.NewPeriod(time.Now(), time.Now().Add(24*time.Hour))
 			workouts, err := p.GetWorkoutsByPeriod(period)
 
@@ -73,8 +73,8 @@ func TestProvider_FiltersAndMapsRides(t *testing.T) {
 			})
 		})
 		Convey("When the client errors", func() {
-			stub := &stubClient{activitiesErr: errors.New("boom")}
-			p := NewProvider(stub)
+			stub := &stubApiClient{activitiesErr: errors.New("boom")}
+			p := &Provider{apiClient: stub}
 
 			period, _ := domain.NewPeriod(time.Now(), time.Now().Add(24*time.Hour))
 			_, err := p.GetWorkoutsByPeriod(period)
@@ -88,7 +88,7 @@ func TestProvider_FiltersAndMapsRides(t *testing.T) {
 
 func TestProvider_HandlesWattsStreamErrorsGracefully(t *testing.T) {
 	Convey("Given a Strava provider where GetWattsStream fails", t, func() {
-		stub := &stubClient{
+		stub := &stubApiClient{
 			acts: []*ActivityDto{
 				{ID: 1, SportType: "Ride", Commute: false, DeviceWatts: true},
 				{ID: 2, SportType: "MountainBike", Commute: false},
@@ -97,7 +97,7 @@ func TestProvider_HandlesWattsStreamErrorsGracefully(t *testing.T) {
 			detailedAct:    &DetailedActivityDto{ID: 1, LegSensations: "Más"},
 		}
 
-		p := NewProvider(stub)
+		p := &Provider{apiClient: stub}
 		period, _ := domain.NewPeriod(time.Now(), time.Now().Add(24*time.Hour))
 		workouts, err := p.GetWorkoutsByPeriod(period)
 
