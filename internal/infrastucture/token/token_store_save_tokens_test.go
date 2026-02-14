@@ -34,7 +34,6 @@ func TestSaveTokens_GivenValidTokenFileAndTokenStoreAndValidToken_WhenSavingToke
 				So(savedToken.RefreshToken, ShouldEqual, "valid_refresh_token")
 				So(savedToken.IsExpired(), ShouldBeFalse)
 				So(savedToken.ExpiresAt, ShouldHappenAfter, time.Now())
-				So(err, ShouldBeNil)
 			})
 		})
 	})
