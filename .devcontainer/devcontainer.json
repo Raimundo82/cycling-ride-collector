@@ -22,11 +22,9 @@
 				"humao.rest-client",
 				"openai.chatgpt",
 				"SonarSource.sonarlint-vscode",
-				"ritwickdey.LiveServer",
 				"GitHub.vscode-pull-request-github",
 				"GitHub.copilot-chat",
-				"github.vscode-github-actions",
-				"dbaeumer.vscode-eslint"
+				"github.vscode-github-actions"
 			]
 		}
 	},
