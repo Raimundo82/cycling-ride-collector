@@ -1,4 +1,4 @@
-package token_store
+package tokens
 
 import (
 	"encoding/json"
@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/raimundo82/cycling-ride-collector/internal/application/dto"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -15,7 +14,7 @@ func TestGetTokens_GivenValidTokenFileAndTokenStoreAndValidToken_WhenGettingToke
 		tokenFile, _ := os.CreateTemp("", "token.json")
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
 
-		token := &dto.Token{
+		token := &Token{
 			AccessToken:  "valid_access_token",
 			RefreshToken: "valid_refresh_token",
 			ExpiresAt:    time.Now().Add(1 * time.Hour),
@@ -24,7 +23,7 @@ func TestGetTokens_GivenValidTokenFileAndTokenStoreAndValidToken_WhenGettingToke
 
 		_ = tokenFile.Close()
 
-		store := &tokenStore{filePath: tokenFile.Name()}
+		store := &TokenStore{filePath: tokenFile.Name()}
 		Convey("When getting tokens", func() {
 			token, err := store.GetTokens()
 			Convey("Then it returns the expected token", func() {
@@ -43,7 +42,7 @@ func TestGetTokens_GivenValidTokenFileAndTokenStoreAndExpiredToken_WhenGettingTo
 		tokenFile, _ := os.CreateTemp("", "token.json")
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
 
-		token := &dto.Token{
+		token := &Token{
 			AccessToken:  "invalid_access_token",
 			RefreshToken: "valid_refresh_token",
 			ExpiresAt:    time.Now().Add(-1 * time.Hour),
@@ -51,7 +50,7 @@ func TestGetTokens_GivenValidTokenFileAndTokenStoreAndExpiredToken_WhenGettingTo
 		_ = json.NewEncoder(tokenFile).Encode(*token)
 		_ = tokenFile.Close()
 
-		store := &tokenStore{filePath: tokenFile.Name()}
+		store := &TokenStore{filePath: tokenFile.Name()}
 		Convey("When getting tokens", func() {
 			token, err := store.GetTokens()
 			Convey("Then it returns the expected token", func() {
@@ -70,7 +69,7 @@ func TestGetTokens_GivenValidTokenFileAndTokenStoreAndRefreshToken_WhenGettingTo
 		tokenFile, _ := os.CreateTemp("", "token.json")
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
 
-		token := &dto.Token{
+		token := &Token{
 			AccessToken:  "",
 			RefreshToken: "valid_refresh_token",
 			ExpiresAt:    time.Time{},
@@ -78,7 +77,7 @@ func TestGetTokens_GivenValidTokenFileAndTokenStoreAndRefreshToken_WhenGettingTo
 		_ = json.NewEncoder(tokenFile).Encode(*token)
 		_ = tokenFile.Close()
 
-		store := &tokenStore{filePath: tokenFile.Name()}
+		store := &TokenStore{filePath: tokenFile.Name()}
 		Convey("When getting tokens", func() {
 			token, err := store.GetTokens()
 			Convey("Then it returns the expected token", func() {
@@ -94,7 +93,7 @@ func TestGetTokens_GivenValidTokenFileAndTokenStoreAndRefreshToken_WhenGettingTo
 
 func TestGetTokens_GivenInvalidTokenFileAndTokenStore_WhenGettingTokens_ThenItReturnsAnError(t *testing.T) {
 	Convey("Given an invalid token file and a token store", t, func() {
-		store := &tokenStore{filePath: "non_existent_file.json"}
+		store := &TokenStore{filePath: "non_existent_file.json"}
 		Convey("When getting tokens", func() {
 			token, err := store.GetTokens()
 			Convey("Then it returns an error", func() {
@@ -113,7 +112,7 @@ func TestGetTokens_GivenInvalidTokenFileContentAndTokenStore_WhenGettingTokens_T
 		_, _ = tokenFile.WriteString("invalid json content")
 		_ = tokenFile.Close()
 
-		store := &tokenStore{filePath: tokenFile.Name()}
+		store := &TokenStore{filePath: tokenFile.Name()}
 		Convey("When getting tokens", func() {
 			token, err := store.GetTokens()
 			Convey("Then it returns an error", func() {

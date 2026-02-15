@@ -1,25 +1,27 @@
-package token_store
+package tokens
 
 import (
 	"encoding/json"
 	"fmt"
 	"os"
-
-	"github.com/raimundo82/cycling-ride-collector/internal/application/contracts"
-	"github.com/raimundo82/cycling-ride-collector/internal/application/dto"
 )
 
-type tokenStore struct {
-	token    dto.Token
+type TokenRepository interface {
+	GetTokens() (*Token, error)
+	SaveTokens(token *Token) error
+}
+
+type TokenStore struct {
+	token    Token
 	filePath string
 }
 
-func NewTokenStore(filePath string) contracts.TokenRepository {
-	return &tokenStore{filePath: filePath}
+func NewTokenStore(filePath string) TokenRepository {
+	return &TokenStore{filePath: filePath}
 }
 
 // GetTokens implements [contracts.TokenRepository].
-func (t *tokenStore) GetTokens() (*dto.Token, error) {
+func (t *TokenStore) GetTokens() (*Token, error) {
 	file, err := os.Open(t.filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open token file: %w", err)
@@ -27,7 +29,7 @@ func (t *tokenStore) GetTokens() (*dto.Token, error) {
 
 	defer func() { _ = file.Close() }()
 
-	var store tokenStore
+	var store TokenStore
 	if err := json.NewDecoder(file).Decode(&store.token); err != nil {
 		return nil, fmt.Errorf("failed to decode tokens: %w", err)
 	}
@@ -35,7 +37,7 @@ func (t *tokenStore) GetTokens() (*dto.Token, error) {
 }
 
 // SaveTokens implements [contracts.TokenRepository].
-func (t *tokenStore) SaveTokens(token *dto.Token) error {
+func (t *TokenStore) SaveTokens(token *Token) error {
 	file, err := os.Create(t.filePath)
 	if err != nil {
 		return fmt.Errorf("failed to create token file: %w", err)
@@ -44,5 +46,3 @@ func (t *tokenStore) SaveTokens(token *dto.Token) error {
 
 	return json.NewEncoder(file).Encode(token)
 }
-
-var _ contracts.TokenRepository = (*tokenStore)(nil)

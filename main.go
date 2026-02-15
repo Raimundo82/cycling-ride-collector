@@ -14,25 +14,14 @@ import (
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
 	"github.com/raimundo82/cycling-ride-collector/internal/infrastucture/csv"
 	"github.com/raimundo82/cycling-ride-collector/internal/infrastucture/strava"
-	token_store "github.com/raimundo82/cycling-ride-collector/internal/infrastucture/token"
+	tokenStore "github.com/raimundo82/cycling-ride-collector/internal/infrastucture/token_store"
 )
 
 func main() {
 	_ = godotenv.Load()
 	cfg, request := parseFlagsAndConfig()
 
-	tokenUsecase := usecase.GetAccessToken{
-		TokenProvider:   strava.NewOAuthProvider(cfg),
-		TokenRepository: token_store.NewTokenStore(cfg.TokenFilePath),
-	}
-
-	token, err := tokenUsecase.Execute()
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		return
-	}
-
-	if err := setupSaveWorkoutPeriodUseCase(cfg, request.DailyWorkoutPolicy, token.AccessToken).Execute(request.Period, request.MinimalWorkoutDuration); err != nil {
+	if err := setupSaveWorkoutPeriodUseCase(cfg, request.DailyWorkoutPolicy).Execute(request.Period, request.MinimalWorkoutDuration); err != nil {
 		fmt.Printf("Error: %v\n", err)
 	} else {
 		fmt.Printf("Workout(s) processed and saved to %s (if any).\n", cfg.OutputFilePath)
@@ -90,7 +79,7 @@ func parseFlagsAndConfig() (*config.Config, *input.SaveWorkoutPeriodRequest) {
 	return cfg, request
 }
 
-func setupSaveWorkoutPeriodUseCase(cfg *config.Config, workoutPolicy string, accessToken string) usecase.SaveWorkoutPeriodUseCase {
+func setupSaveWorkoutPeriodUseCase(cfg *config.Config, workoutPolicy string) usecase.SaveWorkoutPeriodUseCase {
 	var dailyWorkoutPolicy contracts.DailyWorkoutPolicy
 
 	switch workoutPolicy {
@@ -105,6 +94,6 @@ func setupSaveWorkoutPeriodUseCase(cfg *config.Config, workoutPolicy string, acc
 	return usecase.NewSaveWorkoutPeriod(
 		dailyWorkoutPolicy,
 		csv.NewCSVWorkoutPeriodSaver(cfg.OutputFilePath),
-		strava.NewApiProvider(cfg, accessToken),
+		strava.NewApiProvider(cfg, strava.NewTokenService(strava.NewOAuthProvider(cfg), tokenStore.NewTokenStore(cfg.TokenFilePath))),
 	)
 }

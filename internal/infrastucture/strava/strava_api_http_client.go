@@ -12,20 +12,23 @@ import (
 )
 
 type stravaApiHttpClient struct {
-	httpClient  *http.Client
-	baseUrl     string
-	accessToken string
+	httpClient *http.Client
+	baseUrl    string
 }
 
 type authTransport struct {
 	underlying  http.RoundTripper
-	accessToken string
+	tokenGetter func() (string, error)
 }
 
 func (a *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	if a.accessToken != "" {
+	accessToken, err := a.tokenGetter()
+	if err != nil {
+		return nil, err
+	}
+	if accessToken != "" {
 		req = req.Clone(req.Context())
-		req.Header.Set("Authorization", "Bearer "+a.accessToken)
+		req.Header.Set("Authorization", "Bearer "+accessToken)
 	}
 	return a.underlying.RoundTrip(req)
 }
@@ -35,19 +38,18 @@ var (
 	_ http.RoundTripper = (*authTransport)(nil)
 )
 
-func NewStravaApiHttpClient(httpClient *http.Client, cfg *config.Config, accessToken string) *stravaApiHttpClient {
+func NewStravaApiHttpClient(httpClient *http.Client, cfg *config.Config, tokenGetter func() (string, error)) *stravaApiHttpClient {
 	if httpClient.Transport == nil {
 		httpClient.Transport = http.DefaultTransport
 	}
 	httpClient.Transport = &authTransport{
 		underlying:  httpClient.Transport,
-		accessToken: accessToken,
+		tokenGetter: tokenGetter,
 	}
 
 	return &stravaApiHttpClient{
-		httpClient:  httpClient,
-		baseUrl:     cfg.StravaApiBaseUrl,
-		accessToken: accessToken,
+		httpClient: httpClient,
+		baseUrl:    cfg.StravaApiBaseUrl,
 	}
 }
 

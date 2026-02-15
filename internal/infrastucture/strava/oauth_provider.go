@@ -4,26 +4,29 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/raimundo82/cycling-ride-collector/internal/application/contracts"
-	"github.com/raimundo82/cycling-ride-collector/internal/application/dto"
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
+	tokenStore "github.com/raimundo82/cycling-ride-collector/internal/infrastucture/token_store"
 )
 
-var _ contracts.TokenProvider = (*OAuthProvider)(nil)
+type OAuthProvider interface {
+	RefreshAccessToken(refreshToken string) (*tokenStore.Token, error)
+}
 
-type OAuthProvider struct {
+type StravaOAuthProvider struct {
 	oauthClient StravaOAuthClient
 	config      *config.Config
 }
 
-func NewOAuthProvider(cfg *config.Config) *OAuthProvider {
+var _ OAuthProvider = (*StravaOAuthProvider)(nil)
+
+func NewOAuthProvider(cfg *config.Config) OAuthProvider {
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 	oauthClient := NewStravaOAuthHttpClient(httpClient, cfg)
-	return &OAuthProvider{oauthClient: oauthClient, config: cfg}
+	return &StravaOAuthProvider{oauthClient: oauthClient, config: cfg}
 }
 
 // RefreshAccessToken implements [contracts.TokenProvider].
-func (o *OAuthProvider) RefreshAccessToken(refreshToken string) (*dto.Token, error) {
+func (o *StravaOAuthProvider) RefreshAccessToken(refreshToken string) (*tokenStore.Token, error) {
 	resp, err := o.oauthClient.RefreshAccessToken(&RefreshAccessTokenRequest{
 		ClientID:     o.config.StravaClientId,
 		ClientSecret: o.config.StravaClientSecret,
@@ -33,7 +36,7 @@ func (o *OAuthProvider) RefreshAccessToken(refreshToken string) (*dto.Token, err
 	if err != nil {
 		return nil, err
 	}
-	return &dto.Token{
+	return &tokenStore.Token{
 		AccessToken:  resp.AccessToken,
 		RefreshToken: resp.RefreshToken,
 		ExpiresAt:    time.Unix(int64(resp.ExpiresAt), 0),

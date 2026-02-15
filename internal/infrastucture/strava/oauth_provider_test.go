@@ -37,8 +37,9 @@ func TestStravaOAuthHttpClient_GivenStravaOAuthClient_WhenRequestIsValid_ThenItS
 			RefreshToken: "test-refresh-token",
 			GrantType:    "refresh_token",
 		}
-		provider := &OAuthProvider{oauthClient: &stubOAuthClient{token: refreshTokenResponse}}
+		provider := &StravaOAuthProvider{oauthClient: &stubOAuthClient{token: refreshTokenResponse}}
 		client := provider.oauthClient
+
 		Convey("When the request is valid", func() {
 			resp, err := client.RefreshAccessToken(refreshTokenRequest)
 
@@ -53,7 +54,7 @@ func TestStravaOAuthHttpClient_GivenStravaOAuthClient_WhenRequestIsValid_ThenItS
 
 func TestStravaOAuthHttpClient_GivenStravaOAuthClient_WhenRequestIsInvalid_ThenItShouldReturnError(t *testing.T) {
 	Convey("Given a Strava OAuth HTTP client that returns an error", t, func() {
-		provider := &OAuthProvider{oauthClient: &stubOAuthClient{err: http.ErrServerClosed}}
+		provider := &StravaOAuthProvider{oauthClient: &stubOAuthClient{err: http.ErrServerClosed}}
 		client := provider.oauthClient
 
 		refreshTokenRequest := &RefreshAccessTokenRequest{
@@ -100,7 +101,7 @@ func TestRefreshAccessToken_GivenStravaOauthHttpServerAndRefreshToken_WhenRefres
 
 		defer server.Close()
 
-		provider := &OAuthProvider{oauthClient: NewStravaOAuthHttpClient(server.Client(), &config.Config{StravaOauthBaseUrl: server.URL})}
+		provider := &StravaOAuthProvider{oauthClient: NewStravaOAuthHttpClient(server.Client(), &config.Config{StravaOauthBaseUrl: server.URL})}
 		client := provider.oauthClient
 
 		Convey("When RefreshAccessToken is called", func() {

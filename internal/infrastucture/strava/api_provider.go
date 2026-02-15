@@ -14,13 +14,15 @@ import (
 var _ contracts.WorkoutProvider = (*ApiProvider)(nil)
 
 type ApiProvider struct {
-	apiClient StravaApiClient
+	apiClient    StravaApiClient
+	tokenService *tokenService
 }
 
-func NewApiProvider(cfg *config.Config, accessToken string) *ApiProvider {
+func NewApiProvider(cfg *config.Config, tokenService *tokenService) *ApiProvider {
 	httpClient := &http.Client{Timeout: 10 * time.Second}
-	apiClient := NewStravaApiHttpClient(httpClient, cfg, accessToken)
-	return &ApiProvider{apiClient: apiClient}
+	tokenGetter := func() (string, error) { return tokenService.GetValidAccessToken() }
+	apiClient := NewStravaApiHttpClient(httpClient, cfg, tokenGetter)
+	return &ApiProvider{apiClient: apiClient, tokenService: tokenService}
 }
 
 // GetWorkoutsByPeriod implements [contracts.WorkoutProvider].
