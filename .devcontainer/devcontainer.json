@@ -20,13 +20,22 @@
 				"golang.go",
 				"PKief.material-icon-theme",
 				"humao.rest-client",
-				"openai.chatgpt"
+				"openai.chatgpt",
+				"SonarSource.sonarlint-vscode",
+				"ritwickdey.LiveServer",
+				"GitHub.vscode-pull-request-github",
+				"GitHub.copilot-chat",
+				"github.vscode-github-actions",
+				"dbaeumer.vscode-eslint"
 			]
 		}
 	},
 	"features": {
 		"ghcr.io/guiyomh/features/golangci-lint:0": {
 			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "24.13.1"
 		}
 	}
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
