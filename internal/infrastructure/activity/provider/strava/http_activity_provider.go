@@ -120,7 +120,9 @@ func (a *activityProvider) GetWattsStream(ctx context.Context, activityID int64)
 	}
 
 	var streams model.WattsStreamResponse
-	if err := json.NewDecoder(resp.Body).Decode(&streams); err != nil {
+
+	err = json.NewDecoder(resp.Body).Decode(&streams)
+	if err != nil {
 		return &model.WattsStreamDto{WattsData: []int{}}, nil
 	}
 
