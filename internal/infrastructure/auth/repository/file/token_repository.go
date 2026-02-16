@@ -17,7 +17,6 @@ type tokenRepository struct {
 var _ interfaces.TokenRepository = (*tokenRepository)(nil)
 
 func NewTokenRepository(filePath string) (*tokenRepository, error) {
-
 	repo := &tokenRepository{filePath: filePath}
 	tokens, err := repo.GetTokens()
 	if err != nil {
@@ -30,7 +29,6 @@ func NewTokenRepository(filePath string) (*tokenRepository, error) {
 
 // GetTokens implements [interfaces.TokenRepository].
 func (t *tokenRepository) GetTokens() (*model.Token, error) {
-
 	if t.token != nil {
 		return t.token, nil
 	}
