@@ -20,7 +20,11 @@
 				"golang.go",
 				"PKief.material-icon-theme",
 				"humao.rest-client",
-				"openai.chatgpt"
+				"openai.chatgpt",
+				"SonarSource.sonarlint-vscode",
+				"GitHub.vscode-pull-request-github",
+				"GitHub.copilot-chat",
+				"github.vscode-github-actions"
 			]
 		}
 	},
