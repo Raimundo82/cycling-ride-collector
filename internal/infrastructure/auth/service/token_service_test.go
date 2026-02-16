@@ -141,8 +141,7 @@ func TestGetValidAccessTokenReturnsErrorWhenRepositoryGetFails(t *testing.T) {
 
 func TestGetValidAccessTokenReturnsErrorWhenRepositoryReturnsNilTokens(t *testing.T) {
 	Convey("Given repository returns nil tokens", t, func() {
-		repoErr := errors.New("no tokens available")
-		tokenRepo := &mockTokenRepository{Token: nil, GetErr: repoErr}
+		tokenRepo := &mockTokenRepository{Token: nil}
 		tokenProvider := &mockTokenProvider{}
 		tokenService := NewTokenService(tokenProvider, tokenRepo)
 
@@ -150,8 +149,9 @@ func TestGetValidAccessTokenReturnsErrorWhenRepositoryReturnsNilTokens(t *testin
 			result, err := tokenService.GetValidToken()
 
 			Convey("Then it should return the repository error", func() {
-				So(err, ShouldEqual, repoErr)
+				So(err, ShouldNotBeNil)
 				So(result, ShouldBeEmpty)
+				So(err.Error(), ShouldEqual, "no tokens available")
 			})
 		})
 	})
@@ -173,6 +173,44 @@ func TestGetValidAccessTokenReturnsErrorWhenRepositorySaveFailsAfterRefresh(t *t
 			Convey("Then it should return the save error", func() {
 				So(err, ShouldEqual, saveErr)
 				So(result, ShouldBeEmpty)
+			})
+		})
+	})
+}
+
+func TestGetValidAccessTokenReturnsErrorWhenRepositoryReturnsNoValidTokenAndNoRefreshToken(t *testing.T) {
+	Convey("Given repository returns empty access and refresh tokens", t, func() {
+		token := &model.Token{AccessToken: "", RefreshToken: "", ExpiresAt: time.Now().Add(1 * time.Hour)}
+		tokenRepo := &mockTokenRepository{Token: token}
+		tokenProvider := &mockTokenProvider{}
+		tokenService := NewTokenService(tokenProvider, tokenRepo)
+
+		Convey("When executing GetValidAccessToken", func() {
+			result, err := tokenService.GetValidToken()
+
+			Convey("Then it should return the expected error", func() {
+				So(err, ShouldNotBeNil)
+				So(result, ShouldBeEmpty)
+				So(err.Error(), ShouldEqual, "no valid access token and no refresh token available")
+			})
+		})
+	})
+}
+
+func TestGetValidAccessTokenReturnsErrorWhenRepositoryReturnsExpiredAccessTokenAndEmptyRefreshToken(t *testing.T) {
+	Convey("Given repository returns expired access token and empty refresh token", t, func() {
+		token := &model.Token{AccessToken: "test-token", RefreshToken: "", ExpiresAt: time.Now().Add(-1 * time.Hour)}
+		tokenRepo := &mockTokenRepository{Token: token}
+		tokenProvider := &mockTokenProvider{}
+		tokenService := NewTokenService(tokenProvider, tokenRepo)
+
+		Convey("When executing GetValidAccessToken", func() {
+			result, err := tokenService.GetValidToken()
+
+			Convey("Then it should return the expected error", func() {
+				So(err, ShouldNotBeNil)
+				So(result, ShouldBeEmpty)
+				So(err.Error(), ShouldEqual, "no valid access token and no refresh token available")
 			})
 		})
 	})
