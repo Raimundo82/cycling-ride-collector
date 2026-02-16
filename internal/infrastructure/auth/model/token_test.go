@@ -22,7 +22,7 @@ func TestIsExpiredReturnFalseIfTokenIsNotExpired(t *testing.T) {
 }
 
 func TestIsExpiredReturnFalseIfTokenIsExpiringInOneMinute(t *testing.T) {
-	Convey("Given a token that expires in exactly one minute onde second", t, func() {
+	Convey("Given a token that expires in exactly one minute one second", t, func() {
 		token := &Token{
 			AccessToken:  "test-access-token",
 			ExpiresAt:    time.Now().Add(1*time.Minute + 1*time.Second),
