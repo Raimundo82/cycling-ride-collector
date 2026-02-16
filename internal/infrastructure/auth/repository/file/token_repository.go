@@ -1,0 +1,68 @@
+package file
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+
+	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/interfaces"
+	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
+)
+
+type tokenRepository struct {
+	token    model.Token
+	filePath string
+}
+
+var _ interfaces.TokenRepository = (*tokenRepository)(nil)
+
+func NewTokenRepository(filePath string) (*tokenRepository, error) {
+	_, err := os.Stat(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to access token file: %w", err)
+	}
+
+	repo := &tokenRepository{filePath: filePath}
+	tokens, err := repo.GetTokens()
+	if err != nil {
+		return nil, err
+	}
+	repo.token = *tokens
+
+	return repo, nil
+}
+
+// GetTokens implements [interfaces.TokenRepository].
+func (t *tokenRepository) GetTokens() (*model.Token, error) {
+	file, err := os.Open(t.filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open token file: %w", err)
+	}
+
+	defer func() { _ = file.Close() }()
+
+	var token model.Token
+	if err := json.NewDecoder(file).Decode(&token); err != nil {
+		return nil, fmt.Errorf("failed to decode tokens: %w", err)
+	}
+	return &token, nil
+}
+
+// SaveTokens implements [interfaces.TokenRepository].
+func (t *tokenRepository) SaveTokens(token *model.Token) error {
+	tokenBytes, err := json.Marshal(token)
+	if err != nil {
+		return fmt.Errorf("failed to serialize token: %w", err)
+	}
+
+	err = os.WriteFile(t.filePath, tokenBytes, 0o600)
+	if err != nil {
+		return fmt.Errorf("failed to write token file: %w", err)
+	}
+	err = os.Chmod(t.filePath, 0o600)
+	if err != nil {
+		return fmt.Errorf("failed to set token file permissions: %w", err)
+	}
+
+	return nil
+}

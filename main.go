@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -12,9 +13,13 @@ import (
 	"github.com/raimundo82/cycling-ride-collector/internal/application/usecase/input"
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastucture/csv"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastucture/strava"
-	tokenStore "github.com/raimundo82/cycling-ride-collector/internal/infrastucture/token_store"
+	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/provider"
+	acitivityProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/provider/strava"
+	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/repository/csv"
+	authProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider"
+	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider/strava"
+	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/repository/file"
+	auth "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/service"
 )
 
 func main() {
@@ -91,9 +96,16 @@ func setupSaveWorkoutPeriodUseCase(cfg *config.Config, workoutPolicy string) use
 		dailyWorkoutPolicy = usecase.NewLongestWorkout()
 	}
 
+	tokenRepo, err := file.NewTokenRepository(cfg.TokenFilePath)
+	if err != nil {
+		log.Fatalf("Failed to initialize token repository: %v", err)
+	}
+
+	tokenProvider := auth.NewTokenService(authProvider.NewOAuthProvider(strava.NewOAuthHttpClient(&http.Client{Timeout: 10 * time.Second}, cfg), cfg), tokenRepo)
+
 	return usecase.NewSaveWorkoutPeriod(
 		dailyWorkoutPolicy,
 		csv.NewCSVWorkoutPeriodSaver(cfg.OutputFilePath),
-		strava.NewApiProvider(cfg, strava.NewTokenService(strava.NewOAuthProvider(cfg), tokenStore.NewTokenStore(cfg.TokenFilePath))),
+		provider.NewWorkoutProvider(acitivityProvider.NewActivityProvider(&http.Client{Timeout: 10 * time.Second}, cfg, tokenProvider)),
 	)
 }

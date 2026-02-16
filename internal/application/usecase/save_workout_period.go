@@ -21,7 +21,7 @@ func NewSaveWorkoutPeriod(
 	dailyWorkout contracts.DailyWorkoutPolicy,
 	workoutRepo contracts.WorkoutRepository,
 	workoutProvider contracts.WorkoutProvider,
-) SaveWorkoutPeriodUseCase {
+) *saveWorkoutPeriod {
 	return &saveWorkoutPeriod{
 		dailyWorkout:    dailyWorkout,
 		workoutRepo:     workoutRepo,
