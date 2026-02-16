@@ -15,6 +15,7 @@ func TestNewTokenRepositorySuccess(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to write to token file: %v", err)
 		}
+		_ = tokenFile.Close()
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
 
 		Convey("When creating new token repository", func() {
@@ -22,11 +23,10 @@ func TestNewTokenRepositorySuccess(t *testing.T) {
 			Convey("Then it should return a valid token repository", func() {
 				So(err, ShouldBeNil)
 				So(repo, ShouldNotBeNil)
-				token, err := repo.GetTokens()
 				So(err, ShouldBeNil)
-				So(token.AccessToken, ShouldEqual, "")
-				So(token.RefreshToken, ShouldEqual, "test_refresh_token")
-				So(token.ExpiresAt.String(), ShouldEqual, "0000-01-01 00:00:00 +0000 UTC")
+				So(repo.token.AccessToken, ShouldEqual, "")
+				So(repo.token.RefreshToken, ShouldEqual, "test_refresh_token")
+				So(repo.token.ExpiresAt.String(), ShouldEqual, "0000-01-01 00:00:00 +0000 UTC")
 			})
 		})
 	})
@@ -58,7 +58,7 @@ func TestNewTokenRepositoryFileNotFound(t *testing.T) {
 
 			Convey("Then it should return an error", func() {
 				So(err, ShouldNotBeNil)
-				So(err.Error(), ShouldContainSubstring, "failed to access token file")
+				So(err.Error(), ShouldContainSubstring, "failed to open token file")
 				So(repo, ShouldBeNil)
 			})
 		})

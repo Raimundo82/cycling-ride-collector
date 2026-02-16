@@ -10,30 +10,31 @@ import (
 )
 
 type tokenRepository struct {
-	token    model.Token
+	token    *model.Token
 	filePath string
 }
 
 var _ interfaces.TokenRepository = (*tokenRepository)(nil)
 
 func NewTokenRepository(filePath string) (*tokenRepository, error) {
-	_, err := os.Stat(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to access token file: %w", err)
-	}
 
 	repo := &tokenRepository{filePath: filePath}
 	tokens, err := repo.GetTokens()
 	if err != nil {
 		return nil, err
 	}
-	repo.token = *tokens
+	repo.token = tokens
 
 	return repo, nil
 }
 
 // GetTokens implements [interfaces.TokenRepository].
 func (t *tokenRepository) GetTokens() (*model.Token, error) {
+
+	if t.token != nil {
+		return t.token, nil
+	}
+
 	file, err := os.Open(t.filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open token file: %w", err)
@@ -63,6 +64,6 @@ func (t *tokenRepository) SaveTokens(token *model.Token) error {
 	if err != nil {
 		return fmt.Errorf("failed to set token file permissions: %w", err)
 	}
-
+	t.token = token
 	return nil
 }

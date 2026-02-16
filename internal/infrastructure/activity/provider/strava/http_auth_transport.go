@@ -1,6 +1,7 @@
 package strava
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/interfaces"
@@ -17,7 +18,7 @@ var _ http.RoundTripper = (*authTransport)(nil)
 func (a *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	accessToken, err := a.tokenProvider.GetValidToken()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get valid token for request: %w", err)
 	}
 	if accessToken != "" {
 		req = req.Clone(req.Context())

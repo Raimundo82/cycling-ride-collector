@@ -2,6 +2,7 @@ package strava
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -24,7 +25,7 @@ func NewOAuthHttpClient(httpClient *http.Client, cfg *config.Config) *OAuthClien
 
 var _ provider.TokenRefresher = (*OAuthClient)(nil)
 
-func (s *OAuthClient) RefreshToken(request *provider.RefreshAccessTokenRequest) (*provider.RefreshAccessTokenResponse, error) {
+func (s *OAuthClient) RefreshToken(ctx context.Context, request *provider.RefreshAccessTokenRequest) (*provider.RefreshAccessTokenResponse, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)

@@ -10,9 +10,11 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+const saveTokenFile = "test_tokens.json"
+
 func TestSaveTokensSuccess(t *testing.T) {
 	Convey("Given a valid token file and, a token and a token repo", t, func() {
-		tokenFile, _ := os.CreateTemp("", "token.json")
+		tokenFile, _ := os.CreateTemp("", saveTokenFile)
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
 
 		token := &model.Token{
@@ -43,7 +45,7 @@ func TestSaveTokensSuccess(t *testing.T) {
 
 func TestSaveTokensWriteFileError(t *testing.T) {
 	Convey("Given an invalid token file and, a token and a token repo", t, func() {
-		tokenFile, _ := os.CreateTemp("", "token.json")
+		tokenFile, _ := os.CreateTemp("", saveTokenFile)
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
 		token := &model.Token{
 			AccessToken:  "valid_access_token",
@@ -70,7 +72,7 @@ func TestSaveTokensWriteFileError(t *testing.T) {
 
 func TestSaveTokensExpiredToken(t *testing.T) {
 	Convey("Given a valid token file and, an invalid token and a token repo", t, func() {
-		tokenFile, _ := os.CreateTemp("", "token.json")
+		tokenFile, _ := os.CreateTemp("", saveTokenFile)
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
 		initialToken := &model.Token{
 			AccessToken:  "valid_access_token",
@@ -96,6 +98,10 @@ func TestSaveTokensExpiredToken(t *testing.T) {
 				So(savedToken.RefreshToken, ShouldEqual, "")
 				So(savedToken.IsExpired(), ShouldBeTrue)
 				So(savedToken.ExpiresAt, ShouldHappenBefore, time.Now())
+				So(repo.token.AccessToken, ShouldEqual, "")
+				So(repo.token.RefreshToken, ShouldEqual, "")
+				So(repo.token.IsExpired(), ShouldBeTrue)
+				So(repo.token.ExpiresAt, ShouldHappenBefore, time.Now())
 			})
 		})
 	})
@@ -103,7 +109,7 @@ func TestSaveTokensExpiredToken(t *testing.T) {
 
 func TestSaveTokensSerializationError(t *testing.T) {
 	Convey("Given a token with an unmarshalable time and a token repo", t, func() {
-		tokenFile, _ := os.CreateTemp("", "token.json")
+		tokenFile, _ := os.CreateTemp("", saveTokenFile)
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
 		initialToken := &model.Token{
 			AccessToken:  "valid_access_token",

@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
@@ -15,7 +16,7 @@ type mockTokenRefresher struct {
 	gotRequest    *RefreshAccessTokenRequest
 }
 
-func (m *mockTokenRefresher) RefreshToken(request *RefreshAccessTokenRequest) (*RefreshAccessTokenResponse, error) {
+func (m *mockTokenRefresher) RefreshToken(ctx context.Context, request *RefreshAccessTokenRequest) (*RefreshAccessTokenResponse, error) {
 	m.gotRequest = request
 	return m.tokenResponse, m.err
 }

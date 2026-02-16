@@ -1,5 +1,7 @@
 package provider
 
+import "context"
+
 type TokenRefresher interface {
-	RefreshToken(*RefreshAccessTokenRequest) (*RefreshAccessTokenResponse, error)
+	RefreshToken(context.Context, *RefreshAccessTokenRequest) (*RefreshAccessTokenResponse, error)
 }

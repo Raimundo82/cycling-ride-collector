@@ -1,6 +1,7 @@
 package strava
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -44,7 +45,7 @@ func TestRefreshTokenShouldCallCorrectEndpointAndDecodeResponseWithValidRequest(
 		client := NewOAuthHttpClient(server.Client(), &config.Config{StravaOauthBaseUrl: server.URL})
 
 		Convey("When RefreshToken is called", func() {
-			resp, err := client.RefreshToken(request)
+			resp, err := client.RefreshToken(context.Background(), request)
 
 			Convey("Then it should call the correct endpoint", func() {
 				So(err, ShouldBeNil)
@@ -83,7 +84,7 @@ func TestRefreshTokenShouldReturnErrorWhenStravaReturnsError(t *testing.T) {
 		client := NewOAuthHttpClient(server.Client(), &config.Config{StravaOauthBaseUrl: server.URL})
 
 		Convey("When RefreshToken is called", func() {
-			resp, err := client.RefreshToken(request)
+			resp, err := client.RefreshToken(context.Background(), request)
 
 			Convey("Then it should return an error", func() {
 				So(err, ShouldNotBeNil)
@@ -109,7 +110,7 @@ func TestRefreshTokenShouldReturnErrorWhenStravaReturnsInvalidJson(t *testing.T)
 		client := NewOAuthHttpClient(server.Client(), &config.Config{StravaOauthBaseUrl: server.URL})
 
 		Convey("When RefreshToken is called", func() {
-			resp, err := client.RefreshToken(request)
+			resp, err := client.RefreshToken(context.Background(), request)
 
 			Convey("Then it should return an error", func() {
 				So(err, ShouldNotBeNil)
@@ -132,7 +133,7 @@ func TestRefreshTokenShouldReturnErrorWhenRequestCreationFails(t *testing.T) {
 		client := NewOAuthHttpClient(http.DefaultClient, &config.Config{StravaOauthBaseUrl: "://invalid-url"})
 
 		Convey("When RefreshToken is called", func() {
-			resp, err := client.RefreshToken(request)
+			resp, err := client.RefreshToken(context.Background(), request)
 
 			Convey("Then it should return a request creation error", func() {
 				So(err, ShouldNotBeNil)
@@ -161,7 +162,7 @@ func TestRefreshTokenShouldReturnErrorWhenHTTPRequestFails(t *testing.T) {
 		client := NewOAuthHttpClient(httpClient, &config.Config{StravaOauthBaseUrl: "http://example.com"})
 
 		Convey("When RefreshToken is called", func() {
-			resp, err := client.RefreshToken(request)
+			resp, err := client.RefreshToken(context.Background(), request)
 
 			Convey("Then it should return the http client error", func() {
 				So(err, ShouldNotBeNil)

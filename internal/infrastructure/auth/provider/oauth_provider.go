@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"context"
 	"time"
 
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
@@ -17,12 +18,14 @@ var _ interfaces.OAuthProvider = (*oauthProvider)(nil)
 
 // RefreshToken implements [interfaces.OAuthProvider].
 func (o *oauthProvider) RefreshToken(refreshToken string) (*model.Token, error) {
-	resp, err := o.oauthClient.RefreshToken(&RefreshAccessTokenRequest{
-		ClientID:     o.config.StravaClientId,
-		ClientSecret: o.config.StravaClientSecret,
-		RefreshToken: refreshToken,
-		GrantType:    "refresh_token",
-	})
+	resp, err := o.oauthClient.RefreshToken(
+		context.Background(),
+		&RefreshAccessTokenRequest{
+			ClientID:     o.config.StravaClientId,
+			ClientSecret: o.config.StravaClientSecret,
+			RefreshToken: refreshToken,
+			GrantType:    "refresh_token",
+		})
 	if err != nil {
 		return nil, err
 	}

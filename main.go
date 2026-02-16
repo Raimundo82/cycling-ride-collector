@@ -14,7 +14,7 @@ import (
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
 	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/provider"
-	acitivityProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/provider/strava"
+	activityProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/provider/strava"
 	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/repository/csv"
 	authProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider"
 	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider/strava"
@@ -84,7 +84,7 @@ func parseFlagsAndConfig() (*config.Config, *input.SaveWorkoutPeriodRequest) {
 	return cfg, request
 }
 
-func setupSaveWorkoutPeriodUseCase(cfg *config.Config, workoutPolicy string) usecase.SaveWorkoutPeriodUseCase {
+func setupSaveWorkoutPeriodUseCase(cfg *config.Config, workoutPolicy string) *usecase.SaveWorkoutPeriod {
 	var dailyWorkoutPolicy contracts.DailyWorkoutPolicy
 
 	switch workoutPolicy {
@@ -106,6 +106,6 @@ func setupSaveWorkoutPeriodUseCase(cfg *config.Config, workoutPolicy string) use
 	return usecase.NewSaveWorkoutPeriod(
 		dailyWorkoutPolicy,
 		csv.NewCSVWorkoutPeriodSaver(cfg.OutputFilePath),
-		provider.NewWorkoutProvider(acitivityProvider.NewActivityProvider(&http.Client{Timeout: 10 * time.Second}, cfg, tokenProvider)),
+		provider.NewWorkoutProvider(activityProvider.NewActivityProvider(&http.Client{Timeout: 10 * time.Second}, cfg, tokenProvider)),
 	)
 }

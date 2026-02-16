@@ -10,9 +10,11 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+const getTokenFile = "test_tokens.json"
+
 func TestGetTokensSuccess(t *testing.T) {
 	Convey("Given a valid token file and, a dto token and a token repo", t, func() {
-		tokenFile, _ := os.CreateTemp("", "token.json")
+		tokenFile, _ := os.CreateTemp("", getTokenFile)
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
 
 		token := &model.Token{
@@ -41,7 +43,7 @@ func TestGetTokensSuccess(t *testing.T) {
 
 func TestGetTokensExpiredToken(t *testing.T) {
 	Convey("Given a valid token file and, a dto token and a token repo", t, func() {
-		tokenFile, _ := os.CreateTemp("", "token.json")
+		tokenFile, _ := os.CreateTemp("", getTokenFile)
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
 
 		token := &model.Token{
@@ -69,7 +71,7 @@ func TestGetTokensExpiredToken(t *testing.T) {
 
 func TestGetTokensRefreshOnlyToken(t *testing.T) {
 	Convey("Given a valid token file and, a dto token and a token repo", t, func() {
-		tokenFile, _ := os.CreateTemp("", "token.json")
+		tokenFile, _ := os.CreateTemp("", getTokenFile)
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
 
 		token := &model.Token{
@@ -117,27 +119,6 @@ func TestGetTokensOpenFileError(t *testing.T) {
 			Convey("Then it returns an open file error", func() {
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldContainSubstring, "failed to open token file")
-				So(token, ShouldBeNil)
-			})
-		})
-	})
-}
-
-func TestGetTokensInvalidJSON(t *testing.T) {
-	Convey("Given an invalid token file content and a token repo", t, func() {
-		tokenFile, _ := os.CreateTemp("", "token.json")
-		defer func() { _ = os.Remove(tokenFile.Name()) }()
-
-		_, _ = tokenFile.WriteString(`{"access_token":"valid_access_token","refresh_token":"valid_refresh_token","expires_at":"0000-01-01T00:00:00Z"}`)
-		_ = tokenFile.Close()
-
-		repo, err := NewTokenRepository(tokenFile.Name())
-		So(err, ShouldBeNil)
-		_ = os.WriteFile(tokenFile.Name(), []byte("invalid json content"), 0o600)
-		Convey("When getting tokens", func() {
-			token, err := repo.GetTokens()
-			Convey("Then it returns an error", func() {
-				So(err, ShouldNotBeNil)
 				So(token, ShouldBeNil)
 			})
 		})

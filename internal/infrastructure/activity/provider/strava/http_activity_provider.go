@@ -20,19 +20,23 @@ type activityProvider struct {
 
 var _ ActivityProvider = (*activityProvider)(nil)
 
-const STRAVA_ERROR = "strava error: %s"
+const stravaError = "strava error: %s"
 
 func NewActivityProvider(httpClient *http.Client, cfg *config.Config, tokenProvider interfaces.TokenProvider) *activityProvider {
-	if httpClient.Transport == nil {
-		httpClient.Transport = http.DefaultTransport
+	clientCopy := *httpClient
+
+	if clientCopy.Transport == nil {
+		clientCopy.Transport = http.DefaultTransport
 	}
-	httpClient.Transport = &authTransport{
-		underlying:    httpClient.Transport,
-		tokenProvider: tokenProvider,
+	if _, ok := clientCopy.Transport.(*authTransport); !ok {
+		clientCopy.Transport = &authTransport{
+			underlying:    clientCopy.Transport,
+			tokenProvider: tokenProvider,
+		}
 	}
 
 	return &activityProvider{
-		httpClient: httpClient,
+		httpClient: &clientCopy,
 		baseUrl:    cfg.StravaApiBaseUrl,
 	}
 }
@@ -59,7 +63,7 @@ func (a *activityProvider) GetActivitiesByPeriod(ctx context.Context, period dom
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf(STRAVA_ERROR, resp.Status)
+		return nil, fmt.Errorf(stravaError, resp.Status)
 	}
 
 	var periodActivities []*model.ActivityDto
@@ -85,7 +89,7 @@ func (a *activityProvider) GetDetailedActivityByID(ctx context.Context, activity
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf(STRAVA_ERROR, resp.Status)
+		return nil, fmt.Errorf(stravaError, resp.Status)
 	}
 
 	var activity model.DetailedActivityDto
@@ -112,7 +116,7 @@ func (a *activityProvider) GetWattsStream(ctx context.Context, activityID int64)
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf(STRAVA_ERROR, resp.Status)
+		return nil, fmt.Errorf(stravaError, resp.Status)
 	}
 
 	var streams model.WattsStreamResponse
