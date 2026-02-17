@@ -27,7 +27,7 @@ func TestCSVWorkoutPeriodSaverSavesWorkoutsToCSVFile(t *testing.T) {
 		defer func() { _ = os.Remove(tmpfile.Name()) }()
 
 		workouts := []*Workout{
-			NewWorkout(&WorkoutParams{
+			NewWorkout(WorkoutParams{
 				WorkoutType:            Estrada,
 				StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
 				DurationInMin:          60,
@@ -40,7 +40,7 @@ func TestCSVWorkoutPeriodSaverSavesWorkoutsToCSVFile(t *testing.T) {
 				AvgCadenceInRpm:        90,
 				LegSensations:          "Boas",
 			}),
-			NewWorkout(&WorkoutParams{
+			NewWorkout(WorkoutParams{
 				WorkoutType:            Estrada,
 				StartTime:              time.Date(2024, 6, 2, 9, 0, 0, 0, time.UTC),
 				DurationInMin:          45,
@@ -81,7 +81,7 @@ func TestCSVWorkoutPeriodSaverSavesSingleWorkoutToCSVFile(t *testing.T) {
 		defer func() { _ = os.Remove(tmpfile.Name()) }()
 
 		workouts := []*Workout{
-			NewWorkout(&WorkoutParams{
+			NewWorkout(WorkoutParams{
 				WorkoutType:            Estrada,
 				StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
 				DurationInMin:          60,
@@ -126,7 +126,7 @@ func TestCSVWorkoutPeriodSaverOverwritesWorkoutsToCSVFile(t *testing.T) {
 		saver := NewCSVWorkoutPeriodSaver(tmpfile.Name())
 
 		workouts := []*Workout{
-			NewWorkout(&WorkoutParams{
+			NewWorkout(WorkoutParams{
 				WorkoutType:            Estrada,
 				StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
 				DurationInMin:          60,
@@ -164,7 +164,7 @@ func TestCSVWorkoutPeriodSaverCreatesFileIfNotExist(t *testing.T) {
 		saver := NewCSVWorkoutPeriodSaver(filename)
 
 		workouts := []*Workout{
-			NewWorkout(&WorkoutParams{
+			NewWorkout(WorkoutParams{
 				WorkoutType:            Estrada,
 				StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
 				DurationInMin:          60,
@@ -197,7 +197,7 @@ func TestCSVWorkoutPeriodSaverReturnsErrorGivenAnInvalidFilePath(t *testing.T) {
 	Convey("Given an invalid file path", t, func() {
 		saver := NewCSVWorkoutPeriodSaver("/invalid/path/that/does/not/exist/workouts.csv")
 		workouts := []*Workout{
-			NewWorkout(&WorkoutParams{
+			NewWorkout(WorkoutParams{
 				WorkoutType:            Estrada,
 				StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
 				DurationInMin:          60,
@@ -231,7 +231,7 @@ func TestCSVWorkoutPeriodSaverReturnsErrorGivenAReadOnlyFile(t *testing.T) {
 
 		saver := NewCSVWorkoutPeriodSaver(tmpfile.Name())
 		workouts := []*Workout{
-			NewWorkout(&WorkoutParams{
+			NewWorkout(WorkoutParams{
 				WorkoutType:            Estrada,
 				StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
 				DurationInMin:          60,
@@ -258,7 +258,7 @@ func TestCSVWorkoutPeriodSaverReturnsErrorGivenAReadOnlyFile(t *testing.T) {
 func TestCSVWorkoutPeriodSaverReturnsNoErrorGivenWorkoutWithZeroValues(t *testing.T) {
 	Convey("Given a workout with only date and zero values for all other fields", t, func() {
 		workouts := []*Workout{
-			NewWorkout(&WorkoutParams{
+			NewWorkout(WorkoutParams{
 				ID:                     0,
 				StartTime:              time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC),
 				WorkoutType:            Estrada,
@@ -294,7 +294,7 @@ func TestCSVWorkoutPeriodSaverReturnsNoErrorGivenWorkoutWithZeroValues(t *testin
 func TestCSVWorkoutPeriodSaverReturnsNoErrorGivenWorkoutWithSentinelValues(t *testing.T) {
 	Convey("Given a workout with only date and sentinel values for all other fields", t, func() {
 		workouts := []*Workout{
-			NewWorkout(&WorkoutParams{
+			NewWorkout(WorkoutParams{
 				ID:                     -1,
 				StartTime:              time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC),
 				WorkoutType:            Descanso,
@@ -331,7 +331,7 @@ func TestCSVWorkoutPeriodSaverReturnsErrorWithInvalidClosingFileAction(t *testin
 	Convey("Given a file that returns an error on close", t, func() {
 		saver := &csvWorkoutPeriodSaver{filePath: "test_workouts.csv"}
 		workouts := []*Workout{
-			NewWorkout(&WorkoutParams{
+			NewWorkout(WorkoutParams{
 				ID:                     0,
 				StartTime:              time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC),
 				WorkoutType:            Estrada,

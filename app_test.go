@@ -71,8 +71,8 @@ func (s *stubWorkoutProvider) GetWorkoutsByPeriod(period domain.Period) ([]*doma
 func TestBuildDailyWorkoutPolicyMerge(t *testing.T) {
 	Convey("Given the merge daily workout policy", t, func() {
 		workouts := []*domain.Workout{
-			domain.NewWorkout(&domain.WorkoutParams{ID: 1, DurationInMin: 30, DistanceInKm: 10}),
-			domain.NewWorkout(&domain.WorkoutParams{ID: 2, DurationInMin: 40, DistanceInKm: 20}),
+			domain.NewWorkout(domain.WorkoutParams{ID: 1, DurationInMin: 30, DistanceInKm: 10}),
+			domain.NewWorkout(domain.WorkoutParams{ID: 2, DurationInMin: 40, DistanceInKm: 20}),
 		}
 
 		Convey("When building and selecting the daily workout", func() {
@@ -92,8 +92,8 @@ func TestBuildDailyWorkoutPolicyMerge(t *testing.T) {
 func TestBuildDailyWorkoutPolicyDefaultLongest(t *testing.T) {
 	Convey("Given an invalid daily workout policy", t, func() {
 		workouts := []*domain.Workout{
-			domain.NewWorkout(&domain.WorkoutParams{ID: 1, DurationInMin: 30, DistanceInKm: 10}),
-			domain.NewWorkout(&domain.WorkoutParams{ID: 2, DurationInMin: 40, DistanceInKm: 20}),
+			domain.NewWorkout(domain.WorkoutParams{ID: 1, DurationInMin: 30, DistanceInKm: 10}),
+			domain.NewWorkout(domain.WorkoutParams{ID: 2, DurationInMin: 40, DistanceInKm: 20}),
 		}
 
 		Convey("When building and selecting the daily workout", func() {
@@ -155,7 +155,7 @@ func TestAppRunDelegatesToUseCase(t *testing.T) {
 		spyRepo := &spyWorkoutRepository{}
 		provider := &stubWorkoutProvider{
 			Result: []*domain.Workout{
-				domain.NewWorkout(&domain.WorkoutParams{ID: 10, DurationInMin: 90, StartTime: time.Date(2026, 1, 1, 8, 0, 0, 0, time.UTC)}),
+				domain.NewWorkout(domain.WorkoutParams{ID: 10, DurationInMin: 90, StartTime: time.Date(2026, 1, 1, 8, 0, 0, 0, time.UTC)}),
 			},
 		}
 

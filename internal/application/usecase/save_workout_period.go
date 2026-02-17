@@ -67,7 +67,7 @@ func normalizeToDate(t time.Time) time.Time {
 }
 
 func (*SaveWorkoutPeriod) newRestWorkout(date time.Time) *domain.Workout {
-	return domain.NewWorkout(&domain.WorkoutParams{
+	return domain.NewWorkout(domain.WorkoutParams{
 		ID:                     -1,
 		StartTime:              date,
 		WorkoutType:            domain.Descanso,

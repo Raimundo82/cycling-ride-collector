@@ -11,7 +11,7 @@ import (
 func TestWorkoutCsvRecordMapperReturnsTheExpectedCsvStringLineWithNormalWorkout(t *testing.T) {
 	Convey("Given a normal workout", t, func() {
 		mapper := &WorkoutCsvRecordMapper{}
-		workout := domain.NewWorkout(&domain.WorkoutParams{
+		workout := domain.NewWorkout(domain.WorkoutParams{
 			WorkoutType:            domain.Estrada,
 			StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
 			DurationInMin:          60,
@@ -38,7 +38,7 @@ func TestWorkoutCsvRecordMapperReturnsTheExpectedCsvStringLineWithNormalWorkout(
 func TestWorkoutCsvRecordMapperReturnsTheExpectedCsvStringLineWithRestWorkout(t *testing.T) {
 	Convey("Given a rest workout", t, func() {
 		mapper := &WorkoutCsvRecordMapper{}
-		workout := domain.NewWorkout(&domain.WorkoutParams{
+		workout := domain.NewWorkout(domain.WorkoutParams{
 			WorkoutType:            domain.Descanso,
 			StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
 			DurationInMin:          -1,
