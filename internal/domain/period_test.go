@@ -7,7 +7,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestNewPeriod_GivenEndDateDayAfterStartDate_WhenInvoked_ThenValidPeriodReturned(t *testing.T) {
+func TestNewPeriodGivenEndDateDayAfterStartDateWhenInvokedThenValidPeriodReturned(t *testing.T) {
 	Convey("Given a start date and an end date that is the day after", t, func() {
 		startDate := time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC)
 		endDate := time.Date(2024, 6, 2, 0, 0, 0, 0, time.UTC)
@@ -25,7 +25,7 @@ func TestNewPeriod_GivenEndDateDayAfterStartDate_WhenInvoked_ThenValidPeriodRetu
 	})
 }
 
-func TestNewPeriod_GivenInvalidStartDate_WhenInvoked_ThenErrorIsReturned(t *testing.T) {
+func TestNewPeriodGivenInvalidStartDateWhenInvokedThenErrorIsReturned(t *testing.T) {
 	Convey("Given an invalid start date", t, func() {
 		startDate := time.Time{}
 		endDate := time.Date(2024, 6, 2, 0, 0, 0, 0, time.UTC)
@@ -41,7 +41,7 @@ func TestNewPeriod_GivenInvalidStartDate_WhenInvoked_ThenErrorIsReturned(t *test
 	})
 }
 
-func TestNewPeriod_GivenInvalidEndDate_WhenInvoked_ThenErrorIsReturned(t *testing.T) {
+func TestNewPeriodGivenInvalidEndDateWhenInvokedThenErrorIsReturned(t *testing.T) {
 	Convey("Given an invalid end date", t, func() {
 		startDate := time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC)
 		endDate := time.Time{}
@@ -57,7 +57,7 @@ func TestNewPeriod_GivenInvalidEndDate_WhenInvoked_ThenErrorIsReturned(t *testin
 	})
 }
 
-func TestNewPeriod_GivenEndDateInTheSameDayAsStartDate_WhenInvoked_ThenAOneDayPeriodIsReturned(t *testing.T) {
+func TestNewPeriodGivenEndDateInTheSameDayAsStartDateWhenInvokedThenAOneDayPeriodIsReturned(t *testing.T) {
 	Convey("Given a start date and an end date that is the same day", t, func() {
 		startDate := time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC)
 		endDate := time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC)
@@ -98,6 +98,23 @@ func TestGetDatesImmutability_GivenNewPeriod_WhenGettingStartOrEndDate_ThenOrigi
 			Convey("Then the original end date should not be modified", func() {
 				So(p.EndDate().Equal(e), ShouldBeFalse)
 				So(p.EndDate().Equal(endDate), ShouldBeTrue)
+			})
+		})
+	})
+}
+
+func TestNewPeriodGivenStartDateAfterEndDateWhenInvokedThenErrorIsReturned(t *testing.T) {
+	Convey("Given a start date after end date", t, func() {
+		startDate := time.Date(2024, 6, 3, 0, 0, 0, 0, time.UTC)
+		endDate := time.Date(2024, 6, 2, 0, 0, 0, 0, time.UTC)
+
+		Convey("When NewPeriod is invoked", func() {
+			p, err := NewPeriod(startDate, endDate)
+
+			Convey("Then an error is returned", func() {
+				So(err, ShouldNotBeNil)
+				So(p, ShouldBeNil)
+				So(err.Error(), ShouldEqual, "start date must be before end date")
 			})
 		})
 	})
