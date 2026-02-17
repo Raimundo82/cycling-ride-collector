@@ -30,6 +30,25 @@ Shows the domain model - the core business entities and their relationships:
 - Application contracts (interfaces)
 - Infrastructure implementations
 
+### Auth C4 Component Diagram
+**File:** [`auth/c4-component.md`](./auth/c4-component.md)
+
+Shows auth subsystem components and integrations:
+- TokenService orchestration
+- OAuth provider/client flow
+- File token repository
+- Strava OAuth API interaction
+
+### Auth Class Diagram
+**File:** [`auth/class-diagram.md`](./auth/class-diagram.md)
+
+Shows auth interfaces, implementations, models, and key dependencies.
+
+### Auth Sequence Diagram
+**File:** [`auth/sequence-diagram.md`](./auth/sequence-diagram.md)
+
+Shows token resolution flow, including cache hit, refresh path, and persistence.
+
 ## Viewing the Diagrams
 
 ### GitHub Rendering
