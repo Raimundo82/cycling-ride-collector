@@ -31,7 +31,7 @@ func (s *OAuthClient) RefreshToken(ctx context.Context, request *provider.Refres
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", s.baseUrl+"/token", bytes.NewBuffer(body))
+	req, err := http.NewRequestWithContext(ctx, "POST", s.baseUrl+"/token", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
