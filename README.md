@@ -1,256 +1,159 @@
 # cycling-ride-collector
 
-A Go application for collecting Strava workout data and exporting daily summaries to CSV.
+Go CLI application that collects cycling rides from Strava and exports one consolidated workout per day to CSV.
 
 ## Overview
 
-This application fetches workout data from Strava and exports daily workout summaries to CSV, helping you track and analyze your cycling performance. It supports multiple strategies to select a "daily workout" when more than one ride exists on the same day.
+The app fetches rides for a date range, applies a daily selection strategy, and writes a normalized CSV file for training analysis.
 
-## Features
-
-- 📊 Fetch workout data from Strava API
-- 📈 Merge multiple workouts from the same day with intelligent averaging
-- 🧭 Configurable daily workout policy (`longest` or `merge`)
-- ⚡ Support for power metrics (average, normalized)
-- ❤️ Heart rate tracking (average, maximum)
-- 🚴 Cadence and elevation tracking
-- 🦵 Leg sensations mapping from Strava private notes
-- 🗂️ Export to CSV
-- 🐳 Docker support for easy deployment
-- ⚙️ Configurable minimum workout duration filter
-
-## Workout Types
-
-The application supports the following workout types:
-- **Estrada** - Road cycling
-- **Rolo** - Indoor trainer/roller
-- **Prova** - Race
-- **Descanso** - Rest day
+Main capabilities:
+- Fetch Strava activities by period
+- Map Strava payloads to internal workout model
+- Resolve multiple rides per day with policy-based selection (`longest` or `merge`)
+- Persist daily results to CSV
+- Handle OAuth token refresh and local token persistence
 
 ## Architecture
 
-The project follows Clean Architecture principles with clear separation of concerns:
+The codebase follows a clean architecture split:
 
-```
+```text
 internal/
-├── domain/          # Core business entities (Workout)
-├── application/     # Use cases and business logic
-│   ├── contracts/   # Interface definitions
-│   └── usecase/     # Business logic implementation
-├── infrastructure/  # External integrations (CSV, API clients)
-└── config/          # Configuration management
+├── domain/          # Core business entities and rules
+├── application/     # Use cases and contracts
+├── infrastructure/  # Strava HTTP providers, auth, CSV, file repositories
+└── config/          # Environment-based configuration
 ```
 
-### Architecture Diagrams
-
-Detailed architecture diagrams are available as Mermaid diagrams in the [`docs/diagrams`](/docs/diagrams) directory:
-
-- **[C4 Context Diagram](/docs/diagrams/c4-context.md)** - System context and external interactions
-- **[C4 Container Diagram](/docs/diagrams/c4-container.md)** - High-level application architecture
-- **[Domain Model Diagram](/docs/diagrams/domain-model.md)** - Domain entities and relationships
-
-These diagrams render automatically in GitHub's markdown viewer. See the [diagrams README](/docs/diagrams/README.md) for more viewing options.
+Architecture and auth diagrams (Mermaid) are in `docs/diagrams`:
+- `docs/diagrams/c4-context.md`
+- `docs/diagrams/c4-container.md`
+- `docs/diagrams/domain-model.md`
+- `docs/diagrams/auth/c4-component.md`
+- `docs/diagrams/auth/class-diagram.md`
+- `docs/diagrams/auth/sequence-diagram.md`
 
 ## Prerequisites
 
-- Go 1.25.3 or higher
-- Docker (optional, for containerized deployment)
+- Go `1.25.3+`
+- A Strava API app (client id/secret)
+- A token JSON file (`TOKEN_FILE_PATH`) with at least a refresh token
 
 ## Installation
 
-### Local Development
-
-1. Clone the repository:
 ```bash
 git clone https://github.com/Raimundo82/cycling-ride-collector.git
 cd cycling-ride-collector
-```
-
-2. Install dependencies:
-```bash
 go mod download
-```
-
-3. Build the application:
-```bash
-go build -o strava-weekly
-```
-
-### Docker
-
-Build the Docker image:
-```bash
-docker build -t strava-weekly .
+go build -o cycling-ride-collector .
 ```
 
 ## Configuration
 
-The application can be configured using environment variables:
+The app uses environment variables loaded by `internal/config/config.go`.
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `MINIMAL_WORKOUT_DURATION` | Minimum workout duration in minutes to include | `30` |
-| `STRAVA_API_BASE_URL` | Strava API base URL | `https://www.strava.com/api/v3` |
-| `STRAVA_ACCESS_TOKEN` | Current Strava access token | - |
-| `OUTPUT_FILE_PATH` | Output CSV path | auto-generated when `--output-file` is omitted |
-| `DAILY_WORKOUT_POLICY` | Daily workout selection policy (`longest` or `merge`) | `longest` |
+| Variable | Required | Description |
+|---|---|---|
+| `STRAVA_API_BASE_URL` | yes | Strava API base URL (example: `https://www.strava.com/api/v3`) |
+| `STRAVA_OAUTH_BASE_URL` | yes | Strava OAuth base URL (example: `https://www.strava.com/oauth`) |
+| `STRAVA_CLIENT_ID` | yes | Strava client id (used for refresh) |
+| `STRAVA_CLIENT_SECRET` | yes | Strava client secret (used for refresh) |
+| `TOKEN_FILE_PATH` | yes | Path to local token JSON file |
 
-### Strava Authentication
+Notes:
+- `OutputFilePath` is defined by CLI flag `--output-file` (or auto-generated if omitted).
+- Minimal workout duration and policy are CLI parameters, not environment variables.
 
-The application uses Bearer token authentication for Strava API requests. To set up:
+### Token File Format
 
-1. Create a Strava API application at https://www.strava.com/settings/api
-2. Obtain an access token through the OAuth2 flow
-3. Set `STRAVA_ACCESS_TOKEN` environment variable
+`TOKEN_FILE_PATH` should point to a JSON file with this shape:
 
-All API requests will include the access token in the `Authorization: Bearer <token>` header.
-
-**Note**: Strava access tokens expire after 6 hours. You will need to handle token refresh manually or implement your own refresh logic as needed.
-
-### Example
-
-```bash
-export MINIMAL_WORKOUT_DURATION=45
-export DAILY_WORKOUT_POLICY=merge
-./strava-weekly --start-date 01/01/2026 --end-date 01/07/2026
+```json
+{
+  "access_token": "...",
+  "refresh_token": "...",
+  "expires_at": "2030-01-01T00:00:00Z"
+}
 ```
 
 ## Usage
 
-### Running Locally
+### CLI Flags
+
+| Flag | Required | Description |
+|---|---|---|
+| `--start-date` | yes | Start date in `MM/DD/YYYY` |
+| `--end-date` | yes | End date in `MM/DD/YYYY` |
+| `--daily-workout-policy` | no | `longest` (default) or `merge` |
+| `--min-duration` | no | Minimum workout duration in minutes (floored to `30`) |
+| `--output-file` | no | Output CSV path (auto-generated if omitted) |
+
+### Example Run
 
 ```bash
-./strava-weekly \
+export STRAVA_API_BASE_URL="https://www.strava.com/api/v3"
+export STRAVA_OAUTH_BASE_URL="https://www.strava.com/oauth"
+export STRAVA_CLIENT_ID="<client-id>"
+export STRAVA_CLIENT_SECRET="<client-secret>"
+export TOKEN_FILE_PATH="/absolute/path/to/token.json"
+
+./cycling-ride-collector \
   --start-date 01/01/2026 \
   --end-date 01/07/2026 \
-  --access-token "$STRAVA_ACCESS_TOKEN" \
   --daily-workout-policy merge \
   --min-duration 30 \
   --output-file workouts_summary_2026-01-01_to_2026-01-07.csv
 ```
 
-### Running with Docker
+## Daily Workout Policies
 
-```bash
-docker run --rm \
-  -e STRAVA_API_BASE_URL=https://www.strava.com/api/v3 \
-  -e STRAVA_ACCESS_TOKEN="$STRAVA_ACCESS_TOKEN" \
-  strava-weekly \
-  --start-date 01/01/2026 \
-  --end-date 01/07/2026
-```
+### `longest`
+Selects the longest workout of the day above `--min-duration`.
+
+### `merge`
+Merges all workouts above `--min-duration`:
+- Sum: distance, duration, elevation
+- Weighted by duration: average power, average heart rate, cadence, normalized power
+- Keep max: maximum heart rate
+
+If no workout satisfies the threshold for a day, a rest-day row is emitted.
 
 ## Development
 
-### Available Make Commands
+### Make Targets
 
 ```bash
-# Format code
 make format
-
-# Check code formatting (used in CI)
 make check-format
-
-# Run linter
 make lint
-
-# Run tests
 make test
-
-# Run all pre-commit checks
 make precommit
-
-# Run all pre-push checks
 make prepush
 ```
 
-### Code Quality Tools
-
-The project uses several tools to maintain code quality:
-
-- **gofumpt** - Stricter gofmt formatter
-- **gci** - Go imports formatter
-- **golangci-lint** - Comprehensive linter
-- **goconvey** - Testing framework
-- **lefthook** - Git hooks manager
-
-### Running Tests
+### Test Commands
 
 ```bash
-# Run all tests
-go test ./... -v
-
-# Or use make
+# all tests
 make test
+
+# equivalent
+go test ./... -v
 ```
 
-### Formatting Code
+If your environment has cache permission restrictions, run tests with a local cache path:
 
 ```bash
-# Auto-format code
-make format
-
-# Check formatting without changes
-make check-format
+GOCACHE=$(pwd)/.gocache go test ./... -v
 ```
-
-### Linting
-
-```bash
-make lint
-```
-
-## How It Works
-
-1. **Fetch Workouts**: The application fetches workout data from Strava for each day in a user-provided date range.
-
-2. **Filter Workouts**: Only workouts meeting the minimum duration threshold are processed
-
-3. **Select Daily Workout**: If multiple workouts exist on the same day, the selected policy is applied:
-   - **`longest`**: pick the longest workout above the minimum duration.
-   - **`merge`**: merge all workouts above the minimum duration:
-     - distance, duration, and elevation are summed
-     - power, heart rate, and cadence are weighted by duration
-     - maximum heart rate is preserved
-
-4. **Save Data**: The resulting workout for each day is saved as a CSV row.
-
-## Data Model
-
-Each workout includes the following metrics:
-
-- **ID**: Unique workout identifier
-- **Workout Type**: Estrada, Rolo, Prova, or Descanso
-- **Start Time**: When the workout began
-- **Distance**: Total distance in kilometers
-- **Duration**: Total duration in minutes
-- **Elevation**: Total elevation gain in meters
-- **Power Metrics**:
-  - Average Power (watts)
-  - Normalized Power (watts)
-- **Heart Rate**:
-  - Average Heart Rate (bpm)
-  - Maximum Heart Rate (bpm)
-- **Cadence**: Average cadence in RPM
-- **Leg Sensations**: Optional perceived legs condition (from Strava private note mapping)
-
-## Project Status
-
-🚧 **In Development** - Core Strava ingestion and CSV export are implemented and evolving.
 
 ## Contributing
 
-This project uses git hooks managed by lefthook. After cloning:
-
-1. Install lefthook: `lefthook install`
-2. Make your changes
+1. Install hooks: `lefthook install`
+2. Implement changes
 3. Run checks: `make precommit`
-4. Submit a pull request
+4. Open a pull request
 
 ## License
 
-[Add your license information here]
-
-## Author
-
-Raimundo82
+TBD

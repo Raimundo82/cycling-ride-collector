@@ -7,11 +7,7 @@ import (
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
 )
 
-type SaveWorkoutPeriodUseCase interface {
-	Execute(period domain.Period, minimalWorkoutDuration int) error
-}
-
-type saveWorkoutPeriod struct {
+type SaveWorkoutPeriod struct {
 	dailyWorkout    contracts.DailyWorkoutPolicy
 	workoutRepo     contracts.WorkoutRepository
 	workoutProvider contracts.WorkoutProvider
@@ -21,15 +17,15 @@ func NewSaveWorkoutPeriod(
 	dailyWorkout contracts.DailyWorkoutPolicy,
 	workoutRepo contracts.WorkoutRepository,
 	workoutProvider contracts.WorkoutProvider,
-) SaveWorkoutPeriodUseCase {
-	return &saveWorkoutPeriod{
+) *SaveWorkoutPeriod {
+	return &SaveWorkoutPeriod{
 		dailyWorkout:    dailyWorkout,
 		workoutRepo:     workoutRepo,
 		workoutProvider: workoutProvider,
 	}
 }
 
-func (saveWorkoutPeriod *saveWorkoutPeriod) Execute(period domain.Period, minimalWorkoutDuration int) error {
+func (saveWorkoutPeriod *SaveWorkoutPeriod) Execute(period domain.Period, minimalWorkoutDuration int) error {
 	periodWorkouts, err := saveWorkoutPeriod.workoutProvider.GetWorkoutsByPeriod(period)
 	if err != nil {
 		return err
@@ -56,7 +52,7 @@ func (saveWorkoutPeriod *saveWorkoutPeriod) Execute(period domain.Period, minima
 	return saveWorkoutPeriod.workoutRepo.SaveAll(workouts)
 }
 
-func (saveWorkoutPeriod *saveWorkoutPeriod) groupWorkoutsByDate(workouts []*domain.Workout) map[time.Time][]*domain.Workout {
+func (saveWorkoutPeriod *SaveWorkoutPeriod) groupWorkoutsByDate(workouts []*domain.Workout) map[time.Time][]*domain.Workout {
 	workoutsByDate := make(map[time.Time][]*domain.Workout)
 	for _, workout := range workouts {
 		date := normalizeToDate(workout.StartTime)
@@ -70,7 +66,7 @@ func normalizeToDate(t time.Time) time.Time {
 	return time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 }
 
-func (*saveWorkoutPeriod) newRestWorkout(date time.Time) *domain.Workout {
+func (*SaveWorkoutPeriod) newRestWorkout(date time.Time) *domain.Workout {
 	return domain.NewWorkout(&domain.WorkoutParams{
 		ID:                     -1,
 		StartTime:              date,
