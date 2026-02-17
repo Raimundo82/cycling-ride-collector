@@ -39,3 +39,5 @@ stava_client.http
 training-log*
 cycling-ride-collector
 tokens.json
+# Local Go build cache
+.gocache/
