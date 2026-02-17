@@ -1,39 +1,47 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
-	"net/http"
+	"os"
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/raimundo82/cycling-ride-collector/internal/application/contracts"
-	"github.com/raimundo82/cycling-ride-collector/internal/application/usecase"
 	"github.com/raimundo82/cycling-ride-collector/internal/application/usecase/input"
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/provider"
-	activityProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/provider/strava"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/repository/csv"
-	authProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider/strava"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/repository/file"
-	auth "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/service"
 )
 
 func main() {
-	_ = godotenv.Load()
-	cfg, request := parseFlagsAndConfig()
-
-	if err := setupSaveWorkoutPeriodUseCase(cfg, request.DailyWorkoutPolicy).Execute(request.Period, request.MinimalWorkoutDuration); err != nil {
-		fmt.Printf("Error: %v\n", err)
-	} else {
-		fmt.Printf("Workout(s) processed and saved to %s (if any).\n", cfg.OutputFilePath)
+	if err := run(); err != nil {
+		log.Printf("Error: %v", err)
+		os.Exit(1)
 	}
+	log.Println("Workout summary saved successfully.")
 }
 
-func parseFlagsAndConfig() (*config.Config, *input.SaveWorkoutPeriodRequest) {
+func run() error {
+	_ = godotenv.Load()
+	cfg, request, err := parseFlagsAndConfig()
+	if err != nil {
+		return err
+	}
+
+	app, err := NewApp(cfg, request.DailyWorkoutPolicy)
+	if err != nil {
+		return fmt.Errorf("failed to initialize app: %w", err)
+	}
+
+	if err := app.Run(request); err != nil {
+		return fmt.Errorf("error running app: %w", err)
+	}
+
+	return nil
+}
+
+func parseFlagsAndConfig() (*config.Config, *input.SaveWorkoutPeriodRequest, error) {
 	cfg := config.Load()
 
 	startDateStr := flag.String("start-date", "", "Start date in MM/DD/YYYY format")
@@ -44,27 +52,27 @@ func parseFlagsAndConfig() (*config.Config, *input.SaveWorkoutPeriodRequest) {
 	flag.Parse()
 
 	if *startDateStr == "" || *endDateStr == "" {
-		log.Fatal("Flags --start-date and --end-date are required")
+		return nil, nil, errors.New("flags --start-date and --end-date are required")
 	}
 
 	const layout = "01/02/2006"
 	startDate, err := time.Parse(layout, *startDateStr)
 	if err != nil {
-		log.Fatalf("Invalid start date: %v", err)
+		return nil, nil, fmt.Errorf("invalid start date: %w", err)
 	}
 
 	endDate, err := time.Parse(layout, *endDateStr)
 	if err != nil {
-		log.Fatalf("Invalid end date: %v", err)
+		return nil, nil, fmt.Errorf("invalid end date: %w", err)
 	}
 
 	period, err := domain.NewPeriod(startDate, endDate)
 	if err != nil {
-		log.Fatalf("Invalid period: %v", err)
+		return nil, nil, fmt.Errorf("invalid period: %w", err)
 	}
 
 	if *dailyWorkoutPolicy != "longest" && *dailyWorkoutPolicy != "merge" {
-		log.Fatalf("Invalid daily workout policy: %s. Allowed values are 'longest' or 'merge'", *dailyWorkoutPolicy)
+		return nil, nil, fmt.Errorf("invalid daily workout policy: %s. Allowed values are 'longest' or 'merge'", *dailyWorkoutPolicy)
 	}
 
 	if *minimalWorkoutDuration < 30 {
@@ -78,34 +86,8 @@ func parseFlagsAndConfig() (*config.Config, *input.SaveWorkoutPeriodRequest) {
 
 	request, err := input.NewSaveWorkoutPeriodRequest(period, *dailyWorkoutPolicy, *minimalWorkoutDuration)
 	if err != nil {
-		log.Fatalf("Invalid input: %v", err)
+		return nil, nil, fmt.Errorf("invalid input: %w", err)
 	}
 
-	return cfg, request
-}
-
-func setupSaveWorkoutPeriodUseCase(cfg *config.Config, workoutPolicy string) *usecase.SaveWorkoutPeriod {
-	var dailyWorkoutPolicy contracts.DailyWorkoutPolicy
-
-	switch workoutPolicy {
-	case "longest":
-		dailyWorkoutPolicy = usecase.NewLongestWorkout()
-	case "merge":
-		dailyWorkoutPolicy = usecase.NewMergeWorkouts()
-	default:
-		dailyWorkoutPolicy = usecase.NewLongestWorkout()
-	}
-
-	tokenRepo, err := file.NewTokenRepository(cfg.TokenFilePath)
-	if err != nil {
-		log.Fatalf("Failed to initialize token repository: %v", err)
-	}
-
-	tokenProvider := auth.NewTokenService(authProvider.NewOAuthProvider(strava.NewOAuthHttpClient(&http.Client{Timeout: 10 * time.Second}, cfg), cfg), tokenRepo)
-
-	return usecase.NewSaveWorkoutPeriod(
-		dailyWorkoutPolicy,
-		csv.NewCSVWorkoutPeriodSaver(cfg.OutputFilePath),
-		provider.NewWorkoutProvider(activityProvider.NewActivityProvider(&http.Client{Timeout: 10 * time.Second}, cfg, tokenProvider)),
-	)
+	return cfg, request, nil
 }
