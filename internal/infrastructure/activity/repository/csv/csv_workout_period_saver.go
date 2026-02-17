@@ -21,23 +21,16 @@ func (c *csvWorkoutPeriodSaver) SaveAll(workouts []*domain.Workout) (err error) 
 		return err
 	}
 	defer func() {
-		if closeErr := file.Close(); closeErr != nil && err == nil {
-			err = closeErr
+		if cerr := file.Close(); err == nil {
+			err = cerr
 		}
 	}()
 
-	err = c.SaveToWriterAll(workouts, file)
-	return err
+	return c.SaveToWriterAll(workouts, file)
 }
 
 func (c *csvWorkoutPeriodSaver) SaveToWriterAll(workouts []*domain.Workout, w io.Writer) (err error) {
 	writer := csv.NewWriter(w)
-	defer func() {
-		writer.Flush()
-		if flushErr := writer.Error(); flushErr != nil && err == nil {
-			err = flushErr
-		}
-	}()
 
 	records := make([][]string, 0, len(workouts))
 	for _, workout := range workouts {

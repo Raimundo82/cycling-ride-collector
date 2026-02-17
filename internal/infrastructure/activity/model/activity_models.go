@@ -1,4 +1,4 @@
-package strava
+package model
 
 type ActivityDto struct {
 	ID                 int64   `json:"id"`
@@ -30,6 +30,6 @@ type WattsStreamDto struct {
 	WattsData []int `json:"data"`
 }
 
-type wattsStreamResponse struct {
+type WattsStreamResponse struct {
 	Watts WattsStreamDto `json:"watts"`
 }

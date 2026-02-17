@@ -1,14 +1,15 @@
-package strava
+package provider
 
 import (
 	"math"
 	"time"
 
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
+	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/model"
 	"github.com/samber/lo"
 )
 
-func MapToWorkout(a *ActivityDto) *domain.Workout {
+func MapToWorkout(a *model.ActivityDto) *domain.Workout {
 	startTime, err := time.Parse(time.RFC3339, a.StartDate)
 	if err != nil {
 		startTime = time.Time{}
@@ -32,7 +33,7 @@ func MapToWorkout(a *ActivityDto) *domain.Workout {
 	})
 }
 
-func SetWorkoutType(a *ActivityDto) domain.WorkoutType {
+func SetWorkoutType(a *model.ActivityDto) domain.WorkoutType {
 	if a.IsTrainer {
 		return domain.Rolo
 	}

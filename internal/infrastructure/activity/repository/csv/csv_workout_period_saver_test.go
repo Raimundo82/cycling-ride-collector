@@ -11,7 +11,17 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestCsvWorkoutPeriodSaver_GivenAnArrayOfWorkoutsAndACSVFile_WhenSaveAllIsCalled_ThenTheCSVFileShouldContainTheCorrectData(t *testing.T) {
+type errorOnWriteBuffer struct{}
+
+func (b *errorOnWriteBuffer) Write(p []byte) (int, error) {
+	return 0, os.ErrInvalid
+}
+
+func (b *errorOnWriteBuffer) Close() error {
+	return nil
+}
+
+func TestCSVWorkoutPeriodSaverSavesWorkoutsToCSVFile(t *testing.T) {
 	Convey("Given an array of workouts and a CSV file", t, func() {
 		tmpfile, _ := os.CreateTemp("", "workouts_temp.csv")
 		defer func() { _ = os.Remove(tmpfile.Name()) }()
@@ -65,7 +75,7 @@ func TestCsvWorkoutPeriodSaver_GivenAnArrayOfWorkoutsAndACSVFile_WhenSaveAllIsCa
 	})
 }
 
-func TestCsvWorkoutPeriodSaver_GivenAnArrayOfWorkoutsWithSingleOneAndACSVFile_WhenSaveAllIsCalled_ThenTheCSVFileShouldContainTheCorrectData(t *testing.T) {
+func TestCSVWorkoutPeriodSaverSavesSingleWorkoutToCSVFile(t *testing.T) {
 	Convey("Given an array of workouts with single one and a CSV file", t, func() {
 		tmpfile, _ := os.CreateTemp("", "workouts_temp.csv")
 		defer func() { _ = os.Remove(tmpfile.Name()) }()
@@ -104,7 +114,7 @@ func TestCsvWorkoutPeriodSaver_GivenAnArrayOfWorkoutsWithSingleOneAndACSVFile_Wh
 	})
 }
 
-func TestCsvWorkoutPeriodSaver_GivenAnArrayOfWorkoutsAndACSVFileWithCsvRecords_WhenSaveAllIsCalled_ThenTheCSVFileContentShouldBeReplacedByTheCorrectData(t *testing.T) {
+func TestCSVWorkoutPeriodSaverOverwritesWorkoutsToCSVFile(t *testing.T) {
 	Convey("Given an array of workouts and a file with a csv record", t, func() {
 		tmpfile, _ := os.CreateTemp("", "workouts_temp.csv")
 		defer func() { _ = os.Remove(tmpfile.Name()) }()
@@ -147,7 +157,7 @@ func TestCsvWorkoutPeriodSaver_GivenAnArrayOfWorkoutsAndACSVFileWithCsvRecords_W
 	})
 }
 
-func TestCsvWorkoutPeriodSaver_GivenANonExistentFile_WhenSaveIsCalled_ThenTheFileIsCreatedAndContainsTheCorrectData(t *testing.T) {
+func TestCSVWorkoutPeriodSaverCreatesFileIfNotExist(t *testing.T) {
 	Convey("Given a non-existent file", t, func() {
 		filename := "workouts_temp.csv"
 		defer func() { _ = os.Remove(filename) }()
@@ -183,7 +193,7 @@ func TestCsvWorkoutPeriodSaver_GivenANonExistentFile_WhenSaveIsCalled_ThenTheFil
 	})
 }
 
-func TestCsvWorkoutPeriodSaver_GivenAnInvalidFilePath_WhenSaveIsCalled_ThenAnErrorIsReturned(t *testing.T) {
+func TestCSVWorkoutPeriodSaverReturnsErrorGivenAnInvalidFilePath(t *testing.T) {
 	Convey("Given an invalid file path", t, func() {
 		saver := NewCSVWorkoutPeriodSaver("/invalid/path/that/does/not/exist/workouts.csv")
 		workouts := []*Workout{
@@ -212,7 +222,7 @@ func TestCsvWorkoutPeriodSaver_GivenAnInvalidFilePath_WhenSaveIsCalled_ThenAnErr
 	})
 }
 
-func TestCsvWorkoutPeriodSaver_GivenAReadOnlyFile_WhenSaveIsCalled_ThenAnErrorIsReturned(t *testing.T) {
+func TestCSVWorkoutPeriodSaverReturnsErrorGivenAReadOnlyFile(t *testing.T) {
 	Convey("Given a read-only file", t, func() {
 		tmpfile, _ := os.CreateTemp("", "workouts_readonly.csv")
 		_ = tmpfile.Close()
@@ -245,7 +255,7 @@ func TestCsvWorkoutPeriodSaver_GivenAReadOnlyFile_WhenSaveIsCalled_ThenAnErrorIs
 	})
 }
 
-func TestCsvWorkoutPeriodSaver_GivenWorkoutWithZeroValues_WhenSaveIsCalled_ThenNoErrorIsReturned(t *testing.T) {
+func TestCSVWorkoutPeriodSaverReturnsNoErrorGivenWorkoutWithZeroValues(t *testing.T) {
 	Convey("Given a workout with only date and zero values for all other fields", t, func() {
 		workouts := []*Workout{
 			NewWorkout(&WorkoutParams{
@@ -266,8 +276,8 @@ func TestCsvWorkoutPeriodSaver_GivenWorkoutWithZeroValues_WhenSaveIsCalled_ThenN
 		saver := &csvWorkoutPeriodSaver{filePath: "test_workouts.csv"}
 
 		Convey("When SaveToWriter is called", func() {
-			var buf bytes.Buffer
-			err := saver.SaveToWriterAll(workouts, &buf)
+			buf := &bytes.Buffer{}
+			err := saver.SaveToWriterAll(workouts, buf)
 
 			Convey("Then error should be nil", func() {
 				So(err, ShouldBeNil)
@@ -281,7 +291,7 @@ func TestCsvWorkoutPeriodSaver_GivenWorkoutWithZeroValues_WhenSaveIsCalled_ThenN
 	})
 }
 
-func TestCsvWorkoutPeriodSaver_GivenWorkoutWithSentinelValues_WhenSaveIsCalled_ThenNoErrorIsReturned(t *testing.T) {
+func TestCSVWorkoutPeriodSaverReturnsNoErrorGivenWorkoutWithSentinelValues(t *testing.T) {
 	Convey("Given a workout with only date and sentinel values for all other fields", t, func() {
 		workouts := []*Workout{
 			NewWorkout(&WorkoutParams{
@@ -302,8 +312,8 @@ func TestCsvWorkoutPeriodSaver_GivenWorkoutWithSentinelValues_WhenSaveIsCalled_T
 		saver := &csvWorkoutPeriodSaver{filePath: "test_workouts.csv"}
 
 		Convey("When SaveToWriter is called", func() {
-			var buf bytes.Buffer
-			err := saver.SaveToWriterAll(workouts, &buf)
+			buf := &bytes.Buffer{}
+			err := saver.SaveToWriterAll(workouts, buf)
 
 			Convey("Then error should be nil", func() {
 				So(err, ShouldBeNil)
@@ -312,6 +322,37 @@ func TestCsvWorkoutPeriodSaver_GivenWorkoutWithSentinelValues_WhenSaveIsCalled_T
 			Convey("And it should write an empty line", func() {
 				expected := "6/1/2024,Descanso,,,,,,,,,,\n"
 				So(buf.String(), ShouldEqual, expected)
+			})
+		})
+	})
+}
+
+func TestCSVWorkoutPeriodSaverReturnsErrorWithInvalidClosingFileAction(t *testing.T) {
+	Convey("Given a file that returns an error on close", t, func() {
+		saver := &csvWorkoutPeriodSaver{filePath: "test_workouts.csv"}
+		workouts := []*Workout{
+			NewWorkout(&WorkoutParams{
+				ID:                     0,
+				StartTime:              time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC),
+				WorkoutType:            Estrada,
+				DistanceInKm:           0.00,
+				DurationInMin:          0,
+				ElevationInMeters:      0,
+				AvgPowerInWatts:        0,
+				NormalizedPowerInWatts: 0,
+				AvgHeartRateInBpm:      0,
+				MaxHeartRateInBpm:      0,
+				AvgCadenceInRpm:        0,
+				LegSensations:          "Médias",
+			}),
+		}
+
+		Convey("When Save is called", func() {
+			err := saver.SaveToWriterAll(workouts, &errorOnWriteBuffer{})
+
+			Convey("Then an error should be returned", func() {
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "invalid argument")
 			})
 		})
 	})

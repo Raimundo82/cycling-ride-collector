@@ -8,7 +8,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestWorkoutCsvRecordMapper_GivenWorkout_WhenMapping_ThenItReturnsTheExpectedCsvStringLine(t *testing.T) {
+func TestWorkoutCsvRecordMapperReturnsTheExpectedCsvStringLineWithNormalWorkout(t *testing.T) {
 	Convey("Given a normal workout", t, func() {
 		mapper := &WorkoutCsvRecordMapper{}
 		workout := domain.NewWorkout(&domain.WorkoutParams{
@@ -35,7 +35,7 @@ func TestWorkoutCsvRecordMapper_GivenWorkout_WhenMapping_ThenItReturnsTheExpecte
 	})
 }
 
-func TestWorkoutCsvRecordMapper_GivenRestWorkout_WhenMapping_ThenItReturnsTheExpectedCsvStringLine(t *testing.T) {
+func TestWorkoutCsvRecordMapperReturnsTheExpectedCsvStringLineWithRestWorkout(t *testing.T) {
 	Convey("Given a rest workout", t, func() {
 		mapper := &WorkoutCsvRecordMapper{}
 		workout := domain.NewWorkout(&domain.WorkoutParams{
