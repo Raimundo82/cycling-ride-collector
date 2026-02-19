@@ -11,6 +11,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+var testAthlete = NewAthlete(70, 135, 240)
+
 type errorOnWriteBuffer struct{}
 
 func (b *errorOnWriteBuffer) Write(p []byte) (int, error) {
@@ -58,7 +60,7 @@ func TestCSVWorkoutPeriodSaverSavesWorkoutsToCSVFile(t *testing.T) {
 		csvPeriodSaver := NewCSVWorkoutPeriodSaver(tmpfile.Name())
 
 		Convey("When SaveAll is called", func() {
-			err := csvPeriodSaver.SaveAll(workouts)
+			err := csvPeriodSaver.SaveAll(workouts, testAthlete)
 
 			Convey("Then the CSV file should contain the correct data", func() {
 				So(err, ShouldBeNil)
@@ -99,7 +101,7 @@ func TestCSVWorkoutPeriodSaverSavesSingleWorkoutToCSVFile(t *testing.T) {
 		csvPeriodSaver := NewCSVWorkoutPeriodSaver(tmpfile.Name())
 
 		Convey("When SaveAll is called", func() {
-			err := csvPeriodSaver.SaveAll(workouts)
+			err := csvPeriodSaver.SaveAll(workouts, testAthlete)
 
 			Convey("Then the CSV file should contain the correct data", func() {
 				So(err, ShouldBeNil)
@@ -142,7 +144,7 @@ func TestCSVWorkoutPeriodSaverOverwritesWorkoutsToCSVFile(t *testing.T) {
 		}
 
 		Convey("When Save is called", func() {
-			err := saver.SaveAll(workouts)
+			err := saver.SaveAll(workouts, testAthlete)
 
 			Convey("Then the CSV content should be replaced by the correct data", func() {
 				So(err, ShouldBeNil)
@@ -180,7 +182,7 @@ func TestCSVWorkoutPeriodSaverCreatesFileIfNotExist(t *testing.T) {
 		}
 
 		Convey("When Save is called", func() {
-			err := saver.SaveAll(workouts)
+			err := saver.SaveAll(workouts, testAthlete)
 
 			Convey("Then the file should be created and contain the correct data", func() {
 				So(err, ShouldBeNil)
@@ -213,7 +215,7 @@ func TestCSVWorkoutPeriodSaverReturnsErrorGivenAnInvalidFilePath(t *testing.T) {
 		}
 
 		Convey("When Save is called", func() {
-			err := saver.SaveAll(workouts)
+			err := saver.SaveAll(workouts, testAthlete)
 
 			Convey("Then an error should be returned", func() {
 				So(err, ShouldNotBeNil)
@@ -246,7 +248,7 @@ func TestCSVWorkoutPeriodSaverReturnsErrorGivenAReadOnlyFile(t *testing.T) {
 		}
 
 		Convey("When Save is called", func() {
-			err := saver.SaveAll(workouts)
+			err := saver.SaveAll(workouts, testAthlete)
 
 			Convey("Then an error should be returned", func() {
 				So(err, ShouldNotBeNil)
