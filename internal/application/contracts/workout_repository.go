@@ -5,5 +5,5 @@ import (
 )
 
 type WorkoutRepository interface {
-	SaveAll(workouts []*domain.Workout) error
+	SaveAll(workouts []*domain.Workout, athlete *domain.Athlete) error
 }
