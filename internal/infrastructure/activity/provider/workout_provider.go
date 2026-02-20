@@ -1,4 +1,4 @@
-package provider
+package activity_provider
 
 import (
 	"context"
@@ -13,10 +13,10 @@ import (
 var _ contracts.WorkoutProvider = (*workoutProvider)(nil)
 
 type workoutProvider struct {
-	activityProvider strava.ActivityProvider
+	activityProvider activity_strava.ActivityProvider
 }
 
-func NewWorkoutProvider(activityProvider strava.ActivityProvider) *workoutProvider {
+func NewWorkoutProvider(activityProvider activity_strava.ActivityProvider) *workoutProvider {
 	return &workoutProvider{activityProvider: activityProvider}
 }
 
@@ -27,10 +27,10 @@ func (provider *workoutProvider) GetWorkoutsByPeriod(period domain.Period) ([]*d
 		return nil, err
 	}
 
-	rideActivities := lo.FilterMap(activities, func(a *model.ActivityDto, _ int) (w *domain.Workout, ok bool) {
+	rideActivities := lo.FilterMap(activities, func(a *activity_model.ActivityDto, _ int) (w *domain.Workout, ok bool) {
 		if a.SportType == "Ride" && !a.Commute {
 			stream, err := provider.activityProvider.GetWattsStream(context.Background(), a.ID)
-			a.Watts = lo.Ternary(err == nil, stream, &model.WattsStreamDto{WattsData: []int{}})
+			a.Watts = lo.Ternary(err == nil, stream, &activity_model.WattsStreamDto{WattsData: []int{}})
 			if detailedActivity, err := provider.activityProvider.GetDetailedActivityByID(context.Background(), a.ID); err == nil && detailedActivity != nil {
 				a.LegSensations = detailedActivity.LegSensations
 			}

@@ -1,4 +1,4 @@
-package provider
+package activity_provider
 
 import (
 	"context"
@@ -13,31 +13,31 @@ import (
 )
 
 type mockActivityProvider struct {
-	acts             []*model.ActivityDto
+	acts             []*activity_model.ActivityDto
 	activitiesErr    error
-	wattsStream      *model.WattsStreamDto
+	wattsStream      *activity_model.WattsStreamDto
 	wattsStreamErr   error
 	calls            []int64
-	detailedAct      *model.DetailedActivityDto
+	detailedAct      *activity_model.DetailedActivityDto
 	detailedActErr   error
 	detailedActCalls []int64
 }
 
-var _ strava.ActivityProvider = (*mockActivityProvider)(nil)
+var _ activity_strava.ActivityProvider = (*mockActivityProvider)(nil)
 
-// GetActivitiesByPeriod implements [strava.ActivityProvider].
-func (s *mockActivityProvider) GetActivitiesByPeriod(ctx context.Context, period domain.Period) ([]*model.ActivityDto, error) {
+// GetActivitiesByPeriod implements [activity_strava.ActivityProvider].
+func (s *mockActivityProvider) GetActivitiesByPeriod(ctx context.Context, period domain.Period) ([]*activity_model.ActivityDto, error) {
 	return s.acts, s.activitiesErr
 }
 
-// GetWattsStream implements [strava.ActivityProvider].
-func (s *mockActivityProvider) GetWattsStream(ctx context.Context, activityID int64) (*model.WattsStreamDto, error) {
+// GetWattsStream implements [activity_strava.ActivityProvider].
+func (s *mockActivityProvider) GetWattsStream(ctx context.Context, activityID int64) (*activity_model.WattsStreamDto, error) {
 	s.calls = append(s.calls, activityID)
 	return s.wattsStream, s.wattsStreamErr
 }
 
-// GetDetailedActivityByID implements [strava.ActivityProvider].
-func (s *mockActivityProvider) GetDetailedActivityByID(ctx context.Context, activityID int64) (*model.DetailedActivityDto, error) {
+// GetDetailedActivityByID implements [activity_strava.ActivityProvider].
+func (s *mockActivityProvider) GetDetailedActivityByID(ctx context.Context, activityID int64) (*activity_model.DetailedActivityDto, error) {
 	s.detailedActCalls = append(s.detailedActCalls, activityID)
 	return s.detailedAct, s.detailedActErr
 }
@@ -45,14 +45,14 @@ func (s *mockActivityProvider) GetDetailedActivityByID(ctx context.Context, acti
 func TestWorkoutProviderReturnsFilteredAndMappedWorkouts(t *testing.T) {
 	Convey("Given a activity provider", t, func() {
 		activityProvider := &mockActivityProvider{
-			acts: []*model.ActivityDto{
+			acts: []*activity_model.ActivityDto{
 				{ID: 1, SportType: "Ride", Commute: false},
 				{ID: 2, SportType: "Ride", Commute: true},
 				{ID: 3, SportType: "MountainBike", Commute: false},
 				{ID: 4, SportType: "Run"},
 			},
-			wattsStream: &model.WattsStreamDto{WattsData: []int{100, 150, 200, 250, 300, 350, 400, 450}},
-			detailedAct: &model.DetailedActivityDto{ID: 1, LegSensations: "Boas"},
+			wattsStream: &activity_model.WattsStreamDto{WattsData: []int{100, 150, 200, 250, 300, 350, 400, 450}},
+			detailedAct: &activity_model.DetailedActivityDto{ID: 1, LegSensations: "Boas"},
 		}
 
 		workoutProvider := &workoutProvider{activityProvider: activityProvider}
@@ -95,12 +95,12 @@ func TestWorkoutProviderReturnsErrorWhenReturnedByActivityProvider(t *testing.T)
 func TestWorkoutProviderHandlesWattsStreamErrorsGracefully(t *testing.T) {
 	Convey("Given a Strava provider where GetWattsStream fails", t, func() {
 		activityProvider := &mockActivityProvider{
-			acts: []*model.ActivityDto{
+			acts: []*activity_model.ActivityDto{
 				{ID: 1, SportType: "Ride", Commute: false, DeviceWatts: true},
 				{ID: 2, SportType: "MountainBike", Commute: false},
 			},
 			wattsStreamErr: errors.New("watts stream unavailable"),
-			detailedAct:    &model.DetailedActivityDto{ID: 1, LegSensations: "Más"},
+			detailedAct:    &activity_model.DetailedActivityDto{ID: 1, LegSensations: "Más"},
 		}
 
 		workoutProvider := &workoutProvider{activityProvider: activityProvider}
