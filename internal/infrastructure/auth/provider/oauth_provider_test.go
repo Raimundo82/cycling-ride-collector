@@ -1,4 +1,4 @@
-package provider
+package auth_provider
 
 import (
 	"context"
@@ -7,16 +7,17 @@ import (
 	"time"
 
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
+	auth_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 type mockTokenRefresher struct {
-	tokenResponse *RefreshAccessTokenResponse
+	tokenResponse *auth_model.RefreshAccessTokenResponse
 	err           error
-	gotRequest    *RefreshAccessTokenRequest
+	gotRequest    *auth_model.RefreshAccessTokenRequest
 }
 
-func (m *mockTokenRefresher) RefreshToken(ctx context.Context, request *RefreshAccessTokenRequest) (*RefreshAccessTokenResponse, error) {
+func (m *mockTokenRefresher) RefreshToken(ctx context.Context, request *auth_model.RefreshAccessTokenRequest) (*auth_model.RefreshAccessTokenResponse, error) {
 	m.gotRequest = request
 	return m.tokenResponse, m.err
 }
@@ -26,7 +27,7 @@ var _ TokenRefresher = (*mockTokenRefresher)(nil)
 func TestOAuthProviderRefreshTokenSuccess(t *testing.T) {
 	Convey("Given an oauth provider and a successful token refresher", t, func() {
 		refresher := &mockTokenRefresher{
-			tokenResponse: &RefreshAccessTokenResponse{
+			tokenResponse: &auth_model.RefreshAccessTokenResponse{
 				TokenType:    "Bearer",
 				AccessToken:  "new-access-token",
 				ExpiresAt:    1771095847,
@@ -57,7 +58,7 @@ func TestOAuthProviderRefreshTokenSuccess(t *testing.T) {
 func TestOAuthProviderRefreshTokenPassesExpectedRequest(t *testing.T) {
 	Convey("Given an oauth provider and a token refresher", t, func() {
 		refresher := &mockTokenRefresher{
-			tokenResponse: &RefreshAccessTokenResponse{
+			tokenResponse: &auth_model.RefreshAccessTokenResponse{
 				AccessToken:  "new-access-token",
 				RefreshToken: "new-refresh-token",
 				ExpiresAt:    1771095847,

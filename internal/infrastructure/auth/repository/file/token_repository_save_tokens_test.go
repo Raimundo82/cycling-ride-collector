@@ -1,4 +1,4 @@
-package file
+package auth_repository
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
+	auth_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -17,7 +17,7 @@ func TestSaveTokensSuccess(t *testing.T) {
 		tokenFile, _ := os.CreateTemp("", saveTokenFile)
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
 
-		token := &model.Token{
+		token := &auth_model.Token{
 			AccessToken:  "valid_access_token",
 			RefreshToken: "valid_refresh_token",
 			ExpiresAt:    time.Now().Add(1 * time.Hour),
@@ -47,7 +47,7 @@ func TestSaveTokensWriteFileError(t *testing.T) {
 	Convey("Given an invalid token file and, a token and a token repo", t, func() {
 		tokenFile, _ := os.CreateTemp("", saveTokenFile)
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
-		token := &model.Token{
+		token := &auth_model.Token{
 			AccessToken:  "valid_access_token",
 			RefreshToken: "valid_refresh_token",
 			ExpiresAt:    time.Now().Add(1 * time.Hour),
@@ -74,7 +74,7 @@ func TestSaveTokensExpiredToken(t *testing.T) {
 	Convey("Given a valid token file and, an invalid token and a token repo", t, func() {
 		tokenFile, _ := os.CreateTemp("", saveTokenFile)
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
-		initialToken := &model.Token{
+		initialToken := &auth_model.Token{
 			AccessToken:  "valid_access_token",
 			RefreshToken: "valid_refresh_token",
 			ExpiresAt:    time.Now().Add(1 * time.Hour),
@@ -83,7 +83,7 @@ func TestSaveTokensExpiredToken(t *testing.T) {
 		_ = tokenFile.Close()
 		repo, err := NewTokenRepository(tokenFile.Name())
 		So(err, ShouldBeNil)
-		token := &model.Token{
+		token := &auth_model.Token{
 			AccessToken:  "",
 			RefreshToken: "",
 			ExpiresAt:    time.Now().Add(-1 * time.Hour),
@@ -111,7 +111,7 @@ func TestSaveTokensSerializationError(t *testing.T) {
 	Convey("Given a token with an unmarshalable time and a token repo", t, func() {
 		tokenFile, _ := os.CreateTemp("", saveTokenFile)
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
-		initialToken := &model.Token{
+		initialToken := &auth_model.Token{
 			AccessToken:  "valid_access_token",
 			RefreshToken: "valid_refresh_token",
 			ExpiresAt:    time.Now().Add(1 * time.Hour),
@@ -120,7 +120,7 @@ func TestSaveTokensSerializationError(t *testing.T) {
 		_ = tokenFile.Close()
 		repo, err := NewTokenRepository(tokenFile.Name())
 		So(err, ShouldBeNil)
-		token := &model.Token{
+		token := &auth_model.Token{
 			AccessToken:  "valid_access_token",
 			RefreshToken: "valid_refresh_token",
 			ExpiresAt:    time.Date(10000, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -141,7 +141,7 @@ func TestSaveTokensSerializationError(t *testing.T) {
 func TestSaveTokensSetFilePermissionsError(t *testing.T) {
 	Convey("Given a token repo writing to a device file", t, func() {
 		repo := &tokenRepository{filePath: "/dev/null"}
-		token := &model.Token{
+		token := &auth_model.Token{
 			AccessToken:  "valid_access_token",
 			RefreshToken: "valid_refresh_token",
 			ExpiresAt:    time.Now().Add(1 * time.Hour),
@@ -158,13 +158,13 @@ func TestSaveTokensSetFilePermissionsError(t *testing.T) {
 	})
 }
 
-func readTokenFromFile(filepath string) (*model.Token, error) {
+func readTokenFromFile(filepath string) (*auth_model.Token, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
 		return nil, err
 	}
 	defer func() { _ = file.Close() }()
-	var token model.Token
+	var token auth_model.Token
 	if err := json.NewDecoder(file).Decode(&token); err != nil {
 		return nil, err
 	}

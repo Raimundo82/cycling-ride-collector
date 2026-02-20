@@ -13,7 +13,7 @@ import (
 	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/repository/csv"
 	authProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider"
 	stravaAuthProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider/strava"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/repository/file"
+	auth_repository "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/repository/file"
 	authService "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/service"
 )
 
@@ -24,7 +24,7 @@ type App struct {
 func NewApp(cfg *config.Config, dailyWorkoutPolicy string) (*App, error) {
 	policy := buildDailyWorkoutPolicy(dailyWorkoutPolicy)
 
-	tokenRepo, err := file.NewTokenRepository(cfg.TokenFilePath)
+	tokenRepo, err := auth_repository.NewTokenRepository(cfg.TokenFilePath)
 	if err != nil {
 		return nil, err
 	}
