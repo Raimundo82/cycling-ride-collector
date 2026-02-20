@@ -2,6 +2,7 @@ package activity_csv
 
 import (
 	"bytes"
+	"encoding/csv"
 	"os"
 	"strings"
 	"testing"
@@ -273,11 +274,15 @@ func TestCSVWorkoutPeriodSaverReturnsNoErrorGivenWorkoutWithZeroValues(t *testin
 				LegSensations:          "Médias",
 			}),
 		}
-		saver := &csvWorkoutPeriodSaver{filePath: "test_workouts.csv"}
+		tmpfile, _ := os.CreateTemp("", "workouts_temp.csv")
+		defer func() { _ = os.Remove(tmpfile.Name()) }()
+		_ = tmpfile.Close()
 
-		Convey("When SaveToWriter is called", func() {
-			buf := &bytes.Buffer{}
-			err := saver.SaveToWriterAll(workouts, buf)
+		buf := &bytes.Buffer{}
+		saver := &csvWorkoutPeriodSaver{filePath: tmpfile.Name(), buf: buf, writer: csv.NewWriter(buf)}
+
+		Convey("When SaveAll is called", func() {
+			err := saver.SaveAll(workouts)
 
 			Convey("Then error should be nil", func() {
 				So(err, ShouldBeNil)
@@ -309,11 +314,15 @@ func TestCSVWorkoutPeriodSaverReturnsNoErrorGivenWorkoutWithSentinelValues(t *te
 				LegSensations:          "",
 			}),
 		}
-		saver := &csvWorkoutPeriodSaver{filePath: "test_workouts.csv"}
+		tmpfile, _ := os.CreateTemp("", "workouts_temp.csv")
+		defer func() { _ = os.Remove(tmpfile.Name()) }()
+		_ = tmpfile.Close()
 
-		Convey("When SaveToWriter is called", func() {
-			buf := &bytes.Buffer{}
-			err := saver.SaveToWriterAll(workouts, buf)
+		buf := &bytes.Buffer{}
+		saver := &csvWorkoutPeriodSaver{filePath: tmpfile.Name(), buf: buf, writer: csv.NewWriter(buf)}
+
+		Convey("When SaveAll is called", func() {
+			err := saver.SaveAll(workouts)
 
 			Convey("Then error should be nil", func() {
 				So(err, ShouldBeNil)
@@ -328,8 +337,13 @@ func TestCSVWorkoutPeriodSaverReturnsNoErrorGivenWorkoutWithSentinelValues(t *te
 }
 
 func TestCSVWorkoutPeriodSaverReturnsErrorWithInvalidClosingFileAction(t *testing.T) {
-	Convey("Given a file that returns an error on close", t, func() {
-		saver := &csvWorkoutPeriodSaver{filePath: "test_workouts.csv"}
+	Convey("Given a writer that returns an error on write", t, func() {
+		errBuf := &errorOnWriteBuffer{}
+		saver := &csvWorkoutPeriodSaver{
+			filePath: "test_workouts.csv",
+			buf:      &bytes.Buffer{},
+			writer:   csv.NewWriter(errBuf),
+		}
 		workouts := []*Workout{
 			NewWorkout(&WorkoutParams{
 				ID:                     0,
@@ -347,8 +361,8 @@ func TestCSVWorkoutPeriodSaverReturnsErrorWithInvalidClosingFileAction(t *testin
 			}),
 		}
 
-		Convey("When Save is called", func() {
-			err := saver.SaveToWriterAll(workouts, &errorOnWriteBuffer{})
+		Convey("When SaveAll is called", func() {
+			err := saver.SaveAll(workouts)
 
 			Convey("Then an error should be returned", func() {
 				So(err, ShouldNotBeNil)
