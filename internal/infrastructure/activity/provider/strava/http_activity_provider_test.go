@@ -1,4 +1,4 @@
-package strava
+package activity_strava
 
 import (
 	"context"
@@ -23,7 +23,7 @@ func (m *mockTokenProvider) GetValidToken() (string, error) {
 	return m.token, m.err
 }
 
-var _ interfaces.TokenProvider = (*mockTokenProvider)(nil)
+var _ activity_interfaces.TokenProvider = (*mockTokenProvider)(nil)
 
 const TOKEN = "test-access-token"
 

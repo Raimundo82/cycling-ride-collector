@@ -1,4 +1,4 @@
-package strava
+package activity_strava
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 
 type authTransport struct {
 	underlying    http.RoundTripper
-	tokenProvider interfaces.TokenProvider
+	tokenProvider activity_interfaces.TokenProvider
 }
 
 var _ http.RoundTripper = (*authTransport)(nil)
