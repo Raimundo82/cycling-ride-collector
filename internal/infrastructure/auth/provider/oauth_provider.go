@@ -1,12 +1,12 @@
-package provider
+package auth_provider
 
 import (
 	"context"
 	"time"
 
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/interfaces"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
+	auth_interfaces "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/interfaces"
+	auth_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
 )
 
 type oauthProvider struct {
@@ -14,13 +14,13 @@ type oauthProvider struct {
 	config      *config.Config
 }
 
-var _ interfaces.OAuthProvider = (*oauthProvider)(nil)
+var _ auth_interfaces.OAuthProvider = (*oauthProvider)(nil)
 
-// RefreshToken implements [interfaces.OAuthProvider].
-func (o *oauthProvider) RefreshToken(refreshToken string) (*model.Token, error) {
+// RefreshToken implements [auth_interfaces.OAuthProvider].
+func (o *oauthProvider) RefreshToken(refreshToken string) (*auth_model.Token, error) {
 	resp, err := o.oauthClient.RefreshToken(
 		context.Background(),
-		&RefreshAccessTokenRequest{
+		&auth_model.RefreshAccessTokenRequest{
 			ClientID:     o.config.StravaClientId,
 			ClientSecret: o.config.StravaClientSecret,
 			RefreshToken: refreshToken,
@@ -29,7 +29,7 @@ func (o *oauthProvider) RefreshToken(refreshToken string) (*model.Token, error) 
 	if err != nil {
 		return nil, err
 	}
-	return &model.Token{
+	return &auth_model.Token{
 		AccessToken:  resp.AccessToken,
 		RefreshToken: resp.RefreshToken,
 		ExpiresAt:    time.Unix(int64(resp.ExpiresAt), 0),

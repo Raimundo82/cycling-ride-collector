@@ -1,4 +1,4 @@
-package strava
+package auth_strava
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider"
+	auth_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -21,7 +21,7 @@ func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 
 func TestRefreshTokenShouldCallCorrectEndpointAndDecodeResponseWithValidRequest(t *testing.T) {
 	Convey("Given a RefreshAccessTokenRequest and a strava oauth http server", t, func() {
-		request := &provider.RefreshAccessTokenRequest{
+		request := &auth_model.RefreshAccessTokenRequest{
 			ClientID:     "test-client-id",
 			ClientSecret: "test-client-secret",
 			RefreshToken: "test-refresh-token",
@@ -29,7 +29,7 @@ func TestRefreshTokenShouldCallCorrectEndpointAndDecodeResponseWithValidRequest(
 		}
 
 		var gotPath string
-		var gotBody *provider.RefreshAccessTokenRequest
+		var gotBody *auth_model.RefreshAccessTokenRequest
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			gotPath = r.URL.Path
@@ -70,7 +70,7 @@ func TestRefreshTokenShouldCallCorrectEndpointAndDecodeResponseWithValidRequest(
 
 func TestRefreshTokenShouldReturnErrorWhenStravaReturnsError(t *testing.T) {
 	Convey("Given a RefreshAccessTokenRequest and a strava oauth http server that returns an error", t, func() {
-		request := &provider.RefreshAccessTokenRequest{
+		request := &auth_model.RefreshAccessTokenRequest{
 			ClientID:     "test-client-id",
 			ClientSecret: "test-client-secret",
 			RefreshToken: "test-refresh-token",
@@ -96,7 +96,7 @@ func TestRefreshTokenShouldReturnErrorWhenStravaReturnsError(t *testing.T) {
 
 func TestRefreshTokenShouldReturnErrorWhenStravaReturnsInvalidJson(t *testing.T) {
 	Convey("Given a RefreshAccessTokenRequest and a strava oauth http server that returns invalid JSON", t, func() {
-		request := &provider.RefreshAccessTokenRequest{
+		request := &auth_model.RefreshAccessTokenRequest{
 			ClientID:     "test-client-id",
 			ClientSecret: "test-client-secret",
 			RefreshToken: "test-refresh-token",
@@ -123,7 +123,7 @@ func TestRefreshTokenShouldReturnErrorWhenStravaReturnsInvalidJson(t *testing.T)
 
 func TestRefreshTokenShouldReturnErrorWhenRequestCreationFails(t *testing.T) {
 	Convey("Given a RefreshAccessTokenRequest and an invalid base URL", t, func() {
-		request := &provider.RefreshAccessTokenRequest{
+		request := &auth_model.RefreshAccessTokenRequest{
 			ClientID:     "test-client-id",
 			ClientSecret: "test-client-secret",
 			RefreshToken: "test-refresh-token",
@@ -146,7 +146,7 @@ func TestRefreshTokenShouldReturnErrorWhenRequestCreationFails(t *testing.T) {
 
 func TestRefreshTokenShouldReturnErrorWhenHTTPRequestFails(t *testing.T) {
 	Convey("Given a RefreshAccessTokenRequest and an http client transport error", t, func() {
-		request := &provider.RefreshAccessTokenRequest{
+		request := &auth_model.RefreshAccessTokenRequest{
 			ClientID:     "test-client-id",
 			ClientSecret: "test-client-secret",
 			RefreshToken: "test-refresh-token",

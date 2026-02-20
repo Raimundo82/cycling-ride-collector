@@ -1,4 +1,4 @@
-package strava
+package auth_strava
 
 import (
 	"bytes"
@@ -8,7 +8,8 @@ import (
 	"net/http"
 
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider"
+	auth_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
+	auth_provider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider"
 )
 
 type OAuthClient struct {
@@ -23,9 +24,9 @@ func NewOAuthHttpClient(httpClient *http.Client, cfg *config.Config) *OAuthClien
 	}
 }
 
-var _ provider.TokenRefresher = (*OAuthClient)(nil)
+var _ auth_provider.TokenRefresher = (*OAuthClient)(nil)
 
-func (s *OAuthClient) RefreshToken(ctx context.Context, request *provider.RefreshAccessTokenRequest) (*provider.RefreshAccessTokenResponse, error) {
+func (s *OAuthClient) RefreshToken(ctx context.Context, request *auth_model.RefreshAccessTokenRequest) (*auth_model.RefreshAccessTokenResponse, error) {
 	body, err := json.Marshal(request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
@@ -48,7 +49,7 @@ func (s *OAuthClient) RefreshToken(ctx context.Context, request *provider.Refres
 		return nil, fmt.Errorf("strava error: %s", resp.Status)
 	}
 
-	var refreshResponse provider.RefreshAccessTokenResponse
+	var refreshResponse auth_model.RefreshAccessTokenResponse
 	if err := json.NewDecoder(resp.Body).Decode(&refreshResponse); err != nil {
 		return nil, err
 	}

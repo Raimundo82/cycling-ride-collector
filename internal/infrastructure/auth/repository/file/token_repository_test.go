@@ -1,4 +1,4 @@
-package file
+package auth_repository
 
 import (
 	"os"

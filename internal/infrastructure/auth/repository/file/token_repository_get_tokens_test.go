@@ -1,4 +1,4 @@
-package file
+package auth_repository
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
+	auth_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -17,7 +17,7 @@ func TestGetTokensSuccess(t *testing.T) {
 		tokenFile, _ := os.CreateTemp("", getTokenFile)
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
 
-		token := &model.Token{
+		token := &auth_model.Token{
 			AccessToken:  "valid_access_token",
 			RefreshToken: "valid_refresh_token",
 			ExpiresAt:    time.Now().Add(1 * time.Hour),
@@ -46,7 +46,7 @@ func TestGetTokensExpiredToken(t *testing.T) {
 		tokenFile, _ := os.CreateTemp("", getTokenFile)
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
 
-		token := &model.Token{
+		token := &auth_model.Token{
 			AccessToken:  "invalid_access_token",
 			RefreshToken: "valid_refresh_token",
 			ExpiresAt:    time.Now().Add(-1 * time.Hour),
@@ -74,7 +74,7 @@ func TestGetTokensRefreshOnlyToken(t *testing.T) {
 		tokenFile, _ := os.CreateTemp("", getTokenFile)
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
 
-		token := &model.Token{
+		token := &auth_model.Token{
 			AccessToken:  "",
 			RefreshToken: "valid_refresh_token",
 			ExpiresAt:    time.Time{},
