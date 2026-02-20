@@ -1,4 +1,4 @@
-package csv
+package activity_csv
 
 import (
 	"encoding/csv"

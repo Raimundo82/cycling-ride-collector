@@ -1,4 +1,4 @@
-package model
+package activity_model
 
 type ActivityDto struct {
 	ID                 int64   `json:"id"`

@@ -1,4 +1,4 @@
-package strava
+package activity_strava
 
 import (
 	"context"
@@ -22,7 +22,7 @@ var _ ActivityProvider = (*activityProvider)(nil)
 
 const stravaError = "strava error: %s"
 
-func NewActivityProvider(httpClient *http.Client, cfg *config.Config, tokenProvider interfaces.TokenProvider) *activityProvider {
+func NewActivityProvider(httpClient *http.Client, cfg *config.Config, tokenProvider activity_interfaces.TokenProvider) *activityProvider {
 	clientCopy := *httpClient
 
 	if clientCopy.Transport == nil {
@@ -42,7 +42,7 @@ func NewActivityProvider(httpClient *http.Client, cfg *config.Config, tokenProvi
 }
 
 // GetActivitiesByPeriod implements [ActivityProvider].
-func (a *activityProvider) GetActivitiesByPeriod(ctx context.Context, period domain.Period) ([]*model.ActivityDto, error) {
+func (a *activityProvider) GetActivitiesByPeriod(ctx context.Context, period domain.Period) ([]*activity_model.ActivityDto, error) {
 	start := getDate(period.StartDate())
 	end := getDate(period.EndDate()).Add(24 * time.Hour)
 
@@ -66,7 +66,7 @@ func (a *activityProvider) GetActivitiesByPeriod(ctx context.Context, period dom
 		return nil, fmt.Errorf(stravaError, resp.Status)
 	}
 
-	var periodActivities []*model.ActivityDto
+	var periodActivities []*activity_model.ActivityDto
 	if err := json.NewDecoder(resp.Body).Decode(&periodActivities); err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (a *activityProvider) GetActivitiesByPeriod(ctx context.Context, period dom
 }
 
 // GetDetailedActivityByID implements [ActivityProvider].
-func (a *activityProvider) GetDetailedActivityByID(ctx context.Context, activityID int64) (*model.DetailedActivityDto, error) {
+func (a *activityProvider) GetDetailedActivityByID(ctx context.Context, activityID int64) (*activity_model.DetailedActivityDto, error) {
 	url := fmt.Sprintf("%s/activities/%d", a.baseUrl, activityID)
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
@@ -92,7 +92,7 @@ func (a *activityProvider) GetDetailedActivityByID(ctx context.Context, activity
 		return nil, fmt.Errorf(stravaError, resp.Status)
 	}
 
-	var activity model.DetailedActivityDto
+	var activity activity_model.DetailedActivityDto
 	if err := json.NewDecoder(resp.Body).Decode(&activity); err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (a *activityProvider) GetDetailedActivityByID(ctx context.Context, activity
 }
 
 // GetWattsStream implements [ActivityProvider].
-func (a *activityProvider) GetWattsStream(ctx context.Context, activityID int64) (*model.WattsStreamDto, error) {
+func (a *activityProvider) GetWattsStream(ctx context.Context, activityID int64) (*activity_model.WattsStreamDto, error) {
 	u := fmt.Sprintf("%s/activities/%d/streams?keys=watts&key_by_type=true", a.baseUrl, activityID)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", u, nil)
@@ -119,15 +119,15 @@ func (a *activityProvider) GetWattsStream(ctx context.Context, activityID int64)
 		return nil, fmt.Errorf(stravaError, resp.Status)
 	}
 
-	var streams model.WattsStreamResponse
+	var streams activity_model.WattsStreamResponse
 
 	err = json.NewDecoder(resp.Body).Decode(&streams)
 	if err != nil {
-		return &model.WattsStreamDto{WattsData: []int{}}, nil
+		return &activity_model.WattsStreamDto{WattsData: []int{}}, nil
 	}
 
 	if len(streams.Watts.WattsData) == 0 {
-		return &model.WattsStreamDto{WattsData: []int{}}, nil
+		return &activity_model.WattsStreamDto{WattsData: []int{}}, nil
 	}
 
 	return &streams.Watts, nil
