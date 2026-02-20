@@ -1,4 +1,4 @@
-package provider
+package auth_model
 
 type RefreshAccessTokenResponse struct {
 	TokenType    string `json:"token_type"`

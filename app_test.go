@@ -51,6 +51,8 @@ func (s *spyWorkoutRepository) SaveAll(workouts []*domain.Workout, athlete *doma
 	return s.Err
 }
 
+var _ contracts.WorkoutRepository = (*spyWorkoutRepository)(nil)
+
 type stubWorkoutProvider struct {
 	Called int
 	Period domain.Period
