@@ -41,13 +41,14 @@ type spyWorkoutRepository struct {
 	Err      error
 }
 
-var _ contracts.WorkoutRepository = (*spyWorkoutRepository)(nil)
-
+// SaveAll implements [contracts.WorkoutRepository].
 func (s *spyWorkoutRepository) SaveAll(workouts []*domain.Workout) error {
 	s.Called++
 	s.Workouts = workouts
 	return s.Err
 }
+
+var _ contracts.WorkoutRepository = (*spyWorkoutRepository)(nil)
 
 type stubWorkoutProvider struct {
 	Called int

@@ -1,20 +1,20 @@
-package file
+package auth_repository
 
 import (
 	"encoding/json"
 	"fmt"
 	"os"
 
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/interfaces"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
+	auth_interfaces "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/interfaces"
+	auth_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
 )
 
 type tokenRepository struct {
-	token    *model.Token
+	token    *auth_model.Token
 	filePath string
 }
 
-var _ interfaces.TokenRepository = (*tokenRepository)(nil)
+var _ auth_interfaces.TokenRepository = (*tokenRepository)(nil)
 
 func NewTokenRepository(filePath string) (*tokenRepository, error) {
 	repo := &tokenRepository{filePath: filePath}
@@ -27,8 +27,8 @@ func NewTokenRepository(filePath string) (*tokenRepository, error) {
 	return repo, nil
 }
 
-// GetTokens implements [interfaces.TokenRepository].
-func (t *tokenRepository) GetTokens() (*model.Token, error) {
+// GetTokens implements [auth_interfaces.TokenRepository].
+func (t *tokenRepository) GetTokens() (*auth_model.Token, error) {
 	if t.token != nil {
 		return t.token, nil
 	}
@@ -40,15 +40,15 @@ func (t *tokenRepository) GetTokens() (*model.Token, error) {
 
 	defer func() { _ = file.Close() }()
 
-	var token model.Token
+	var token auth_model.Token
 	if err := json.NewDecoder(file).Decode(&token); err != nil {
 		return nil, fmt.Errorf("failed to decode tokens: %w", err)
 	}
 	return &token, nil
 }
 
-// SaveTokens implements [interfaces.TokenRepository].
-func (t *tokenRepository) SaveTokens(token *model.Token) error {
+// SaveTokens implements [auth_interfaces.TokenRepository].
+func (t *tokenRepository) SaveTokens(token *auth_model.Token) error {
 	tokenBytes, err := json.Marshal(token)
 	if err != nil {
 		return fmt.Errorf("failed to serialize token: %w", err)
