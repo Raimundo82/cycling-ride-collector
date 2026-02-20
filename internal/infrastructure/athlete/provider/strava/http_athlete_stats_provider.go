@@ -13,10 +13,10 @@ type httpAthleteStatsProvider struct {
 	HttpClient http.Client
 }
 
-func NewHttpAthleteStatsProvider(httpClient http.Client, cfg *config.Config) *httpAthleteStatsProvider {
+func NewHttpAthleteStatsProvider(httpClient *http.Client, cfg *config.Config) *httpAthleteStatsProvider {
 	return &httpAthleteStatsProvider{
 		Config:     cfg,
-		HttpClient: httpClient,
+		HttpClient: *httpClient,
 	}
 }
 
