@@ -11,6 +11,8 @@ import (
 	activityProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/provider"
 	stravaActivityProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/provider/strava"
 	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/repository/csv"
+	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/athlete/provider"
+	athlete_strava "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/athlete/provider/strava"
 	authProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider"
 	stravaAuthProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider/strava"
 	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/repository/file"
@@ -38,10 +40,13 @@ func NewApp(cfg *config.Config, dailyWorkoutPolicy string) (*App, error) {
 		stravaActivityProvider.NewActivityProvider(httpClient, cfg, tokenProvider),
 	)
 
+	athleteProvider := provider.NewAthleteProvider(athlete_strava.NewHttpAthleteStatsProvider(httpClient, cfg))
+
 	useCase := usecase.NewSaveWorkoutPeriod(
 		policy,
 		csv.NewCSVWorkoutPeriodSaver(cfg.OutputFilePath),
 		workoutProvider,
+		athleteProvider,
 	)
 
 	return &App{SaveWorkoutPeriod: *useCase}, nil
