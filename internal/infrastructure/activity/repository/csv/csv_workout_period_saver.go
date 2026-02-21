@@ -13,36 +13,25 @@ type csvWorkoutPeriodSaver struct {
 	filePath string
 	buf      *bytes.Buffer
 	writer   *csv.Writer
-	mapper   *WorkoutCsvRecordMapper
+	mapper   func(*domain.Workout) []string
 }
 
 // SaveAll implements [contracts.WorkoutRepository].
-func (c *csvWorkoutPeriodSaver) SaveAll(workouts []*domain.Workout) (err error) {
+func (c *csvWorkoutPeriodSaver) SaveAll(workouts []*domain.Workout) error {
 	c.buf.Reset()
 
 	for _, workout := range workouts {
-		if err = c.writer.Write(c.mapper.Map(workout)); err != nil {
+		if err := c.writer.Write(c.mapper(workout)); err != nil {
 			return err
 		}
 	}
 
 	c.writer.Flush()
-	if err = c.writer.Error(); err != nil {
+	if err := c.writer.Error(); err != nil {
 		return err
 	}
 
-	file, err := os.OpenFile(c.filePath, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0o644)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if cerr := file.Close(); err == nil {
-			err = cerr
-		}
-	}()
-
-	_, err = file.Write(c.buf.Bytes())
-	return err
+	return os.WriteFile(c.filePath, c.buf.Bytes(), 0o644)
 }
 
 func NewCSVWorkoutPeriodSaver(filePath string) contracts.WorkoutRepository {
@@ -51,7 +40,7 @@ func NewCSVWorkoutPeriodSaver(filePath string) contracts.WorkoutRepository {
 		filePath: filePath,
 		buf:      buf,
 		writer:   csv.NewWriter(buf),
-		mapper:   &WorkoutCsvRecordMapper{},
+		mapper:   workoutToRecord,
 	}
 }
 

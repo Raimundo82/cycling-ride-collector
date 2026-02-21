@@ -279,7 +279,7 @@ func TestCSVWorkoutPeriodSaverReturnsNoErrorGivenWorkoutWithZeroValues(t *testin
 		_ = tmpfile.Close()
 
 		buf := &bytes.Buffer{}
-		saver := &csvWorkoutPeriodSaver{filePath: tmpfile.Name(), buf: buf, writer: csv.NewWriter(buf), mapper: &WorkoutCsvRecordMapper{}}
+		saver := &csvWorkoutPeriodSaver{filePath: tmpfile.Name(), buf: buf, writer: csv.NewWriter(buf), mapper: workoutToRecord}
 
 		Convey("When SaveAll is called", func() {
 			err := saver.SaveAll(workouts)
@@ -326,7 +326,7 @@ func TestCSVWorkoutPeriodSaverReturnsNoErrorGivenWorkoutWithSentinelValues(t *te
 		_ = tmpfile.Close()
 
 		buf := &bytes.Buffer{}
-		saver := &csvWorkoutPeriodSaver{filePath: tmpfile.Name(), buf: buf, writer: csv.NewWriter(buf), mapper: &WorkoutCsvRecordMapper{}}
+		saver := &csvWorkoutPeriodSaver{filePath: tmpfile.Name(), buf: buf, writer: csv.NewWriter(buf), mapper: workoutToRecord}
 
 		Convey("When SaveAll is called", func() {
 			err := saver.SaveAll(workouts)
@@ -357,7 +357,7 @@ func TestCSVWorkoutPeriodSaverReturnsErrorWithInvalidClosingFileAction(t *testin
 			filePath: "test_workouts.csv",
 			buf:      &bytes.Buffer{},
 			writer:   csv.NewWriter(errBuf),
-			mapper:   &WorkoutCsvRecordMapper{},
+			mapper:   workoutToRecord,
 		}
 		workouts := []*Workout{
 			NewWorkout(&WorkoutParams{
