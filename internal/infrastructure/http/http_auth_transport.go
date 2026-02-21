@@ -1,10 +1,10 @@
-package activity_strava
+package custom_http
 
 import (
 	"fmt"
 	"net/http"
 
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/interfaces"
+	activity_interfaces "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/interfaces"
 )
 
 type authTransport struct {
@@ -25,4 +25,13 @@ func (a *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		req.Header.Set("Authorization", "Bearer "+accessToken)
 	}
 	return a.underlying.RoundTrip(req)
+}
+
+func NewAuthHttpClient(tokenProvider activity_interfaces.TokenProvider) *http.Client {
+	return &http.Client{
+		Transport: &authTransport{
+			underlying:    http.DefaultTransport,
+			tokenProvider: tokenProvider,
+		},
+	}
 }

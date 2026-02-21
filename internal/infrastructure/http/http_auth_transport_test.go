@@ -1,11 +1,11 @@
-package activity_strava
+package custom_http
 
 import (
 	"errors"
 	"net/http"
 	"testing"
 
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/interfaces"
+	activity_interfaces "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/interfaces"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -134,6 +134,23 @@ func TestRoundTripReturnsUnderlyingTransportError(t *testing.T) {
 			Convey("Then it should return the underlying transport error", func() {
 				So(resp, ShouldBeNil)
 				So(err, ShouldEqual, transportErr)
+			})
+		})
+	})
+}
+
+func TestNewAuthHttpClientReturnsClientWithAuthTransport(t *testing.T) {
+	Convey("Given a token provider", t, func() {
+		tokenProvider := &authTransportMockTokenProvider{token: "token"}
+
+		Convey("When NewAuthHttpClient is called", func() {
+			client := NewAuthHttpClient(tokenProvider)
+
+			Convey("Then it should return an http.Client with authTransport", func() {
+				So(client, ShouldNotBeNil)
+				So(client.Transport, ShouldHaveSameTypeAs, &authTransport{})
+				authTrans, _ := client.Transport.(*authTransport)
+				So(authTrans.tokenProvider, ShouldEqual, tokenProvider)
 			})
 		})
 	})
