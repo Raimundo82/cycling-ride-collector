@@ -279,7 +279,7 @@ func TestCSVWorkoutPeriodSaverReturnsNoErrorGivenWorkoutWithZeroValues(t *testin
 		_ = tmpfile.Close()
 
 		buf := &bytes.Buffer{}
-		saver := &csvWorkoutPeriodSaver{filePath: tmpfile.Name(), buf: buf, writer: csv.NewWriter(buf)}
+		saver := &csvWorkoutPeriodSaver{filePath: tmpfile.Name(), buf: buf, writer: csv.NewWriter(buf), mapper: &WorkoutCsvRecordMapper{}}
 
 		Convey("When SaveAll is called", func() {
 			err := saver.SaveAll(workouts)
@@ -288,9 +288,16 @@ func TestCSVWorkoutPeriodSaverReturnsNoErrorGivenWorkoutWithZeroValues(t *testin
 				So(err, ShouldBeNil)
 			})
 
-			Convey("And it should write a line with zeros", func() {
+			Convey("And the buffer should contain a line with zeros", func() {
 				expected := "6/1/2024,Estrada,00:00,0h0m,0.00,0,0,0,0,0,0,Médias\n"
 				So(buf.String(), ShouldEqual, expected)
+			})
+
+			Convey("And the file should contain a line with zeros", func() {
+				data, err := os.ReadFile(tmpfile.Name())
+				So(err, ShouldBeNil)
+				expected := "6/1/2024,Estrada,00:00,0h0m,0.00,0,0,0,0,0,0,Médias\n"
+				So(string(data), ShouldEqual, expected)
 			})
 		})
 	})
@@ -319,7 +326,7 @@ func TestCSVWorkoutPeriodSaverReturnsNoErrorGivenWorkoutWithSentinelValues(t *te
 		_ = tmpfile.Close()
 
 		buf := &bytes.Buffer{}
-		saver := &csvWorkoutPeriodSaver{filePath: tmpfile.Name(), buf: buf, writer: csv.NewWriter(buf)}
+		saver := &csvWorkoutPeriodSaver{filePath: tmpfile.Name(), buf: buf, writer: csv.NewWriter(buf), mapper: &WorkoutCsvRecordMapper{}}
 
 		Convey("When SaveAll is called", func() {
 			err := saver.SaveAll(workouts)
@@ -328,9 +335,16 @@ func TestCSVWorkoutPeriodSaverReturnsNoErrorGivenWorkoutWithSentinelValues(t *te
 				So(err, ShouldBeNil)
 			})
 
-			Convey("And it should write an empty line", func() {
+			Convey("And the buffer should contain an empty line", func() {
 				expected := "6/1/2024,Descanso,,,,,,,,,,\n"
 				So(buf.String(), ShouldEqual, expected)
+			})
+
+			Convey("And the file should contain an empty line", func() {
+				data, err := os.ReadFile(tmpfile.Name())
+				So(err, ShouldBeNil)
+				expected := "6/1/2024,Descanso,,,,,,,,,,\n"
+				So(string(data), ShouldEqual, expected)
 			})
 		})
 	})
@@ -343,6 +357,7 @@ func TestCSVWorkoutPeriodSaverReturnsErrorWithInvalidClosingFileAction(t *testin
 			filePath: "test_workouts.csv",
 			buf:      &bytes.Buffer{},
 			writer:   csv.NewWriter(errBuf),
+			mapper:   &WorkoutCsvRecordMapper{},
 		}
 		workouts := []*Workout{
 			NewWorkout(&WorkoutParams{

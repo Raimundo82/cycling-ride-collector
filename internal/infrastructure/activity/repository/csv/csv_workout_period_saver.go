@@ -13,7 +13,7 @@ type csvWorkoutPeriodSaver struct {
 	filePath string
 	buf      *bytes.Buffer
 	writer   *csv.Writer
-	mapper   WorkoutCsvRecordMapper
+	mapper   *WorkoutCsvRecordMapper
 }
 
 // SaveAll implements [contracts.WorkoutRepository].
@@ -51,6 +51,7 @@ func NewCSVWorkoutPeriodSaver(filePath string) contracts.WorkoutRepository {
 		filePath: filePath,
 		buf:      buf,
 		writer:   csv.NewWriter(buf),
+		mapper:   &WorkoutCsvRecordMapper{},
 	}
 }
 
