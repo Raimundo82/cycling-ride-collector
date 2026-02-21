@@ -7,6 +7,7 @@ import (
 
 	"github.com/raimundo82/cycling-ride-collector/internal/application/contracts"
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
+	"github.com/samber/lo"
 )
 
 type csvWorkoutPeriodSaver struct {
@@ -18,14 +19,14 @@ type csvWorkoutPeriodSaver struct {
 // SaveAll implements [contracts.WorkoutRepository].
 func (c *csvWorkoutPeriodSaver) SaveAll(workouts []*domain.Workout) error {
 	c.buf.Reset()
+	records := lo.Map(workouts, func(w *domain.Workout, _ int) []string {
+		return workoutToRecord(w)
+	})
 
-	for _, workout := range workouts {
-		if err := c.writer.Write(workoutToRecord(workout)); err != nil {
-			return err
-		}
+	if err := c.writer.WriteAll(records); err != nil {
+		return err
 	}
 
-	c.writer.Flush()
 	if err := c.writer.Error(); err != nil {
 		return err
 	}
