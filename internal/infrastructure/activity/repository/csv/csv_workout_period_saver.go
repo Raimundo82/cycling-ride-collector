@@ -13,7 +13,6 @@ type csvWorkoutPeriodSaver struct {
 	filePath string
 	buf      *bytes.Buffer
 	writer   *csv.Writer
-	mapper   func(*domain.Workout) []string
 }
 
 // SaveAll implements [contracts.WorkoutRepository].
@@ -21,7 +20,7 @@ func (c *csvWorkoutPeriodSaver) SaveAll(workouts []*domain.Workout) error {
 	c.buf.Reset()
 
 	for _, workout := range workouts {
-		if err := c.writer.Write(c.mapper(workout)); err != nil {
+		if err := c.writer.Write(workoutToRecord(workout)); err != nil {
 			return err
 		}
 	}
@@ -40,7 +39,6 @@ func NewCSVWorkoutPeriodSaver(filePath string) contracts.WorkoutRepository {
 		filePath: filePath,
 		buf:      buf,
 		writer:   csv.NewWriter(buf),
-		mapper:   workoutToRecord,
 	}
 }
 
