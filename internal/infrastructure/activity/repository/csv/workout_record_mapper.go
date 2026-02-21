@@ -8,13 +8,7 @@ import (
 	"github.com/samber/lo"
 )
 
-type WorkoutCsvRecordMapper struct{}
-
-func (m *WorkoutCsvRecordMapper) Map(workout *domain.Workout) []string {
-	return m.workoutToRecord(workout)
-}
-
-func (m *WorkoutCsvRecordMapper) workoutToRecord(workout *domain.Workout) []string {
+func workoutToRecord(workout *domain.Workout) []string {
 	return []string{
 		workout.StartTime.Format("1/2/2006"),
 		workout.WorkoutType.String(),

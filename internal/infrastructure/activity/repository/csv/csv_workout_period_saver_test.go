@@ -2,6 +2,7 @@ package activity_csv
 
 import (
 	"bytes"
+	"encoding/csv"
 	"os"
 	"strings"
 	"testing"
@@ -10,6 +11,8 @@ import (
 	. "github.com/raimundo82/cycling-ride-collector/internal/domain"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+const testFilePath = "test_workouts.csv"
 
 type errorOnWriteBuffer struct{}
 
@@ -23,7 +26,7 @@ func (b *errorOnWriteBuffer) Close() error {
 
 func TestCSVWorkoutPeriodSaverSavesWorkoutsToCSVFile(t *testing.T) {
 	Convey("Given an array of workouts and a CSV file", t, func() {
-		tmpfile, _ := os.CreateTemp("", "workouts_temp.csv")
+		tmpfile, _ := os.CreateTemp("", testFilePath)
 		defer func() { _ = os.Remove(tmpfile.Name()) }()
 
 		workouts := []*Workout{
@@ -38,7 +41,7 @@ func TestCSVWorkoutPeriodSaverSavesWorkoutsToCSVFile(t *testing.T) {
 				AvgHeartRateInBpm:      150,
 				MaxHeartRateInBpm:      180,
 				AvgCadenceInRpm:        90,
-				LegSensations:          "Boas",
+				LegSensations:          string(Good),
 			}),
 			NewWorkout(&WorkoutParams{
 				WorkoutType:            Estrada,
@@ -51,7 +54,7 @@ func TestCSVWorkoutPeriodSaverSavesWorkoutsToCSVFile(t *testing.T) {
 				AvgHeartRateInBpm:      140,
 				MaxHeartRateInBpm:      170,
 				AvgCadenceInRpm:        85,
-				LegSensations:          "Médias",
+				LegSensations:          string(Medium),
 			}),
 		}
 
@@ -77,7 +80,7 @@ func TestCSVWorkoutPeriodSaverSavesWorkoutsToCSVFile(t *testing.T) {
 
 func TestCSVWorkoutPeriodSaverSavesSingleWorkoutToCSVFile(t *testing.T) {
 	Convey("Given an array of workouts with single one and a CSV file", t, func() {
-		tmpfile, _ := os.CreateTemp("", "workouts_temp.csv")
+		tmpfile, _ := os.CreateTemp("", testFilePath)
 		defer func() { _ = os.Remove(tmpfile.Name()) }()
 
 		workouts := []*Workout{
@@ -92,7 +95,7 @@ func TestCSVWorkoutPeriodSaverSavesSingleWorkoutToCSVFile(t *testing.T) {
 				AvgHeartRateInBpm:      150,
 				MaxHeartRateInBpm:      180,
 				AvgCadenceInRpm:        90,
-				LegSensations:          "Boas",
+				LegSensations:          string(Good),
 			}),
 		}
 
@@ -116,7 +119,7 @@ func TestCSVWorkoutPeriodSaverSavesSingleWorkoutToCSVFile(t *testing.T) {
 
 func TestCSVWorkoutPeriodSaverOverwritesWorkoutsToCSVFile(t *testing.T) {
 	Convey("Given an array of workouts and a file with a csv record", t, func() {
-		tmpfile, _ := os.CreateTemp("", "workouts_temp.csv")
+		tmpfile, _ := os.CreateTemp("", testFilePath)
 		defer func() { _ = os.Remove(tmpfile.Name()) }()
 
 		initialContent := "5/1/2024,Estrada,10:00,0h30m,10.00,100,150,160,120,130,80,Boas\n"
@@ -137,7 +140,7 @@ func TestCSVWorkoutPeriodSaverOverwritesWorkoutsToCSVFile(t *testing.T) {
 				AvgHeartRateInBpm:      150,
 				MaxHeartRateInBpm:      180,
 				AvgCadenceInRpm:        90,
-				LegSensations:          "Médias",
+				LegSensations:          string(Medium),
 			}),
 		}
 
@@ -159,9 +162,8 @@ func TestCSVWorkoutPeriodSaverOverwritesWorkoutsToCSVFile(t *testing.T) {
 
 func TestCSVWorkoutPeriodSaverCreatesFileIfNotExist(t *testing.T) {
 	Convey("Given a non-existent file", t, func() {
-		filename := "workouts_temp.csv"
-		defer func() { _ = os.Remove(filename) }()
-		saver := NewCSVWorkoutPeriodSaver(filename)
+		defer func() { _ = os.Remove(testFilePath) }()
+		saver := NewCSVWorkoutPeriodSaver(testFilePath)
 
 		workouts := []*Workout{
 			NewWorkout(&WorkoutParams{
@@ -175,7 +177,7 @@ func TestCSVWorkoutPeriodSaverCreatesFileIfNotExist(t *testing.T) {
 				AvgHeartRateInBpm:      150,
 				MaxHeartRateInBpm:      180,
 				AvgCadenceInRpm:        90,
-				LegSensations:          "Muito Boas",
+				LegSensations:          string(VeryGood),
 			}),
 		}
 
@@ -184,7 +186,7 @@ func TestCSVWorkoutPeriodSaverCreatesFileIfNotExist(t *testing.T) {
 
 			Convey("Then the file should be created and contain the correct data", func() {
 				So(err, ShouldBeNil)
-				data, err := os.ReadFile(filename)
+				data, err := os.ReadFile(testFilePath)
 				So(err, ShouldBeNil)
 				expected := "6/1/2024,Estrada,10:30,1h0m,25.50,500,200,220,150,180,90,Muito Boas\n"
 				So(string(data), ShouldEqual, expected)
@@ -195,7 +197,8 @@ func TestCSVWorkoutPeriodSaverCreatesFileIfNotExist(t *testing.T) {
 
 func TestCSVWorkoutPeriodSaverReturnsErrorGivenAnInvalidFilePath(t *testing.T) {
 	Convey("Given an invalid file path", t, func() {
-		saver := NewCSVWorkoutPeriodSaver("/invalid/path/that/does/not/exist/workouts.csv")
+		invalidPath := "/invalid/path/that/does/not/exist/workouts.csv"
+		saver := NewCSVWorkoutPeriodSaver(invalidPath)
 		workouts := []*Workout{
 			NewWorkout(&WorkoutParams{
 				WorkoutType:            Estrada,
@@ -208,7 +211,7 @@ func TestCSVWorkoutPeriodSaverReturnsErrorGivenAnInvalidFilePath(t *testing.T) {
 				AvgHeartRateInBpm:      150,
 				MaxHeartRateInBpm:      180,
 				AvgCadenceInRpm:        90,
-				LegSensations:          "Muito Boas",
+				LegSensations:          string(VeryGood),
 			}),
 		}
 
@@ -217,6 +220,8 @@ func TestCSVWorkoutPeriodSaverReturnsErrorGivenAnInvalidFilePath(t *testing.T) {
 
 			Convey("Then an error should be returned", func() {
 				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "no such file or directory")
+				So(err.Error(), ShouldContainSubstring, invalidPath)
 			})
 		})
 	})
@@ -224,7 +229,7 @@ func TestCSVWorkoutPeriodSaverReturnsErrorGivenAnInvalidFilePath(t *testing.T) {
 
 func TestCSVWorkoutPeriodSaverReturnsErrorGivenAReadOnlyFile(t *testing.T) {
 	Convey("Given a read-only file", t, func() {
-		tmpfile, _ := os.CreateTemp("", "workouts_readonly.csv")
+		tmpfile, _ := os.CreateTemp("", testFilePath)
 		_ = tmpfile.Close()
 		_ = os.Chmod(tmpfile.Name(), 0o444)
 		defer func() { _ = os.Remove(tmpfile.Name()) }()
@@ -250,6 +255,8 @@ func TestCSVWorkoutPeriodSaverReturnsErrorGivenAReadOnlyFile(t *testing.T) {
 
 			Convey("Then an error should be returned", func() {
 				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "permission denied")
+				So(err.Error(), ShouldContainSubstring, tmpfile.Name())
 			})
 		})
 	})
@@ -270,22 +277,27 @@ func TestCSVWorkoutPeriodSaverReturnsNoErrorGivenWorkoutWithZeroValues(t *testin
 				AvgHeartRateInBpm:      0,
 				MaxHeartRateInBpm:      0,
 				AvgCadenceInRpm:        0,
-				LegSensations:          "Médias",
+				LegSensations:          string(Medium),
 			}),
 		}
-		saver := &csvWorkoutPeriodSaver{filePath: "test_workouts.csv"}
+		tmpfile, _ := os.CreateTemp("", testFilePath)
+		defer func() { _ = os.Remove(tmpfile.Name()) }()
+		_ = tmpfile.Close()
 
-		Convey("When SaveToWriter is called", func() {
-			buf := &bytes.Buffer{}
-			err := saver.SaveToWriterAll(workouts, buf)
+		saver := NewCSVWorkoutPeriodSaver(tmpfile.Name())
+
+		Convey("When SaveAll is called", func() {
+			err := saver.SaveAll(workouts)
 
 			Convey("Then error should be nil", func() {
 				So(err, ShouldBeNil)
 			})
 
-			Convey("And it should write a line with zeros", func() {
+			Convey("And the file should contain a line with zeros", func() {
+				data, err := os.ReadFile(tmpfile.Name())
+				So(err, ShouldBeNil)
 				expected := "6/1/2024,Estrada,00:00,0h0m,0.00,0,0,0,0,0,0,Médias\n"
-				So(buf.String(), ShouldEqual, expected)
+				So(string(data), ShouldEqual, expected)
 			})
 		})
 	})
@@ -309,27 +321,37 @@ func TestCSVWorkoutPeriodSaverReturnsNoErrorGivenWorkoutWithSentinelValues(t *te
 				LegSensations:          "",
 			}),
 		}
-		saver := &csvWorkoutPeriodSaver{filePath: "test_workouts.csv"}
+		tmpfile, _ := os.CreateTemp("", testFilePath)
+		defer func() { _ = os.Remove(tmpfile.Name()) }()
+		_ = tmpfile.Close()
 
-		Convey("When SaveToWriter is called", func() {
-			buf := &bytes.Buffer{}
-			err := saver.SaveToWriterAll(workouts, buf)
+		saver := NewCSVWorkoutPeriodSaver(tmpfile.Name())
+
+		Convey("When SaveAll is called", func() {
+			err := saver.SaveAll(workouts)
 
 			Convey("Then error should be nil", func() {
 				So(err, ShouldBeNil)
 			})
 
-			Convey("And it should write an empty line", func() {
+			Convey("And the file should contain an empty line", func() {
+				data, err := os.ReadFile(tmpfile.Name())
+				So(err, ShouldBeNil)
 				expected := "6/1/2024,Descanso,,,,,,,,,,\n"
-				So(buf.String(), ShouldEqual, expected)
+				So(string(data), ShouldEqual, expected)
 			})
 		})
 	})
 }
 
 func TestCSVWorkoutPeriodSaverReturnsErrorWithInvalidClosingFileAction(t *testing.T) {
-	Convey("Given a file that returns an error on close", t, func() {
-		saver := &csvWorkoutPeriodSaver{filePath: "test_workouts.csv"}
+	Convey("Given a writer that returns an error on write", t, func() {
+		errBuf := &errorOnWriteBuffer{}
+		saver := &csvWorkoutPeriodSaver{
+			filePath: "test_workouts.csv",
+			buf:      &bytes.Buffer{},
+			writer:   csv.NewWriter(errBuf),
+		}
 		workouts := []*Workout{
 			NewWorkout(&WorkoutParams{
 				ID:                     0,
@@ -343,12 +365,12 @@ func TestCSVWorkoutPeriodSaverReturnsErrorWithInvalidClosingFileAction(t *testin
 				AvgHeartRateInBpm:      0,
 				MaxHeartRateInBpm:      0,
 				AvgCadenceInRpm:        0,
-				LegSensations:          "Médias",
+				LegSensations:          string(Medium),
 			}),
 		}
 
-		Convey("When Save is called", func() {
-			err := saver.SaveToWriterAll(workouts, &errorOnWriteBuffer{})
+		Convey("When SaveAll is called", func() {
+			err := saver.SaveAll(workouts)
 
 			Convey("Then an error should be returned", func() {
 				So(err, ShouldNotBeNil)
