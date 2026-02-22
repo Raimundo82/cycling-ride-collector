@@ -10,11 +10,12 @@ import (
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
 	activityProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/provider"
 	stravaActivityProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/provider/strava"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/repository/csv"
+	activity_csv "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/repository/csv"
 	authProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider"
 	stravaAuthProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider/strava"
 	auth_repository "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/repository/file"
 	authService "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/service"
+	custom_http "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/http"
 )
 
 type App struct {
@@ -29,13 +30,16 @@ func NewApp(cfg *config.Config, dailyWorkoutPolicy string) (*App, error) {
 		return nil, err
 	}
 
-	httpClient := &http.Client{Timeout: 10 * time.Second}
+	authTransport := custom_http.NewAuthTransport(nil)
+	httpClient := &http.Client{Timeout: 10 * time.Second, Transport: authTransport}
+
 	oauthClient := stravaAuthProvider.NewOAuthHttpClient(httpClient, cfg)
 	oauthProvider := authProvider.NewOAuthProvider(oauthClient, cfg)
 	tokenProvider := authService.NewTokenService(oauthProvider, tokenRepo)
+	authTransport.SetTokenProvider(tokenProvider)
 
 	workoutProvider := activityProvider.NewWorkoutProvider(
-		stravaActivityProvider.NewActivityProvider(httpClient, cfg, tokenProvider),
+		stravaActivityProvider.NewActivityProvider(httpClient, cfg),
 	)
 
 	useCase := usecase.NewSaveWorkoutPeriod(
