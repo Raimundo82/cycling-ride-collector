@@ -143,7 +143,6 @@ func TestNewAuthTransportReturnsAuthTransport(t *testing.T) {
 		tokenProvider := &authTransportMockTokenProvider{token: "token"}
 
 		Convey("When NewAuthTransport is called", func() {
-
 			authTransport := NewAuthTransport(tokenProvider)
 
 			Convey("Then it should return an http.Client with authTransport", func() {
