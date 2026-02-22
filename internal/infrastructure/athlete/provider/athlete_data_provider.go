@@ -1,6 +1,8 @@
 package athlete_provider
 
 import (
+	"context"
+
 	"github.com/raimundo82/cycling-ride-collector/internal/application/contracts"
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
 	athlete_interfaces "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/athlete/interfaces"
@@ -13,12 +15,12 @@ type athleteDataProvider struct {
 
 // GetAthleteData implements [contracts.AthleteDataProvider].
 func (a *athleteDataProvider) GetAthleteData() (*domain.Athlete, error) {
-	detailedAthlete, err := a.AthleteStatsProvider.GetDetailedAthlete()
+	detailedAthlete, err := a.AthleteStatsProvider.GetDetailedAthlete(context.Background())
 	if err != nil {
 		return nil, err
 	}
 
-	athleteZones, err := a.AthleteStatsProvider.GetAthleteZones()
+	athleteZones, err := a.AthleteStatsProvider.GetAthleteZones(context.Background())
 	if err != nil {
 		return nil, err
 	}
