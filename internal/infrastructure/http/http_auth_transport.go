@@ -16,22 +16,24 @@ var _ http.RoundTripper = (*authTransport)(nil)
 
 // RoundTrip implements [http.RoundTripper].
 func (a *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	accessToken, err := a.tokenProvider.GetValidToken()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get valid token for request: %w", err)
-	}
-	if accessToken != "" {
-		req = req.Clone(req.Context())
+	if a.tokenProvider != nil {
+		accessToken, err := a.tokenProvider.GetValidToken()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get valid token for request: %w", err)
+		}
 		req.Header.Set("Authorization", "Bearer "+accessToken)
+
 	}
 	return a.underlying.RoundTrip(req)
 }
 
-func NewAuthHttpClient(tokenProvider activity_interfaces.TokenProvider) *http.Client {
-	return &http.Client{
-		Transport: &authTransport{
-			underlying:    http.DefaultTransport,
-			tokenProvider: tokenProvider,
-		},
+func (a *authTransport) SetTokenProvider(provider activity_interfaces.TokenProvider) {
+	a.tokenProvider = provider
+}
+
+func NewAuthTransport(tokenProvider activity_interfaces.TokenProvider) *authTransport {
+	return &authTransport{
+		underlying:    http.DefaultTransport,
+		tokenProvider: tokenProvider,
 	}
 }

@@ -74,14 +74,13 @@ func TestRoundTripAddsAuthorizationHeaderWhenTokenIsAvailable(t *testing.T) {
 		Convey("When RoundTrip is called", func() {
 			resp, err := transport.RoundTrip(originalReq)
 
-			Convey("Then it should clone request and add bearer token only to forwarded request", func() {
+			Convey("Then it should add bearer token to the request", func() {
 				So(err, ShouldBeNil)
 				So(resp, ShouldNotBeNil)
 				So(resp.StatusCode, ShouldEqual, http.StatusAccepted)
 				So(gotReq, ShouldNotBeNil)
-				So(gotReq, ShouldNotEqual, originalReq)
+				So(gotReq, ShouldEqual, originalReq)
 				So(gotReq.Header.Get("Authorization"), ShouldEqual, "Bearer "+token)
-				So(originalReq.Header.Get("Authorization"), ShouldBeEmpty)
 				So(gotReq.Header.Get("X-Test"), ShouldEqual, "value")
 			})
 		})
@@ -109,7 +108,7 @@ func TestRoundTripDoesNotAddAuthorizationHeaderWhenTokenIsEmpty(t *testing.T) {
 				So(resp, ShouldNotBeNil)
 				So(resp.StatusCode, ShouldEqual, http.StatusNoContent)
 				So(gotReq, ShouldEqual, req)
-				So(gotReq.Header.Get("Authorization"), ShouldBeEmpty)
+				So(gotReq.Header.Get("Authorization"), ShouldEqual, "Bearer ")
 			})
 		})
 	})
@@ -139,18 +138,63 @@ func TestRoundTripReturnsUnderlyingTransportError(t *testing.T) {
 	})
 }
 
-func TestNewAuthHttpClientReturnsClientWithAuthTransport(t *testing.T) {
-	Convey("Given a token provider", t, func() {
+func TestNewAuthTransportReturnsAuthTransport(t *testing.T) {
+	Convey("Given a token provider and a default client", t, func() {
 		tokenProvider := &authTransportMockTokenProvider{token: "token"}
 
-		Convey("When NewAuthHttpClient is called", func() {
-			client := NewAuthHttpClient(tokenProvider)
+		Convey("When NewAuthTransport is called", func() {
+
+			authTransport := NewAuthTransport(tokenProvider)
 
 			Convey("Then it should return an http.Client with authTransport", func() {
-				So(client, ShouldNotBeNil)
-				So(client.Transport, ShouldHaveSameTypeAs, &authTransport{})
-				authTrans, _ := client.Transport.(*authTransport)
-				So(authTrans.tokenProvider, ShouldEqual, tokenProvider)
+				So(authTransport, ShouldNotBeNil)
+				So(authTransport.underlying, ShouldHaveSameTypeAs, http.DefaultTransport)
+				So(authTransport.tokenProvider, ShouldEqual, tokenProvider)
+			})
+		})
+	})
+}
+
+func TestRoundTripDoesNotAddAuthorizationHeaderWhenTokenProviderIsNil(t *testing.T) {
+	Convey("Given an auth transport with nil token provider", t, func() {
+		authTransport := NewAuthTransport(nil)
+		req, _ := http.NewRequest(http.MethodGet, uri, nil)
+
+		Convey("When RoundTrip is called", func() {
+			resp, err := authTransport.RoundTrip(req)
+
+			Convey("Then it should not add the Authorization header and return response", func() {
+				So(resp.Request.Header.Get("Authorization"), ShouldBeEmpty)
+				So(err, ShouldBeNil)
+			})
+		})
+	})
+}
+
+func TestRoundTripDoesAddAuthorizationHeaderAfterSettingTokenProvider(t *testing.T) {
+	Convey("Given an auth transport with nil token provider", t, func() {
+		authTransport := NewAuthTransport(nil)
+		firstReq, _ := http.NewRequest(http.MethodGet, uri, nil)
+
+		Convey("When RoundTrip is called", func() {
+			resp, err := authTransport.RoundTrip(firstReq)
+
+			Convey("Then it should add the Authorization header and return response", func() {
+				So(resp.Request.Header.Get("Authorization"), ShouldBeEmpty)
+				So(err, ShouldBeNil)
+			})
+		})
+
+		Convey("When a token provider is set and RoundTrip is called again", func() {
+			tokenProvider := &authTransportMockTokenProvider{token: "newtoken"}
+			authTransport.SetTokenProvider(tokenProvider)
+
+			secondReq, _ := http.NewRequest(http.MethodGet, uri, nil)
+			resp, err := authTransport.RoundTrip(secondReq)
+
+			Convey("Then it should add the Authorization header with new token and return response", func() {
+				So(resp.Request.Header.Get("Authorization"), ShouldEqual, "Bearer newtoken")
+				So(err, ShouldBeNil)
 			})
 		})
 	})

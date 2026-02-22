@@ -30,15 +30,16 @@ func NewApp(cfg *config.Config, dailyWorkoutPolicy string) (*App, error) {
 		return nil, err
 	}
 
-	httpClient := &http.Client{Timeout: 10 * time.Second}
+	authTransport := custom_http.NewAuthTransport(nil)
+	httpClient := &http.Client{Timeout: 10 * time.Second, Transport: authTransport}
+
 	oauthClient := stravaAuthProvider.NewOAuthHttpClient(httpClient, cfg)
 	oauthProvider := authProvider.NewOAuthProvider(oauthClient, cfg)
 	tokenProvider := authService.NewTokenService(oauthProvider, tokenRepo)
-
-	customHttpClient := custom_http.NewAuthHttpClient(tokenProvider)
+	authTransport.SetTokenProvider(tokenProvider)
 
 	workoutProvider := activityProvider.NewWorkoutProvider(
-		stravaActivityProvider.NewActivityProvider(customHttpClient, cfg),
+		stravaActivityProvider.NewActivityProvider(httpClient, cfg),
 	)
 
 	useCase := usecase.NewSaveWorkoutPeriod(
