@@ -44,7 +44,7 @@ func NewApp(cfg *config.Config, dailyWorkoutPolicy string) (*App, error) {
 
 	useCase := usecase.NewSaveWorkoutPeriod(
 		policy,
-		csv.NewCSVWorkoutPeriodSaver(cfg.OutputFilePath),
+		activity_csv.NewCSVWorkoutPeriodSaver(cfg.OutputFilePath),
 		workoutProvider,
 		athleteProvider,
 	)

@@ -1,4 +1,4 @@
-package provider
+package activity_provider
 
 import (
 	"testing"
@@ -11,7 +11,7 @@ import (
 
 func TestMapToWorkoutReturnsNpEqualToZeroWithInsufficientDataPoints(t *testing.T) {
 	Convey("Given a road ride ActivityDto with 29 watts data points", t, func() {
-		activity := &model.ActivityDto{
+		activity := &activity_model.ActivityDto{
 			ID:                 123456789,
 			IsTrainer:          false,
 			WorkoutType:        10,
@@ -26,7 +26,7 @@ func TestMapToWorkoutReturnsNpEqualToZeroWithInsufficientDataPoints(t *testing.T
 			AverageCadence:     90.0,
 			HasHeartRate:       true,
 			DeviceWatts:        true,
-			Watts: &model.WattsStreamDto{WattsData: []int{
+			Watts: &activity_model.WattsStreamDto{WattsData: []int{
 				200, 200, 200, 200, 200, 200, 200, 200, 200, 200,
 				200, 200, 200, 200, 200, 200, 200, 200, 200, 200,
 				200, 200, 200, 200, 200, 200, 200, 200, 200,
@@ -66,7 +66,7 @@ func TestMapToWorkoutReturnsNpEqualToZeroWithInsufficientDataPoints(t *testing.T
 
 func TestMapToWorkoutReturnsNpEqualToExpectedValueWithSufficientDataPoints(t *testing.T) {
 	Convey("Given a trainer ride ActivityDto with more than 30 watts data points", t, func() {
-		activity := &model.ActivityDto{
+		activity := &activity_model.ActivityDto{
 			ID:                 987654321,
 			IsTrainer:          true,
 			WorkoutType:        10,
@@ -81,7 +81,7 @@ func TestMapToWorkoutReturnsNpEqualToExpectedValueWithSufficientDataPoints(t *te
 			AverageCadence:     85.0,
 			HasHeartRate:       true,
 			DeviceWatts:        true,
-			Watts: &model.WattsStreamDto{WattsData: []int{
+			Watts: &activity_model.WattsStreamDto{WattsData: []int{
 				200, 200, 200, 200, 200, 200, 200, 200, 200, 200,
 				200, 200, 200, 200, 200, 200, 200, 200, 200, 200,
 				200, 200, 200, 200, 200, 200, 200, 200, 200, 200,
@@ -117,7 +117,7 @@ func TestMapToWorkoutReturnsNpEqualToExpectedValueWithSufficientDataPoints(t *te
 
 func TestMapToWorkoutReturnsErrorWhitInvalidActivityDate(t *testing.T) {
 	Convey("Given an ActivityDto with invalid date format", t, func() {
-		activity := &model.ActivityDto{
+		activity := &activity_model.ActivityDto{
 			ID:                 111111111,
 			IsTrainer:          false,
 			WorkoutType:        12,
@@ -132,7 +132,7 @@ func TestMapToWorkoutReturnsErrorWhitInvalidActivityDate(t *testing.T) {
 			AverageCadence:     80.0,
 			HasHeartRate:       true,
 			DeviceWatts:        true,
-			Watts: &model.WattsStreamDto{WattsData: []int{
+			Watts: &activity_model.WattsStreamDto{WattsData: []int{
 				150, 150, 150, 150, 150, 150, 150, 150, 150, 150,
 				150, 150, 150, 150, 150, 150, 150, 150, 150, 150,
 				150, 150, 150, 150, 150, 150, 150, 150, 150, 150,
@@ -163,15 +163,15 @@ func TestMapToWorkoutReturnsErrorWhitInvalidActivityDate(t *testing.T) {
 }
 
 func TestMapToWorkoutWithDifferentWorkoutTypes(t *testing.T) {
-	isTrainer := func(a *model.ActivityDto) { a.IsTrainer = true }
-	isNotTrainer := func(a *model.ActivityDto) { a.IsTrainer = false }
-	noneWorkout := func(a *model.ActivityDto) { a.WorkoutType = 10 }
-	workout := func(a *model.ActivityDto) { a.WorkoutType = 12 }
-	provaWorkout := func(a *model.ActivityDto) { a.WorkoutType = 11 }
-	hasHeartRate := func(a *model.ActivityDto) { a.HasHeartRate = true }
-	noHeartRate := func(a *model.ActivityDto) { a.HasHeartRate = false }
-	hasDeviceWatts := func(a *model.ActivityDto) { a.DeviceWatts = true }
-	noDeviceWatts := func(a *model.ActivityDto) { a.DeviceWatts = false }
+	isTrainer := func(a *activity_model.ActivityDto) { a.IsTrainer = true }
+	isNotTrainer := func(a *activity_model.ActivityDto) { a.IsTrainer = false }
+	noneWorkout := func(a *activity_model.ActivityDto) { a.WorkoutType = 10 }
+	workout := func(a *activity_model.ActivityDto) { a.WorkoutType = 12 }
+	provaWorkout := func(a *activity_model.ActivityDto) { a.WorkoutType = 11 }
+	hasHeartRate := func(a *activity_model.ActivityDto) { a.HasHeartRate = true }
+	noHeartRate := func(a *activity_model.ActivityDto) { a.HasHeartRate = false }
+	hasDeviceWatts := func(a *activity_model.ActivityDto) { a.DeviceWatts = true }
+	noDeviceWatts := func(a *activity_model.ActivityDto) { a.DeviceWatts = false }
 
 	Convey("Given ActivityDto with workout type 10 (None)", t, func() {
 		activity := newActivity(isNotTrainer, noneWorkout)
@@ -272,11 +272,11 @@ func TestMapToWorkoutWithDifferentWorkoutTypes(t *testing.T) {
 	})
 }
 
-func newActivity(opts ...func(*model.ActivityDto)) *model.ActivityDto {
-	activity := &model.ActivityDto{
+func newActivity(opts ...func(*activity_model.ActivityDto)) *activity_model.ActivityDto {
+	activity := &activity_model.ActivityDto{
 		ID:        222222222,
 		StartDate: "2024-01-26T09:00:00Z",
-		Watts:     &model.WattsStreamDto{WattsData: []int{}},
+		Watts:     &activity_model.WattsStreamDto{WattsData: []int{}},
 	}
 	for _, opt := range opts {
 		opt(activity)

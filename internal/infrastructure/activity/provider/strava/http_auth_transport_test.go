@@ -1,4 +1,4 @@
-package strava
+package activity_strava
 
 import (
 	"errors"
@@ -24,7 +24,7 @@ func (f authTransportRoundTripFunc) RoundTrip(req *http.Request) (*http.Response
 	return f(req)
 }
 
-var _ interfaces.TokenProvider = (*authTransportMockTokenProvider)(nil)
+var _ activity_interfaces.TokenProvider = (*authTransportMockTokenProvider)(nil)
 
 const uri = "http://example.com"
 

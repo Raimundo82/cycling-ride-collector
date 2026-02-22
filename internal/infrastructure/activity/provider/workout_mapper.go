@@ -1,4 +1,4 @@
-package provider
+package activity_provider
 
 import (
 	"math"
@@ -9,7 +9,7 @@ import (
 	"github.com/samber/lo"
 )
 
-func MapToWorkout(a *model.ActivityDto) *domain.Workout {
+func MapToWorkout(a *activity_model.ActivityDto) *domain.Workout {
 	startTime, err := time.Parse(time.RFC3339, a.StartDate)
 	if err != nil {
 		startTime = time.Time{}
@@ -33,7 +33,7 @@ func MapToWorkout(a *model.ActivityDto) *domain.Workout {
 	})
 }
 
-func SetWorkoutType(a *model.ActivityDto) domain.WorkoutType {
+func SetWorkoutType(a *activity_model.ActivityDto) domain.WorkoutType {
 	if a.IsTrainer {
 		return domain.Rolo
 	}

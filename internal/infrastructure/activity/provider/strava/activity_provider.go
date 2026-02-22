@@ -1,4 +1,4 @@
-package strava
+package activity_strava
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 )
 
 type ActivityProvider interface {
-	GetActivitiesByPeriod(ctx context.Context, period domain.Period) ([]*model.ActivityDto, error)
-	GetDetailedActivityByID(ctx context.Context, activityID int64) (*model.DetailedActivityDto, error)
-	GetWattsStream(ctx context.Context, activityID int64) (*model.WattsStreamDto, error)
+	GetActivitiesByPeriod(ctx context.Context, period domain.Period) ([]*activity_model.ActivityDto, error)
+	GetDetailedActivityByID(ctx context.Context, activityID int64) (*activity_model.DetailedActivityDto, error)
+	GetWattsStream(ctx context.Context, activityID int64) (*activity_model.WattsStreamDto, error)
 }
