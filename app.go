@@ -44,7 +44,8 @@ func NewApp(cfg *config.Config, dailyWorkoutPolicy string) (*App, error) {
 		stravaActivityProvider.NewActivityProvider(httpClient, cfg),
 	)
 
-	athleteProvider := athlete_provider.NewAthleteProvider(athlete_strava.NewHttpAthleteStatsProvider(httpClient, cfg))
+	httpAthleteStatsProvider := athlete_strava.NewHttpAthleteStatsProvider(httpClient, cfg.StravaApiBaseUrl)
+	athleteProvider := athlete_provider.NewAthleteProvider(httpAthleteStatsProvider)
 
 	useCase := usecase.NewSaveWorkoutPeriod(
 		policy,
