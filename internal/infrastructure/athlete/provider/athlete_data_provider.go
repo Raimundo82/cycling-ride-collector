@@ -1,4 +1,4 @@
-package provider
+package athlete_provider
 
 import (
 	"github.com/raimundo82/cycling-ride-collector/internal/application/contracts"
