@@ -9,8 +9,7 @@ import (
 
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/interfaces"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/model"
+	activity_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/model"
 )
 
 type activityProvider struct {
@@ -22,21 +21,9 @@ var _ ActivityProvider = (*activityProvider)(nil)
 
 const stravaError = "strava error: %s"
 
-func NewActivityProvider(httpClient *http.Client, cfg *config.Config, tokenProvider activity_interfaces.TokenProvider) *activityProvider {
-	clientCopy := *httpClient
-
-	if clientCopy.Transport == nil {
-		clientCopy.Transport = http.DefaultTransport
-	}
-	if _, ok := clientCopy.Transport.(*authTransport); !ok {
-		clientCopy.Transport = &authTransport{
-			underlying:    clientCopy.Transport,
-			tokenProvider: tokenProvider,
-		}
-	}
-
+func NewActivityProvider(httpClient *http.Client, cfg *config.Config) *activityProvider {
 	return &activityProvider{
-		httpClient: &clientCopy,
+		httpClient: httpClient,
 		baseUrl:    cfg.StravaApiBaseUrl,
 	}
 }

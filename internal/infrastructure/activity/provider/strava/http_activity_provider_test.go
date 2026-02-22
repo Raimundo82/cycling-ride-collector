@@ -10,7 +10,7 @@ import (
 
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/interfaces"
+	activity_interfaces "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/interfaces"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -43,7 +43,7 @@ func TestGetActivitiesByPeriodCallsCorrectEndpointAndDecodesActivities(t *testin
 		}))
 		defer server.Close()
 
-		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL}, &mockTokenProvider{token: TOKEN})
+		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetActivitiesByPeriod is called", func() {
 			acts, err := client.GetActivitiesByPeriod(context.Background(), period)
@@ -80,7 +80,7 @@ func TestGetActivitiesByPeriodReturnsEmptySliceWhenNoActivitiesInPeriod(t *testi
 			_, _ = w.Write([]byte(`[]`))
 		}))
 		defer server.Close()
-		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL}, &mockTokenProvider{token: TOKEN})
+		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetActivitiesByPeriod is called", func() {
 			acts, err := client.GetActivitiesByPeriod(context.Background(), period)
@@ -105,7 +105,7 @@ func TestGetActivitiesByPeriodReturnsEmptySliceWhenNoActivitiesInPeriod(t *testi
 
 func TestGetActivitiesByPeriodReturnsContextErrorWhenContextIsCanceled(t *testing.T) {
 	Convey("Given a strava http client", t, func() {
-		client := NewActivityProvider(http.DefaultClient, &config.Config{StravaApiBaseUrl: "http://invalid"}, &mockTokenProvider{token: TOKEN})
+		client := NewActivityProvider(http.DefaultClient, &config.Config{StravaApiBaseUrl: "http://invalid"})
 		startDate := time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC)
 		endtDate := time.Date(2026, 1, 11, 0, 0, 0, 0, time.UTC)
 		period, _ := domain.NewPeriod(startDate, endtDate)
@@ -127,7 +127,7 @@ func TestGetActivitiesByPeriodReturnsContextErrorWhenContextIsCanceled(t *testin
 
 func TestGetActivitiesByPeriodReturnsErrorWhenRequestCreationFails(t *testing.T) {
 	Convey("Given a strava activity provider with invalid base URL", t, func() {
-		client := NewActivityProvider(http.DefaultClient, &config.Config{StravaApiBaseUrl: "://invalid-url"}, &mockTokenProvider{token: TOKEN})
+		client := NewActivityProvider(http.DefaultClient, &config.Config{StravaApiBaseUrl: "://invalid-url"})
 		startDate := time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC)
 		endtDate := time.Date(2026, 1, 11, 0, 0, 0, 0, time.UTC)
 		period, _ := domain.NewPeriod(startDate, endtDate)
@@ -154,7 +154,7 @@ func TestGetActivitiesByPeriodReturnsErrorWhenStatusIsNonOK(t *testing.T) {
 			w.WriteHeader(http.StatusUnauthorized)
 		}))
 		defer server.Close()
-		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL}, &mockTokenProvider{token: TOKEN})
+		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetActivitiesByPeriod is called", func() {
 			acts, err := client.GetActivitiesByPeriod(context.Background(), period)
@@ -178,7 +178,7 @@ func TestGetActivitiesByPeriodReturnsDecodingErrorWhenJSONIsInvalid(t *testing.T
 			_, _ = w.Write([]byte(`{invalid json}`))
 		}))
 		defer server.Close()
-		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL}, &mockTokenProvider{token: TOKEN})
+		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetActivitiesByPeriod is called", func() {
 			acts, err := client.GetActivitiesByPeriod(context.Background(), period)
@@ -197,7 +197,7 @@ func TestGetActivitiesByPeriodReturnsErrorWhenNetworkFails(t *testing.T) {
 		startDate := time.Date(2024, 1, 10, 0, 0, 0, 0, time.UTC)
 		endtDate := time.Date(2024, 1, 11, 0, 0, 0, 0, time.UTC)
 		period, _ := domain.NewPeriod(startDate, endtDate)
-		client := NewActivityProvider(http.DefaultClient, &config.Config{StravaApiBaseUrl: "http://localhost:99999"}, &mockTokenProvider{token: TOKEN})
+		client := NewActivityProvider(http.DefaultClient, &config.Config{StravaApiBaseUrl: "http://localhost:99999"})
 
 		Convey("When GetActivitiesByPeriod is called", func() {
 			acts, err := client.GetActivitiesByPeriod(context.Background(), period)
@@ -222,7 +222,7 @@ func TestGetActivitiesByPeriodReturnsErrorWhenRequestTimeouts(t *testing.T) {
 			_, _ = w.Write([]byte(`[{"id":1}]`))
 		}))
 		defer server.Close()
-		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL}, &mockTokenProvider{token: TOKEN})
+		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetActivitiesByPeriod is called with a timeout context", func() {
 			ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
@@ -250,7 +250,7 @@ func TestGetWattsStreamConstructsCorrectRequestAndDecodesStream(t *testing.T) {
 			_, _ = w.Write([]byte(`{"watts":{"data": [103,100,50]}}`))
 		}))
 		defer server.Close()
-		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL}, &mockTokenProvider{token: TOKEN})
+		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetWattsStream is called", func() {
 			activityID := int64(12345)
@@ -280,7 +280,7 @@ func TestGetWattsStreamReturnsEmptyWattsWhenNoWattsData(t *testing.T) {
 			_, _ = w.Write([]byte(`{"watts":{"data": null}}`))
 		}))
 		defer server.Close()
-		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL}, &mockTokenProvider{token: TOKEN})
+		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetWattsStream is called", func() {
 			watts, err := client.GetWattsStream(context.Background(), activityID)
@@ -302,7 +302,7 @@ func TestGetWattsStreamReturnsEmptyWattsWhenWattsDataIsEmpty(t *testing.T) {
 			_, _ = w.Write([]byte(`{"watts":{"data": []}}`))
 		}))
 		defer server.Close()
-		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL}, &mockTokenProvider{token: TOKEN})
+		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetWattsStream is called", func() {
 			watts, err := client.GetWattsStream(context.Background(), activityID)
@@ -324,7 +324,7 @@ func TestGetWattsStreamReturnsErrorOnNonOKStatus(t *testing.T) {
 			w.WriteHeader(http.StatusNotFound)
 		}))
 		defer server.Close()
-		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL}, &mockTokenProvider{token: TOKEN})
+		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetWattsStream is called", func() {
 			watts, err := client.GetWattsStream(context.Background(), activityID)
@@ -345,7 +345,7 @@ func TestGetWattsStreamReturnsErrorOnCanceledContext(t *testing.T) {
 			_, _ = w.Write([]byte(`{"watts":{"data": [100]}}`))
 		}))
 		defer server.Close()
-		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL}, &mockTokenProvider{token: TOKEN})
+		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetWattsStream is called with a canceled context", func() {
 			ctx, cancel := context.WithCancel(context.Background())
@@ -368,7 +368,7 @@ func TestGetWattsStreamReturnsErrorOnInvalidJSON(t *testing.T) {
 			_, _ = w.Write([]byte(`{invalid json}`))
 		}))
 		defer server.Close()
-		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL}, &mockTokenProvider{token: TOKEN})
+		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetWattsStream is called", func() {
 			watts, err := client.GetWattsStream(context.Background(), 12345)
@@ -382,117 +382,9 @@ func TestGetWattsStreamReturnsErrorOnInvalidJSON(t *testing.T) {
 	})
 }
 
-func TestGetActivitiesByPeriodSendsAuthorizationHeaderWhenTokenIsPresent(t *testing.T) {
-	Convey("Given a strava http client with an access token", t, func() {
-		startDate := time.Date(2024, 1, 10, 0, 0, 0, 0, time.UTC)
-		endDate := time.Date(2024, 1, 11, 0, 0, 0, 0, time.UTC)
-		period, _ := domain.NewPeriod(startDate, endDate)
-		var gotAuthHeader string
-
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			gotAuthHeader = r.Header.Get("Authorization")
-			_, _ = w.Write([]byte(`[{"id":1}]`))
-		}))
-		defer server.Close()
-
-		client := NewActivityProvider(server.Client(), &config.Config{
-			StravaApiBaseUrl: server.URL,
-		}, &mockTokenProvider{token: TOKEN})
-
-		Convey("When GetActivitiesByPeriod is called", func() {
-			_, err := client.GetActivitiesByPeriod(context.Background(), period)
-
-			Convey("It should send the Authorization header", func() {
-				So(err, ShouldBeNil)
-				So(gotAuthHeader, ShouldEqual, "Bearer "+TOKEN)
-			})
-		})
-	})
-}
-
-func TestGetActivitiesByPeriodOmitsAuthorizationHeaderWhenTokenIsEmpty(t *testing.T) {
-	Convey("Given a strava http client without an access token", t, func() {
-		startDate := time.Date(2024, 1, 10, 0, 0, 0, 0, time.UTC)
-		endDate := time.Date(2024, 1, 11, 0, 0, 0, 0, time.UTC)
-		period, _ := domain.NewPeriod(startDate, endDate)
-		var gotAuthHeader string
-
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			gotAuthHeader = r.Header.Get("Authorization")
-			_, _ = w.Write([]byte(`[{"id":1}]`))
-		}))
-		defer server.Close()
-
-		client := NewActivityProvider(server.Client(), &config.Config{
-			StravaApiBaseUrl: server.URL,
-		}, &mockTokenProvider{err: fmt.Errorf("token error")})
-
-		Convey("When GetActivitiesByPeriod is called", func() {
-			_, err := client.GetActivitiesByPeriod(context.Background(), period)
-
-			Convey("It should not send an Authorization header", func() {
-				So(err, ShouldNotBeNil)
-				So(err.Error(), ShouldContainSubstring, "token error")
-				So(gotAuthHeader, ShouldBeEmpty)
-			})
-		})
-	})
-}
-
-func TestGetWattsStreamSendsAuthorizationHeader(t *testing.T) {
-	Convey("Given a strava http client with an access token", t, func() {
-		var gotAuthHeader string
-
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			gotAuthHeader = r.Header.Get("Authorization")
-			_, _ = w.Write([]byte(`{"watts":{"data": [100, 200]}}`))
-		}))
-		defer server.Close()
-
-		client := NewActivityProvider(server.Client(), &config.Config{
-			StravaApiBaseUrl: server.URL,
-		}, &mockTokenProvider{token: TOKEN})
-
-		Convey("When GetWattsStream is called", func() {
-			_, err := client.GetWattsStream(context.Background(), 12345)
-
-			Convey("It should send the Authorization header", func() {
-				So(err, ShouldBeNil)
-				So(gotAuthHeader, ShouldEqual, "Bearer "+TOKEN)
-			})
-		})
-	})
-}
-
-func TestGetWattsStreamOmitsAuthorizationHeaderWhenTokenIsEmpty(t *testing.T) {
-	Convey("Given a strava http client without an access token", t, func() {
-		var gotAuthHeader string
-
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			gotAuthHeader = r.Header.Get("Authorization")
-			_, _ = w.Write([]byte(`{"watts":{"data": [100, 200]}}`))
-		}))
-		defer server.Close()
-
-		client := NewActivityProvider(server.Client(), &config.Config{
-			StravaApiBaseUrl: server.URL,
-		}, &mockTokenProvider{err: fmt.Errorf("token error")})
-
-		Convey("When GetWattsStream is called", func() {
-			_, err := client.GetWattsStream(context.Background(), 12345)
-
-			Convey("It should not send an Authorization header", func() {
-				So(err, ShouldNotBeNil)
-				So(err.Error(), ShouldContainSubstring, "token error")
-				So(gotAuthHeader, ShouldBeEmpty)
-			})
-		})
-	})
-}
-
 func TestGetWattsStreamReturnsErrorWhenRequestCreationFails(t *testing.T) {
 	Convey("Given a strava activity provider with invalid base URL", t, func() {
-		client := NewActivityProvider(http.DefaultClient, &config.Config{StravaApiBaseUrl: "://invalid-url"}, &mockTokenProvider{token: TOKEN})
+		client := NewActivityProvider(http.DefaultClient, &config.Config{StravaApiBaseUrl: "://invalid-url"})
 
 		Convey("When GetWattsStream is called", func() {
 			watts, err := client.GetWattsStream(context.Background(), 12345)
@@ -508,11 +400,9 @@ func TestGetWattsStreamReturnsErrorWhenRequestCreationFails(t *testing.T) {
 
 func TestGetDetailedActivityByIDConstructsCorrectRequestAndDecodesActivity(t *testing.T) {
 	Convey("Given a strava http server and a token", t, func() {
-		var gotAuthHeader string
 		var gotPath string
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			gotAuthHeader = r.Header.Get("Authorization")
 			gotPath = r.URL.Path
 			_, _ = w.Write([]byte(`{"private_note": "Boas"}`))
 		}))
@@ -520,7 +410,7 @@ func TestGetDetailedActivityByIDConstructsCorrectRequestAndDecodesActivity(t *te
 
 		client := NewActivityProvider(server.Client(), &config.Config{
 			StravaApiBaseUrl: server.URL,
-		}, &mockTokenProvider{token: TOKEN})
+		})
 
 		Convey("When GetDetailedActivityByID is called", func() {
 			activityID := int64(98765)
@@ -532,7 +422,6 @@ func TestGetDetailedActivityByIDConstructsCorrectRequestAndDecodesActivity(t *te
 			})
 
 			Convey("It should decode detailed activity data", func() {
-				So(gotAuthHeader, ShouldEqual, "Bearer "+TOKEN)
 				So(data.LegSensations, ShouldEqual, "Boas")
 			})
 		})
@@ -541,7 +430,7 @@ func TestGetDetailedActivityByIDConstructsCorrectRequestAndDecodesActivity(t *te
 
 func TestGetDetailedActivityByIDReturnsErrorWhenRequestCreationFails(t *testing.T) {
 	Convey("Given a strava activity provider with invalid base URL", t, func() {
-		client := NewActivityProvider(http.DefaultClient, &config.Config{StravaApiBaseUrl: "://invalid-url"}, &mockTokenProvider{token: TOKEN})
+		client := NewActivityProvider(http.DefaultClient, &config.Config{StravaApiBaseUrl: "://invalid-url"})
 
 		Convey("When GetDetailedActivityByID is called", func() {
 			data, err := client.GetDetailedActivityByID(context.Background(), 123)
@@ -557,7 +446,7 @@ func TestGetDetailedActivityByIDReturnsErrorWhenRequestCreationFails(t *testing.
 
 func TestGetDetailedActivityByIDReturnsErrorWhenNetworkFails(t *testing.T) {
 	Convey("Given an unreachable strava server", t, func() {
-		client := NewActivityProvider(http.DefaultClient, &config.Config{StravaApiBaseUrl: "http://localhost:99999"}, &mockTokenProvider{token: TOKEN})
+		client := NewActivityProvider(http.DefaultClient, &config.Config{StravaApiBaseUrl: "http://localhost:99999"})
 
 		Convey("When GetDetailedActivityByID is called", func() {
 			data, err := client.GetDetailedActivityByID(context.Background(), 123)
@@ -578,7 +467,7 @@ func TestGetDetailedActivityByIDReturnsErrorWhenStatusIsNonOK(t *testing.T) {
 		}))
 		defer server.Close()
 
-		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL}, &mockTokenProvider{token: TOKEN})
+		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetDetailedActivityByID is called", func() {
 			data, err := client.GetDetailedActivityByID(context.Background(), 123)
@@ -599,7 +488,7 @@ func TestGetDetailedActivityByIDReturnsErrorWhenJSONIsInvalid(t *testing.T) {
 		}))
 		defer server.Close()
 
-		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL}, &mockTokenProvider{token: TOKEN})
+		client := NewActivityProvider(server.Client(), &config.Config{StravaApiBaseUrl: server.URL})
 
 		Convey("When GetDetailedActivityByID is called", func() {
 			data, err := client.GetDetailedActivityByID(context.Background(), 123)
