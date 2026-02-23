@@ -20,7 +20,7 @@ type csvWorkoutPeriodSaver struct {
 func (c *csvWorkoutPeriodSaver) SaveAll(workouts []*domain.Workout, athlete *domain.Athlete) error {
 	c.buf.Reset()
 	records := lo.Map(workouts, func(w *domain.Workout, _ int) []string {
-		return workoutToRecord(w)
+		return workoutToRecord(w, athlete.WeightInKg())
 	})
 
 	if err := c.writer.WriteAll(records); err != nil {

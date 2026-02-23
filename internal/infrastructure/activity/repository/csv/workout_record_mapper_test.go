@@ -9,7 +9,7 @@ import (
 )
 
 func TestWorkoutCsvRecordMapperReturnsTheExpectedCsvStringLineWithNormalWorkout(t *testing.T) {
-	Convey("Given a normal workout", t, func() {
+	Convey("Given a normal workout and weight", t, func() {
 		workout := domain.NewWorkout(domain.WorkoutParams{
 			WorkoutType:            domain.Estrada,
 			StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
@@ -25,9 +25,9 @@ func TestWorkoutCsvRecordMapperReturnsTheExpectedCsvStringLineWithNormalWorkout(
 		})
 
 		Convey("When mapping", func() {
-			record := workoutToRecord(workout)
+			record := workoutToRecord(workout, 70.0)
 			Convey("Then it returns the expected csv string line", func() {
-				expected := []string{"6/1/2024", "Estrada", "10:30", "1h0m", "25.50", "500", "200", "220", "150", "180", "90", "Boas"}
+				expected := []string{"6/1/2024", "Estrada", "10:30", "1h0m", "25.50", "500", "200", "220", "150", "180", "90", "Boas", "70.00"}
 				So(record, ShouldResemble, expected)
 			})
 		})
@@ -35,7 +35,7 @@ func TestWorkoutCsvRecordMapperReturnsTheExpectedCsvStringLineWithNormalWorkout(
 }
 
 func TestWorkoutCsvRecordMapperReturnsTheExpectedCsvStringLineWithRestWorkout(t *testing.T) {
-	Convey("Given a rest workout", t, func() {
+	Convey("Given a rest workout and a weight", t, func() {
 		workout := domain.NewWorkout(domain.WorkoutParams{
 			WorkoutType:            domain.Descanso,
 			StartTime:              time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
@@ -51,9 +51,9 @@ func TestWorkoutCsvRecordMapperReturnsTheExpectedCsvStringLineWithRestWorkout(t 
 		})
 
 		Convey("When mapping", func() {
-			record := workoutToRecord(workout)
+			record := workoutToRecord(workout, 70.0)
 			Convey("Then it returns the expected csv string line", func() {
-				expected := []string{"6/1/2024", "Descanso", "", "", "", "", "", "", "", "", "", ""}
+				expected := []string{"6/1/2024", "Descanso", "", "", "", "", "", "", "", "", "", "", "70.00"}
 				So(record, ShouldResemble, expected)
 			})
 		})
