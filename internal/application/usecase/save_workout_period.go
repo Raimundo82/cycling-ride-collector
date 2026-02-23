@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/raimundo82/cycling-ride-collector/internal/application/contracts"
@@ -8,27 +9,35 @@ import (
 )
 
 type SaveWorkoutPeriod struct {
-	dailyWorkout    contracts.DailyWorkoutPolicy
-	workoutRepo     contracts.WorkoutRepository
-	workoutProvider contracts.WorkoutProvider
+	dailyWorkout        contracts.DailyWorkoutPolicy
+	workoutRepo         contracts.WorkoutRepository
+	workoutProvider     contracts.WorkoutProvider
+	athleteDataProvider contracts.AthleteDataProvider
 }
 
 func NewSaveWorkoutPeriod(
 	dailyWorkout contracts.DailyWorkoutPolicy,
 	workoutRepo contracts.WorkoutRepository,
 	workoutProvider contracts.WorkoutProvider,
+	athleteDataProvider contracts.AthleteDataProvider,
 ) *SaveWorkoutPeriod {
 	return &SaveWorkoutPeriod{
-		dailyWorkout:    dailyWorkout,
-		workoutRepo:     workoutRepo,
-		workoutProvider: workoutProvider,
+		dailyWorkout:        dailyWorkout,
+		workoutRepo:         workoutRepo,
+		workoutProvider:     workoutProvider,
+		athleteDataProvider: athleteDataProvider,
 	}
 }
 
 func (saveWorkoutPeriod *SaveWorkoutPeriod) Execute(period domain.Period, minimalWorkoutDuration int) error {
+	athlete, err := saveWorkoutPeriod.athleteDataProvider.GetAthleteData()
+	if err != nil {
+		return fmt.Errorf("failed to get athlete data: %w", err)
+	}
+
 	periodWorkouts, err := saveWorkoutPeriod.workoutProvider.GetWorkoutsByPeriod(period)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get workouts by period: %w", err)
 	}
 
 	workoutsByDate := saveWorkoutPeriod.groupWorkoutsByDate(periodWorkouts)
@@ -49,7 +58,7 @@ func (saveWorkoutPeriod *SaveWorkoutPeriod) Execute(period domain.Period, minima
 		workouts = append(workouts, workout)
 	}
 
-	return saveWorkoutPeriod.workoutRepo.SaveAll(workouts)
+	return saveWorkoutPeriod.workoutRepo.SaveAll(workouts, athlete)
 }
 
 func (saveWorkoutPeriod *SaveWorkoutPeriod) groupWorkoutsByDate(workouts []*domain.Workout) map[time.Time][]*domain.Workout {
@@ -67,7 +76,7 @@ func normalizeToDate(t time.Time) time.Time {
 }
 
 func (*SaveWorkoutPeriod) newRestWorkout(date time.Time) *domain.Workout {
-	return domain.NewWorkout(&domain.WorkoutParams{
+	return domain.NewWorkout(domain.WorkoutParams{
 		ID:                     -1,
 		StartTime:              date,
 		WorkoutType:            domain.Descanso,

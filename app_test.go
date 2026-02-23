@@ -15,6 +15,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+var athlete = domain.NewAthlete(75, 135, 240)
+
 type spyDailyWorkoutPolicy struct {
 	Called                int
 	MinWorkoutDuration    int
@@ -41,8 +43,9 @@ type spyWorkoutRepository struct {
 	Err      error
 }
 
-// SaveAll implements [contracts.WorkoutRepository].
-func (s *spyWorkoutRepository) SaveAll(workouts []*domain.Workout) error {
+var _ contracts.WorkoutRepository = (*spyWorkoutRepository)(nil)
+
+func (s *spyWorkoutRepository) SaveAll(workouts []*domain.Workout, athlete *domain.Athlete) error {
 	s.Called++
 	s.Workouts = workouts
 	return s.Err
@@ -69,11 +72,25 @@ func (s *stubWorkoutProvider) GetWorkoutsByPeriod(period domain.Period) ([]*doma
 	return s.Result, nil
 }
 
+type stubAthleteProvider struct {
+	Athlete *domain.Athlete
+	Called  int
+	Err     error
+}
+
+// GetAthleteData implements [contracts.AthleteDataProvider].
+func (s *stubAthleteProvider) GetAthleteData() (*domain.Athlete, error) {
+	s.Called++
+	return s.Athlete, s.Err
+}
+
+var _ contracts.AthleteDataProvider = (*stubAthleteProvider)(nil)
+
 func TestBuildDailyWorkoutPolicyMerge(t *testing.T) {
 	Convey("Given the merge daily workout policy", t, func() {
 		workouts := []*domain.Workout{
-			domain.NewWorkout(&domain.WorkoutParams{ID: 1, DurationInMin: 30, DistanceInKm: 10}),
-			domain.NewWorkout(&domain.WorkoutParams{ID: 2, DurationInMin: 40, DistanceInKm: 20}),
+			domain.NewWorkout(domain.WorkoutParams{ID: 1, DurationInMin: 30, DistanceInKm: 10}),
+			domain.NewWorkout(domain.WorkoutParams{ID: 2, DurationInMin: 40, DistanceInKm: 20}),
 		}
 
 		Convey("When building and selecting the daily workout", func() {
@@ -93,8 +110,8 @@ func TestBuildDailyWorkoutPolicyMerge(t *testing.T) {
 func TestBuildDailyWorkoutPolicyDefaultLongest(t *testing.T) {
 	Convey("Given an invalid daily workout policy", t, func() {
 		workouts := []*domain.Workout{
-			domain.NewWorkout(&domain.WorkoutParams{ID: 1, DurationInMin: 30, DistanceInKm: 10}),
-			domain.NewWorkout(&domain.WorkoutParams{ID: 2, DurationInMin: 40, DistanceInKm: 20}),
+			domain.NewWorkout(domain.WorkoutParams{ID: 1, DurationInMin: 30, DistanceInKm: 10}),
+			domain.NewWorkout(domain.WorkoutParams{ID: 2, DurationInMin: 40, DistanceInKm: 20}),
 		}
 
 		Convey("When building and selecting the daily workout", func() {
@@ -156,11 +173,11 @@ func TestAppRunDelegatesToUseCase(t *testing.T) {
 		spyRepo := &spyWorkoutRepository{}
 		provider := &stubWorkoutProvider{
 			Result: []*domain.Workout{
-				domain.NewWorkout(&domain.WorkoutParams{ID: 10, DurationInMin: 90, StartTime: time.Date(2026, 1, 1, 8, 0, 0, 0, time.UTC)}),
+				domain.NewWorkout(domain.WorkoutParams{ID: 10, DurationInMin: 90, StartTime: time.Date(2026, 1, 1, 8, 0, 0, 0, time.UTC)}),
 			},
 		}
-
-		uc := usecase.NewSaveWorkoutPeriod(spyPolicy, spyRepo, provider)
+		athleteProvider := &stubAthleteProvider{Athlete: athlete}
+		uc := usecase.NewSaveWorkoutPeriod(spyPolicy, spyRepo, provider, athleteProvider)
 		app := &App{SaveWorkoutPeriod: *uc}
 
 		period, _ := domain.NewPeriod(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC))
@@ -187,8 +204,9 @@ func TestAppRunPropagatesError(t *testing.T) {
 		spyPolicy := &spyDailyWorkoutPolicy{}
 		spyRepo := &spyWorkoutRepository{}
 		provider := &stubWorkoutProvider{Err: errors.New("provider failure")}
+		athleteProvider := &stubAthleteProvider{Athlete: athlete}
 
-		uc := usecase.NewSaveWorkoutPeriod(spyPolicy, spyRepo, provider)
+		uc := usecase.NewSaveWorkoutPeriod(spyPolicy, spyRepo, provider, athleteProvider)
 		app := &App{SaveWorkoutPeriod: *uc}
 
 		period, _ := domain.NewPeriod(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC))
