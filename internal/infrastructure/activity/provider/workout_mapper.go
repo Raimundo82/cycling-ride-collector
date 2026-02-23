@@ -17,7 +17,7 @@ func MapToWorkout(a *activity_model.ActivityDto) *domain.Workout {
 
 	wattsData := lo.Ternary(a.Watts != nil, a.Watts.WattsData, []int{})
 
-	return domain.NewWorkout(&domain.WorkoutParams{
+	return domain.NewWorkout(domain.WorkoutParams{
 		ID:                     a.ID,
 		WorkoutType:            SetWorkoutType(a),
 		StartTime:              startTime,

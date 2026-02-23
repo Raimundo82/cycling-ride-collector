@@ -8,7 +8,7 @@ import (
 	"github.com/samber/lo"
 )
 
-func workoutToRecord(workout *domain.Workout) []string {
+func workoutToRecord(workout *domain.Workout, weight float64) []string {
 	return []string{
 		workout.StartTime.Format("1/2/2006"),
 		workout.WorkoutType.String(),
@@ -22,6 +22,7 @@ func workoutToRecord(workout *domain.Workout) []string {
 		formatIntOrEmpty(workout, workout.MaxHeartRateInBpm),
 		formatIntOrEmpty(workout, workout.AvgCadenceInRpm),
 		string(workout.LegSensations()),
+		strconv.FormatFloat(weight, 'f', 2, 64),
 	}
 }
 

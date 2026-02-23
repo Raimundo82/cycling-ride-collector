@@ -10,7 +10,7 @@ import (
 func TestLongestWorkout_ForSingleWorkoutAboveMinDuration(t *testing.T) {
 	Convey("Given a long duration workout", t, func() {
 		workouts := []*Workout{
-			NewWorkout(&WorkoutParams{ID: 1, DurationInMin: 90}),
+			NewWorkout(WorkoutParams{ID: 1, DurationInMin: 90}),
 		}
 
 		Convey("When LongestWorkout is called", func() {
@@ -27,7 +27,7 @@ func TestLongestWorkout_ForSingleWorkoutAboveMinDuration(t *testing.T) {
 func TestLongestWorkout_ForSingleWorkoutUnderMinDuration(t *testing.T) {
 	Convey("Given a short duration workout", t, func() {
 		workouts := []*Workout{
-			NewWorkout(&WorkoutParams{ID: 1, DurationInMin: 29}),
+			NewWorkout(WorkoutParams{ID: 1, DurationInMin: 29}),
 		}
 
 		Convey("When LongestWorkout is called", func() {
@@ -42,8 +42,8 @@ func TestLongestWorkout_ForSingleWorkoutUnderMinDuration(t *testing.T) {
 func TestLongestWorkout_ForMultipleWorkoutsShortAndLongDuration(t *testing.T) {
 	Convey("Given a short and long duration workout", t, func() {
 		workouts := []*Workout{
-			NewWorkout(&WorkoutParams{ID: 1, DurationInMin: 29}),
-			NewWorkout(&WorkoutParams{ID: 2, DurationInMin: 90}),
+			NewWorkout(WorkoutParams{ID: 1, DurationInMin: 29}),
+			NewWorkout(WorkoutParams{ID: 2, DurationInMin: 90}),
 		}
 
 		Convey("When LongestWorkout is called", func() {
@@ -60,8 +60,8 @@ func TestLongestWorkout_ForMultipleWorkoutsShortAndLongDuration(t *testing.T) {
 func TestLongestWorkout_ForMultipleWorkoutsOfShortDuration(t *testing.T) {
 	Convey("Given short duration workouts", t, func() {
 		workouts := []*Workout{
-			NewWorkout(&WorkoutParams{ID: 1, DurationInMin: 29}),
-			NewWorkout(&WorkoutParams{ID: 2, DurationInMin: 20}),
+			NewWorkout(WorkoutParams{ID: 1, DurationInMin: 29}),
+			NewWorkout(WorkoutParams{ID: 2, DurationInMin: 20}),
 		}
 
 		Convey("When LongestWorkout is called", func() {
@@ -76,8 +76,8 @@ func TestLongestWorkout_ForMultipleWorkoutsOfShortDuration(t *testing.T) {
 func TestLongestWorkout_ForMultipleWorkoutsOfLongDuration(t *testing.T) {
 	Convey("Given long duration workouts", t, func() {
 		workouts := []*Workout{
-			NewWorkout(&WorkoutParams{ID: 1, DurationInMin: 120}),
-			NewWorkout(&WorkoutParams{ID: 2, DurationInMin: 90}),
+			NewWorkout(WorkoutParams{ID: 1, DurationInMin: 120}),
+			NewWorkout(WorkoutParams{ID: 2, DurationInMin: 90}),
 		}
 
 		Convey("When LongestWorkout is called", func() {

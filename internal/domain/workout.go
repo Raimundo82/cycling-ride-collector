@@ -1,6 +1,8 @@
 package domain
 
-import "time"
+import (
+	"time"
+)
 
 type WorkoutType int
 
@@ -52,7 +54,7 @@ type WorkoutParams struct {
 	LegSensations          string
 }
 
-func NewWorkout(params *WorkoutParams) *Workout {
+func NewWorkout(params WorkoutParams) *Workout {
 	workout := &Workout{
 		ID:                     params.ID,
 		WorkoutType:            params.WorkoutType,
