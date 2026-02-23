@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	athlete_interfaces "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/athlete/interfaces"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/athlete/model"
+	athlete_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/athlete/model"
 )
 
 const stravaError = "strava error: %s"
@@ -25,7 +25,7 @@ func NewHttpAthleteStatsProvider(httpClient *http.Client, baseUrl string) *httpA
 }
 
 // GetAthleteZones implements [AthleteStatsProvider].
-func (h *httpAthleteStatsProvider) GetAthleteZones(ctx context.Context) (*model.Zones, error) {
+func (h *httpAthleteStatsProvider) GetAthleteZones(ctx context.Context) (*athlete_model.Zones, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, h.baseUrl+"/athlete/zones", nil)
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func (h *httpAthleteStatsProvider) GetAthleteZones(ctx context.Context) (*model.
 		return nil, fmt.Errorf(stravaError, resp.Status)
 	}
 
-	var athleteZones model.Zones
+	var athleteZones athlete_model.Zones
 	if err := json.NewDecoder(resp.Body).Decode(&athleteZones); err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (h *httpAthleteStatsProvider) GetAthleteZones(ctx context.Context) (*model.
 }
 
 // GetDetailedAthlete implements [AthleteStatsProvider].
-func (h *httpAthleteStatsProvider) GetDetailedAthlete(ctx context.Context) (*model.DetailedAthlete, error) {
+func (h *httpAthleteStatsProvider) GetDetailedAthlete(ctx context.Context) (*athlete_model.DetailedAthlete, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, h.baseUrl+"/athlete", nil)
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func (h *httpAthleteStatsProvider) GetDetailedAthlete(ctx context.Context) (*mod
 		return nil, fmt.Errorf(stravaError, resp.Status)
 	}
 
-	var athleteData model.DetailedAthlete
+	var athleteData athlete_model.DetailedAthlete
 	if err := json.NewDecoder(resp.Body).Decode(&athleteData); err != nil {
 		return nil, err
 	}

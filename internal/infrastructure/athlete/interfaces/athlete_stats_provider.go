@@ -3,10 +3,10 @@ package athlete_interfaces
 import (
 	"context"
 
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/athlete/model"
+	athlete_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/athlete/model"
 )
 
 type AthleteStatsProvider interface {
-	GetDetailedAthlete(ctx context.Context) (*model.DetailedAthlete, error)
-	GetAthleteZones(ctx context.Context) (*model.Zones, error)
+	GetDetailedAthlete(ctx context.Context) (*athlete_model.DetailedAthlete, error)
+	GetAthleteZones(ctx context.Context) (*athlete_model.Zones, error)
 }

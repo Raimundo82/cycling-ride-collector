@@ -6,7 +6,7 @@ import (
 	"github.com/raimundo82/cycling-ride-collector/internal/application/contracts"
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
 	athlete_interfaces "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/athlete/interfaces"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/athlete/model"
+	athlete_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/athlete/model"
 )
 
 type athleteDataProvider struct {
@@ -25,7 +25,7 @@ func (a *athleteDataProvider) GetAthleteData() (*domain.Athlete, error) {
 		return nil, err
 	}
 
-	detailedAthlete.Zones = *athleteZones
+	detailedAthlete.Zones = athleteZones
 	return a.mapAthlete(detailedAthlete), nil
 }
 
@@ -37,10 +37,15 @@ func NewAthleteProvider(httpAthleteStatsProvider athlete_interfaces.AthleteStats
 	}
 }
 
-func (a *athleteDataProvider) mapAthlete(detailedAthlete *model.DetailedAthlete) *domain.Athlete {
+func (a *athleteDataProvider) mapAthlete(detailedAthlete *athlete_model.DetailedAthlete) *domain.Athlete {
 	weightInKg := detailedAthlete.Weight
-	hrThreshold := detailedAthlete.Zones.HeartRateRangeZones.Zones[1].Max
-	pwrThreshold := detailedAthlete.Zones.PowerRangeZones.Zones[1].Max
-
+	hrThreshold := 0
+	if (len(detailedAthlete.Zones.HeartRateRangeZones.Zones)) >= 2 {
+		hrThreshold = detailedAthlete.Zones.HeartRateRangeZones.Zones[1].Max
+	}
+	pwrThreshold := 0
+	if (len(detailedAthlete.Zones.PowerRangeZones.Zones)) >= 2 {
+		pwrThreshold = detailedAthlete.Zones.PowerRangeZones.Zones[1].Max
+	}
 	return domain.NewAthlete(weightInKg, hrThreshold, pwrThreshold)
 }

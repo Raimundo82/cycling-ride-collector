@@ -1,4 +1,4 @@
-package model
+package athlete_model
 
 type Zone struct {
 	Min int `json:"min"`
@@ -14,6 +14,6 @@ type HeartRateRangeZones struct {
 }
 
 type Zones struct {
-	PowerRangeZones     PowerRangeZones     `json:"power"`
-	HeartRateRangeZones HeartRateRangeZones `json:"heart_rate"`
+	PowerRangeZones     *PowerRangeZones     `json:"power"`
+	HeartRateRangeZones *HeartRateRangeZones `json:"heart_rate"`
 }
