@@ -1,16 +1,16 @@
 # cycling-ride-collector
 
-Go CLI application that collects cycling rides from Strava and exports one consolidated workout per day to CSV.
+Go CLI application that collects cycling rides from Strava and exports one consolidated workout per day.
 
 ## Overview
 
-The app fetches rides for a date range, applies a daily selection strategy, and writes a normalized CSV file for training analysis.
+The app fetches rides for a date range, applies a daily selection strategy, and writes normalized output for training analysis.
 
 Main capabilities:
 - Fetch Strava activities by period
 - Map Strava payloads to internal workout model
 - Resolve multiple rides per day with policy-based selection (`longest` or `merge`)
-- Persist daily results to CSV
+- Persist daily results to CSV or Excel (`.xlsx`)
 - Handle OAuth token refresh and local token persistence
 
 ## Architecture
@@ -59,10 +59,14 @@ The app uses environment variables loaded by `internal/config/config.go`.
 | `STRAVA_CLIENT_ID` | yes | Strava client id (used for refresh) |
 | `STRAVA_CLIENT_SECRET` | yes | Strava client secret (used for refresh) |
 | `TOKEN_FILE_PATH` | yes | Path to local token JSON file |
+| `EXCEL_TEMPLATE_PATH` | no* | Excel template path used by Excel exporter (example: `template.xlsx`) |
+| `EXCEL_TEMPLATE_SHEETNAME` | no* | Template sheet name (example: `Registos`) |
+| `EXCEL_TEMPLATE_STARTCELL` | no* | Start cell where workout rows are written (example: `B8`) |
 
 Notes:
 - `OutputFilePath` is defined by CLI flag `--output-file` (or auto-generated if omitted).
 - Minimal workout duration and policy are CLI parameters, not environment variables.
+- `*` Excel template env vars are required when the Excel exporter is selected in code.
 
 ### Token File Format
 
@@ -86,7 +90,7 @@ Notes:
 | `--end-date` | yes | End date in `MM/DD/YYYY` |
 | `--daily-workout-policy` | no | `longest` (default) or `merge` |
 | `--min-duration` | no | Minimum workout duration in minutes (floored to `30`) |
-| `--output-file` | no | Output CSV path (auto-generated if omitted) |
+| `--output-file` | no | Output path or basename (see exporter behavior below) |
 
 ### Example Run
 
@@ -102,8 +106,33 @@ export TOKEN_FILE_PATH="/absolute/path/to/token.json"
   --end-date 01/07/2026 \
   --daily-workout-policy merge \
   --min-duration 30 \
-  --output-file workouts_summary_2026-01-01_to_2026-01-07.csv
+  --output-file workouts_summary_2026-01-01_to_2026-01-07
 ```
+
+## Output Exporters
+
+Two repository implementations exist:
+- CSV: `internal/infrastructure/activity/repository/csv`
+- Excel: `internal/infrastructure/activity/repository/excel`
+
+Current behavior in this branch:
+- Exporter selection is done in code in `app.go` (inside `NewApp`), not via CLI/env flag.
+- The current default is Excel.
+
+To switch exporter, edit the repository passed to `usecase.NewSaveWorkoutPeriod` in `app.go`:
+- CSV: `activity_csv.NewCSVWorkoutPeriodSaver(cfg.OutputFilePath)`
+- Excel: `activity_excel.NewExcelWorkoutPeriodSaverWithOptions(...)`
+
+Current output-file behavior by exporter:
+- CSV exporter: uses `--output-file` exactly as provided.
+- Excel exporter: appends `.xlsx` to `cfg.OutputFilePath` in `app.go`.
+
+Example:
+- `--output-file workouts_summary_2026-01-01_to_2026-01-07` produces `workouts_summary_2026-01-01_to_2026-01-07.xlsx` with Excel exporter.
+
+Excel template notes:
+- `EXCEL_TEMPLATE_PATH` must point to a real `.xlsx` file (legacy `.xls` is not supported by `excelize`).
+- `EXCEL_TEMPLATE_SHEETNAME` and `EXCEL_TEMPLATE_STARTCELL` must match the target template.
 
 ## Daily Workout Policies
 
