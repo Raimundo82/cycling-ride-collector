@@ -10,7 +10,7 @@ import (
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
 	activityProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/provider"
 	stravaActivityProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/provider/strava"
-	activity_csv "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/repository/csv"
+	activity_excel "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/repository/excel"
 	athlete_provider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/athlete/provider"
 	athlete_strava "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/athlete/provider/strava"
 	authProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider"
@@ -47,7 +47,12 @@ func NewApp(cfg *config.Config, dailyWorkoutPolicy string) (*App, error) {
 
 	useCase := usecase.NewSaveWorkoutPeriod(
 		policy,
-		activity_csv.NewCSVWorkoutPeriodSaver(cfg.OutputFilePath),
+		activity_excel.NewExcelWorkoutPeriodSaverWithOptions(
+			cfg.OutputFilePath+".xlsx",
+			cfg.ExcelTemplate.TemplatePath,
+			cfg.ExcelTemplate.SheetName,
+			cfg.ExcelTemplate.StartCell,
+		),
 		workoutProvider,
 		athleteProvider,
 	)

@@ -1,4 +1,4 @@
-package activity_csv
+package mapper
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/samber/lo"
 )
 
-func workoutToRecord(workout *domain.Workout, weight float64) []string {
+func WorkoutToRecord(workout *domain.Workout, weight float64) []string {
 	return []string{
 		workout.StartTime.Format("1/2/2006"),
 		workout.WorkoutType.String(),

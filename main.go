@@ -83,7 +83,7 @@ func runOnceMode(options config.CLIOptions) error {
 	}
 	if cfg.OutputFilePath == "" {
 		cfg.OutputFilePath = fmt.Sprintf(
-			"workouts_summary_%s_to_%s.csv",
+			"workouts_summary_%s_to_%s",
 			request.Period.StartDate().Format("2006-01-02"),
 			request.Period.EndDate().Format("2006-01-02"),
 		)

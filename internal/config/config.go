@@ -11,6 +11,13 @@ type Config struct {
 	StravaClientSecret string
 	OutputFilePath     string
 	TokenFilePath      string
+	ExcelTemplate      ExcelTemplateConfig
+}
+
+type ExcelTemplateConfig struct {
+	TemplatePath string
+	SheetName    string
+	StartCell    string
 }
 
 func Load() *Config {
@@ -20,6 +27,11 @@ func Load() *Config {
 		StravaClientId:     getEnv("STRAVA_CLIENT_ID"),
 		StravaClientSecret: getEnv("STRAVA_CLIENT_SECRET"),
 		TokenFilePath:      getEnv("TOKEN_FILE_PATH"),
+		ExcelTemplate: ExcelTemplateConfig{
+			TemplatePath: getEnv("EXCEL_TEMPLATE_PATH"),
+			SheetName:    getEnv("EXCEL_TEMPLATE_SHEETNAME"),
+			StartCell:    getEnv("EXCEL_TEMPLATE_STARTCELL"),
+		},
 	}
 }
 

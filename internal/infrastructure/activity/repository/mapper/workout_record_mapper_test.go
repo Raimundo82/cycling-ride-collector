@@ -1,4 +1,4 @@
-package activity_csv
+package mapper
 
 import (
 	"testing"
@@ -25,7 +25,7 @@ func TestWorkoutCsvRecordMapperReturnsTheExpectedCsvStringLineWithNormalWorkout(
 		})
 
 		Convey("When mapping", func() {
-			record := workoutToRecord(workout, 70.0)
+			record := WorkoutToRecord(workout, 70.0)
 			Convey("Then it returns the expected csv string line", func() {
 				expected := []string{"6/1/2024", "Estrada", "10:30", "1h0m", "25.50", "500", "200", "220", "150", "180", "90", "Boas", "70.00"}
 				So(record, ShouldResemble, expected)
@@ -51,7 +51,7 @@ func TestWorkoutCsvRecordMapperReturnsTheExpectedCsvStringLineWithRestWorkout(t 
 		})
 
 		Convey("When mapping", func() {
-			record := workoutToRecord(workout, 70.0)
+			record := WorkoutToRecord(workout, 70.0)
 			Convey("Then it returns the expected csv string line", func() {
 				expected := []string{"6/1/2024", "Descanso", "", "", "", "", "", "", "", "", "", "", "70.00"}
 				So(record, ShouldResemble, expected)
