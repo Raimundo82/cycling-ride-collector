@@ -5,6 +5,7 @@ import (
 
 	"github.com/raimundo82/cycling-ride-collector/internal/application/contracts"
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
+	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/repository/mapper"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -31,7 +32,7 @@ func (e *excelWorkoutPeriodSaver) SaveAll(workouts []*domain.Workout, athlete *d
 	}
 
 	for i, w := range workouts {
-		row := workoutToRow(w, athlete.WeightInKg())
+		row := mapper.WorkoutToRecord(w, athlete.WeightInKg())
 		for j, val := range row {
 			cell, cellErr := excelize.CoordinatesToCellName(startCol+j, startRow+i)
 			if cellErr != nil {
@@ -41,6 +42,16 @@ func (e *excelWorkoutPeriodSaver) SaveAll(workouts []*domain.Workout, athlete *d
 				return fmt.Errorf("failed to set cell %s: %w", cell, err)
 			}
 		}
+	}
+
+	err = f.SetCellValue(e.sheetName, "D4", athlete.HeartRateThresholdInBpm())
+	if err != nil {
+		return fmt.Errorf("failed to set cell D4: %w", err)
+	}
+
+	err = f.SetCellValue(e.sheetName, "D5", athlete.PowerThresholdInWatts())
+	if err != nil {
+		return fmt.Errorf("failed to set cell D5: %w", err)
 	}
 
 	return f.SaveAs(e.filePath)
