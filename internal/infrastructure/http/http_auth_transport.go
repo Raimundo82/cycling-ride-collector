@@ -27,10 +27,6 @@ func (a *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return a.underlying.RoundTrip(req)
 }
 
-func (a *authTransport) SetTokenProvider(provider activity_interfaces.TokenProvider) {
-	a.tokenProvider = provider
-}
-
 func NewAuthTransport(tokenProvider activity_interfaces.TokenProvider) *authTransport {
 	return &authTransport{
 		underlying:    http.DefaultTransport,
