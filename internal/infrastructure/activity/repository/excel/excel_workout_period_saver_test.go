@@ -225,7 +225,7 @@ func TestExcelWorkoutPeriodSaverWithCustomStartCell(t *testing.T) {
 			}),
 		}
 
-		saver := NewExcelWorkoutPeriodSaverWithOptions(filePath, defaultSheet, "B3")
+		saver := NewExcelWorkoutPeriodSaverWithOptions(filePath, "", defaultSheet, "B3")
 
 		Convey("When SaveAll is called", func() {
 			err := saver.SaveAll(workouts, testAthlete)
@@ -388,7 +388,7 @@ func TestExcelWorkoutPeriodSaverReturnsErrorGivenAnInvalidStartCell(t *testing.T
 			}),
 		}
 
-		saver := NewExcelWorkoutPeriodSaverWithOptions(filePath, defaultSheet, "invalid")
+		saver := NewExcelWorkoutPeriodSaverWithOptions(filePath, "", defaultSheet, "invalid")
 
 		Convey("When SaveAll is called", func() {
 			err := saver.SaveAll(workouts, testAthlete)
@@ -396,6 +396,163 @@ func TestExcelWorkoutPeriodSaverReturnsErrorGivenAnInvalidStartCell(t *testing.T
 			Convey("Then an error should be returned", func() {
 				So(err, ShouldNotBeNil)
 				So(err.Error(), ShouldContainSubstring, "invalid start cell")
+			})
+		})
+	})
+}
+
+func TestExcelWorkoutPeriodSaverWritesToTemplateWithConfigurableStartCell(t *testing.T) {
+	Convey("Given a template Excel file with existing content and a configurable start cell B8", t, func() {
+		tmpDir, _ := os.MkdirTemp("", "excel-test")
+		defer func() { _ = os.RemoveAll(tmpDir) }()
+		templatePath := filepath.Join(tmpDir, "template.xlsx")
+		outputPath := filepath.Join(tmpDir, "output.xlsx")
+
+		// Create template with existing content
+		tmpl := excelize.NewFile()
+		_ = tmpl.SetCellValue(defaultSheet, "A1", "Weekly Report")
+		_ = tmpl.SetCellValue(defaultSheet, "B7", "Mon")
+		_ = tmpl.SetCellValue(defaultSheet, "D7", "Tue")
+		_ = tmpl.SetCellValue(defaultSheet, "F7", "Wed")
+		_ = tmpl.SaveAs(templatePath)
+		_ = tmpl.Close()
+
+		// Week of June 3-9, 2024 (Mon-Sun)
+		workouts := []*Workout{
+			NewWorkout(WorkoutParams{
+				WorkoutType: Estrada,
+				StartTime:   time.Date(2024, 6, 3, 7, 0, 0, 0, time.UTC),
+				DurationInMin: 60, DistanceInKm: 30.0, ElevationInMeters: 400,
+				AvgPowerInWatts: 200, NormalizedPowerInWatts: 210,
+				AvgHeartRateInBpm: 145, MaxHeartRateInBpm: 175, AvgCadenceInRpm: 88,
+				LegSensations: string(Good),
+			}),
+			NewWorkout(WorkoutParams{
+				WorkoutType: Rolo,
+				StartTime:   time.Date(2024, 6, 4, 18, 0, 0, 0, time.UTC),
+				DurationInMin: 45, DistanceInKm: 20.0, ElevationInMeters: 0,
+				AvgPowerInWatts: 190, NormalizedPowerInWatts: 200,
+				AvgHeartRateInBpm: 140, MaxHeartRateInBpm: 165, AvgCadenceInRpm: 90,
+				LegSensations: string(Medium),
+			}),
+			NewWorkout(WorkoutParams{
+				WorkoutType: Descanso,
+				StartTime:   time.Date(2024, 6, 5, 0, 0, 0, 0, time.UTC),
+				DurationInMin: -1, DistanceInKm: -1, ElevationInMeters: -1,
+				AvgPowerInWatts: -1, NormalizedPowerInWatts: -1,
+				AvgHeartRateInBpm: -1, MaxHeartRateInBpm: -1, AvgCadenceInRpm: -1,
+			}),
+			NewWorkout(WorkoutParams{
+				WorkoutType: Estrada,
+				StartTime:   time.Date(2024, 6, 6, 6, 30, 0, 0, time.UTC),
+				DurationInMin: 90, DistanceInKm: 45.0, ElevationInMeters: 800,
+				AvgPowerInWatts: 210, NormalizedPowerInWatts: 225,
+				AvgHeartRateInBpm: 150, MaxHeartRateInBpm: 180, AvgCadenceInRpm: 85,
+				LegSensations: string(VeryGood),
+			}),
+			NewWorkout(WorkoutParams{
+				WorkoutType: Descanso,
+				StartTime:   time.Date(2024, 6, 7, 0, 0, 0, 0, time.UTC),
+				DurationInMin: -1, DistanceInKm: -1, ElevationInMeters: -1,
+				AvgPowerInWatts: -1, NormalizedPowerInWatts: -1,
+				AvgHeartRateInBpm: -1, MaxHeartRateInBpm: -1, AvgCadenceInRpm: -1,
+			}),
+			NewWorkout(WorkoutParams{
+				WorkoutType: Estrada,
+				StartTime:   time.Date(2024, 6, 8, 8, 0, 0, 0, time.UTC),
+				DurationInMin: 120, DistanceInKm: 60.0, ElevationInMeters: 1000,
+				AvgPowerInWatts: 195, NormalizedPowerInWatts: 215,
+				AvgHeartRateInBpm: 148, MaxHeartRateInBpm: 178, AvgCadenceInRpm: 87,
+				LegSensations: string(Good),
+			}),
+			NewWorkout(WorkoutParams{
+				WorkoutType: Descanso,
+				StartTime:   time.Date(2024, 6, 9, 0, 0, 0, 0, time.UTC),
+				DurationInMin: -1, DistanceInKm: -1, ElevationInMeters: -1,
+				AvgPowerInWatts: -1, NormalizedPowerInWatts: -1,
+				AvgHeartRateInBpm: -1, MaxHeartRateInBpm: -1, AvgCadenceInRpm: -1,
+			}),
+		}
+
+		saver := NewExcelWorkoutPeriodSaverWithOptions(outputPath, templatePath, defaultSheet, "B8")
+
+		Convey("When SaveAll is called", func() {
+			err := saver.SaveAll(workouts, testAthlete)
+
+			Convey("Then the output file should preserve template content", func() {
+				So(err, ShouldBeNil)
+				f, openErr := excelize.OpenFile(outputPath)
+				So(openErr, ShouldBeNil)
+				defer func() { _ = f.Close() }()
+
+				val, _ := f.GetCellValue(defaultSheet, "A1")
+				So(val, ShouldEqual, "Weekly Report")
+				val, _ = f.GetCellValue(defaultSheet, "B7")
+				So(val, ShouldEqual, "Mon")
+				val, _ = f.GetCellValue(defaultSheet, "D7")
+				So(val, ShouldEqual, "Tue")
+				val, _ = f.GetCellValue(defaultSheet, "F7")
+				So(val, ShouldEqual, "Wed")
+			})
+
+			Convey("And Monday data should start at B8", func() {
+				So(err, ShouldBeNil)
+				f, openErr := excelize.OpenFile(outputPath)
+				So(openErr, ShouldBeNil)
+				defer func() { _ = f.Close() }()
+
+				// Monday row at B8
+				val, _ := f.GetCellValue(defaultSheet, "B8")
+				So(val, ShouldEqual, "6/3/2024")
+				val, _ = f.GetCellValue(defaultSheet, "C8")
+				So(val, ShouldEqual, "Estrada")
+				val, _ = f.GetCellValue(defaultSheet, "N8")
+				So(val, ShouldEqual, "70.00")
+			})
+
+			Convey("And Sunday data should be at B14 (last row of the week)", func() {
+				So(err, ShouldBeNil)
+				f, openErr := excelize.OpenFile(outputPath)
+				So(openErr, ShouldBeNil)
+				defer func() { _ = f.Close() }()
+
+				// Sunday row at B14
+				val, _ := f.GetCellValue(defaultSheet, "B14")
+				So(val, ShouldEqual, "6/9/2024")
+				val, _ = f.GetCellValue(defaultSheet, "C14")
+				So(val, ShouldEqual, "Descanso")
+				val, _ = f.GetCellValue(defaultSheet, "N14")
+				So(val, ShouldEqual, "70.00")
+			})
+		})
+	})
+}
+
+func TestExcelWorkoutPeriodSaverReturnsErrorGivenMissingTemplate(t *testing.T) {
+	Convey("Given a non-existing template path", t, func() {
+		tmpDir, _ := os.MkdirTemp("", "excel-test")
+		defer func() { _ = os.RemoveAll(tmpDir) }()
+		outputPath := filepath.Join(tmpDir, "output.xlsx")
+
+		workouts := []*Workout{
+			NewWorkout(WorkoutParams{
+				WorkoutType: Estrada,
+				StartTime:   time.Date(2024, 6, 1, 10, 30, 0, 0, time.UTC),
+				DurationInMin: 60, DistanceInKm: 25.5, ElevationInMeters: 500,
+				AvgPowerInWatts: 200, NormalizedPowerInWatts: 220,
+				AvgHeartRateInBpm: 150, MaxHeartRateInBpm: 180, AvgCadenceInRpm: 90,
+			}),
+		}
+
+		missingTemplate := "/non/existing/template.xlsx"
+		saver := NewExcelWorkoutPeriodSaverWithOptions(outputPath, missingTemplate, defaultSheet, "B8")
+
+		Convey("When SaveAll is called", func() {
+			err := saver.SaveAll(workouts, testAthlete)
+
+			Convey("Then an error should be returned", func() {
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "failed to open template")
 			})
 		})
 	})

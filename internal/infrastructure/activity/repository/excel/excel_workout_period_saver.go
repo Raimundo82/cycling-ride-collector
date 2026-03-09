@@ -11,14 +11,18 @@ import (
 const defaultSheet = "Sheet1"
 
 type excelWorkoutPeriodSaver struct {
-	filePath  string
-	sheetName string
-	startCell string
+	filePath     string
+	templatePath string
+	sheetName    string
+	startCell    string
 }
 
 // SaveAll implements [contracts.WorkoutRepository].
 func (e *excelWorkoutPeriodSaver) SaveAll(workouts []*domain.Workout, athlete *domain.Athlete) error {
-	f := excelize.NewFile()
+	f, err := e.openOrCreate()
+	if err != nil {
+		return err
+	}
 	defer func() { _ = f.Close() }()
 
 	startCol, startRow, err := excelize.CellNameToCoordinates(e.startCell)
@@ -42,6 +46,17 @@ func (e *excelWorkoutPeriodSaver) SaveAll(workouts []*domain.Workout, athlete *d
 	return f.SaveAs(e.filePath)
 }
 
+func (e *excelWorkoutPeriodSaver) openOrCreate() (*excelize.File, error) {
+	if e.templatePath != "" {
+		f, err := excelize.OpenFile(e.templatePath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to open template %q: %w", e.templatePath, err)
+		}
+		return f, nil
+	}
+	return excelize.NewFile(), nil
+}
+
 func NewExcelWorkoutPeriodSaver(filePath string) contracts.WorkoutRepository {
 	return &excelWorkoutPeriodSaver{
 		filePath:  filePath,
@@ -50,11 +65,12 @@ func NewExcelWorkoutPeriodSaver(filePath string) contracts.WorkoutRepository {
 	}
 }
 
-func NewExcelWorkoutPeriodSaverWithOptions(filePath, sheetName, startCell string) contracts.WorkoutRepository {
+func NewExcelWorkoutPeriodSaverWithOptions(filePath, templatePath, sheetName, startCell string) contracts.WorkoutRepository {
 	return &excelWorkoutPeriodSaver{
-		filePath:  filePath,
-		sheetName: sheetName,
-		startCell: startCell,
+		filePath:     filePath,
+		templatePath: templatePath,
+		sheetName:    sheetName,
+		startCell:    startCell,
 	}
 }
 
