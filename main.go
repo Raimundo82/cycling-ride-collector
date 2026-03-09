@@ -1,144 +1,93 @@
 package main
 
 import (
+	"errors"
+	"flag"
 	"fmt"
-	"net/http"
+	"log"
 	"os"
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/raimundo82/cycling-ride-collector/internal/application/contracts"
-	"github.com/raimundo82/cycling-ride-collector/internal/application/usecase"
+	"github.com/raimundo82/cycling-ride-collector/internal/application/usecase/input"
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastucture/csv"
-	"github.com/raimundo82/cycling-ride-collector/internal/infrastucture/strava"
-	"github.com/robfig/cron/v3"
 )
 
 func main() {
-	_ = godotenv.Load()
-	flags := getFlags()
-	cfg := config.Load()
-
-	if flags.cronMode {
-		runCron(cfg, flags)
-		return
-	}
-
-	err := runCLI(cfg, flags)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+	if err := run(); err != nil {
+		log.Printf("Error: %v", err)
 		os.Exit(1)
 	}
+	log.Println("Workout summary saved successfully.")
 }
 
-func runCLI(cfg *config.Config, flags *flags) error {
-	accessToken := flags.accessToken
-
-	period, err := parseDateRange(flags.startDate, flags.endDate)
+func run() error {
+	_ = godotenv.Load()
+	cfg, request, err := parseFlagsAndConfig()
 	if err != nil {
 		return err
 	}
 
-	dailyWorkoutPolicy, err := validateWorkoutPolicy(flags.dailyWorkoutPolicy)
+	app, err := NewApp(cfg, request.DailyWorkoutPolicy)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to initialize app: %w", err)
 	}
 
-	minimalWorkoutDuration := getMinWorkoutDuration(flags.minimalWorkoutDuration)
-
-	outputFilePath := flags.outputFilePath
-	if outputFilePath == "" {
-		outputFilePath = generateOutputFilePath(*period)
+	if err := app.Run(request); err != nil {
+		return fmt.Errorf("error running app: %w", err)
 	}
 
-	if accessToken != "" {
-		cfg.StravaAccessToken = accessToken
-	}
-
-	executeUsecase(cfg, period, dailyWorkoutPolicy, minimalWorkoutDuration, outputFilePath)
 	return nil
 }
 
-func runCron(cfg *config.Config, flags *flags) {
-	endDate := time.Now()
-	startDate := endDate.AddDate(0, 0, -6)
+func parseFlagsAndConfig() (*config.Config, *input.SaveWorkoutPeriodRequest, error) {
+	cfg := config.Load()
+
+	startDateStr := flag.String("start-date", "", "Start date in MM/DD/YYYY format")
+	endDateStr := flag.String("end-date", "", "End date in MM/DD/YYYY format")
+	outputFilePath := flag.String("output-file", "", "Output file path for the CSV")
+	minimalWorkoutDuration := flag.Int("min-duration", 30, "Minimal workout duration in minutes")
+	dailyWorkoutPolicy := flag.String("daily-workout-policy", "longest", "Daily workout policy")
+	flag.Parse()
+
+	if *startDateStr == "" || *endDateStr == "" {
+		return nil, nil, errors.New("flags --start-date and --end-date are required")
+	}
+
+	const layout = "01/02/2006"
+	startDate, err := time.Parse(layout, *startDateStr)
+	if err != nil {
+		return nil, nil, fmt.Errorf("invalid start date: %w", err)
+	}
+
+	endDate, err := time.Parse(layout, *endDateStr)
+	if err != nil {
+		return nil, nil, fmt.Errorf("invalid end date: %w", err)
+	}
+
 	period, err := domain.NewPeriod(startDate, endDate)
 	if err != nil {
-		return
+		return nil, nil, fmt.Errorf("invalid period: %w", err)
 	}
-	outputFilePath := generateOutputFilePath(period)
-	minimalWorkoutDuration := getMinWorkoutDuration(flags.minimalWorkoutDuration)
 
-	c := cron.New()
-	_, err = c.AddFunc("0 19 * * 0", func() {
-		executeUsecase(cfg, &period, flags.dailyWorkoutPolicy, minimalWorkoutDuration, outputFilePath)
-	})
+	if *dailyWorkoutPolicy != "longest" && *dailyWorkoutPolicy != "merge" {
+		return nil, nil, fmt.Errorf("invalid daily workout policy: %s. Allowed values are 'longest' or 'merge'", *dailyWorkoutPolicy)
+	}
+
+	if *minimalWorkoutDuration < 30 {
+		*minimalWorkoutDuration = 30
+	}
+
+	if *outputFilePath == "" {
+		*outputFilePath = fmt.Sprintf("workouts_summary_%s_to_%s.csv", startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+	}
+	cfg.OutputFilePath = *outputFilePath
+
+	request, err := input.NewSaveWorkoutPeriodRequest(period, *dailyWorkoutPolicy, *minimalWorkoutDuration)
 	if err != nil {
-		fmt.Printf("Error scheduling cron job: %v\n", err)
-		return
-	}
-	c.Start()
-	fmt.Println("Cron job scheduled to run every Sunday at 7 PM. Press Ctrl+C to exit.")
-}
-
-func executeUsecase(cfg *config.Config, period *domain.Period, workoutPolicy string, minimalWorkoutDuration int, outputPath string) {
-	var dailyWorkoutPolicy contracts.DailyWorkoutPolicy
-
-	switch workoutPolicy {
-	case "longest":
-		dailyWorkoutPolicy = usecase.NewLongestWorkout()
-	case "merge":
-		dailyWorkoutPolicy = usecase.NewMergeWorkouts()
-	default:
-		dailyWorkoutPolicy = usecase.NewLongestWorkout()
+		return nil, nil, fmt.Errorf("invalid input: %w", err)
 	}
 
-	uc := usecase.NewSaveWorkoutPeriod(
-		dailyWorkoutPolicy,
-		csv.NewCSVWorkoutPeriodSaver(outputPath),
-		strava.NewProvider(strava.NewHttpClient(&http.Client{Timeout: 10 * time.Second}, cfg)),
-	)
-
-	if err := uc.Execute(*period, minimalWorkoutDuration); err != nil {
-		fmt.Printf("Error: %v\n", err)
-	} else {
-		fmt.Printf("Workout(s) processed and saved to %s (if any).\n", outputPath)
-	}
-}
-
-func generateOutputFilePath(period domain.Period) string {
-	return fmt.Sprintf("workouts_summary_%s_to_%s.csv", period.StartDate().Format("2006-01-02"), period.EndDate().Format("2006-01-02"))
-}
-
-func getMinWorkoutDuration(duration int) int {
-	if duration < 30 {
-		return 30
-	}
-	return duration
-}
-
-func parseDateRange(startStr, endStr string) (*domain.Period, error) {
-	const layout = "01/02/2006"
-	start, err := time.Parse(layout, startStr)
-	if err != nil {
-		return nil, fmt.Errorf("invalid start date: %w", err)
-	}
-	end, err := time.Parse(layout, endStr)
-	if err != nil {
-		return nil, fmt.Errorf("invalid end date: %w", err)
-	}
-	period, err := domain.NewPeriod(start, end)
-	if err != nil {
-		return nil, fmt.Errorf("invalid period: %w", err)
-	}
-	return &period, nil
-}
-
-func validateWorkoutPolicy(policy string) (string, error) {
-	if policy != "longest" && policy != "merge" {
-		return "", fmt.Errorf("invalid policy: %s. Allowed values are 'longest' or 'merge'", policy)
-	}
-	return policy, nil
+	return cfg, request, nil
 }
