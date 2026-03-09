@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -12,21 +11,85 @@ import (
 	"github.com/raimundo82/cycling-ride-collector/internal/application/usecase/input"
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
+	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/scheduler"
 )
 
+const dateLayout = "01/02/2006"
+
+var startWeeklySunday20 = func(job func()) error {
+	s := scheduler.New()
+	return s.StartWeeklySunday20(job)
+}
+
 func main() {
-	if err := run(); err != nil {
+	_ = godotenv.Load()
+	options, err := config.ParseCLI(os.Args[1:])
+	if err != nil {
+		log.Printf("Error parsing CLI: %v", err)
+		os.Exit(1)
+	}
+
+	if err := run(options); err != nil {
 		log.Printf("Error: %v", err)
 		os.Exit(1)
 	}
 	log.Println("Workout summary saved successfully.")
 }
 
-func run() error {
-	_ = godotenv.Load()
-	cfg, request, err := parseFlagsAndConfig()
+func run(options config.CLIOptions) error {
+	if options.CronMode {
+		return runCronMode()
+	}
+	return runOnceMode(options)
+}
+
+func runByMode(
+	options config.CLIOptions,
+	runCron func() error,
+	runOnce func(config.CLIOptions) error,
+) error {
+	if options.CronMode {
+		return runCron()
+	}
+
+	return runOnce(options)
+}
+
+func runCronMode() error {
+	return startWeeklySunday20(func() {
+		cronOptions := buildCronOptions(time.Now().UTC())
+
+		if err := runOnceMode(cronOptions); err != nil {
+			log.Printf("scheduled run failed: %v", err)
+		}
+	})
+}
+
+func buildCronOptions(now time.Time) config.CLIOptions {
+	start := now.AddDate(0, 0, -6).Format(dateLayout)
+	end := now.Format(dateLayout)
+
+	return config.CLIOptions{
+		CronMode:               true,
+		StartDate:              start,
+		EndDate:                end,
+		DailyWorkoutPolicy:     "longest",
+		MinimalWorkoutDuration: 30,
+	}
+}
+
+func runOnceMode(options config.CLIOptions) error {
+	cfg := buildRuntimeConfig(options)
+	request, err := buildSaveWorkoutRequest(options)
 	if err != nil {
 		return err
+	}
+	if cfg.OutputFilePath == "" {
+		cfg.OutputFilePath = fmt.Sprintf(
+			"workouts_summary_%s_to_%s.csv",
+			request.Period.StartDate().Format("2006-01-02"),
+			request.Period.EndDate().Format("2006-01-02"),
+		)
 	}
 
 	app, err := NewApp(cfg, request.DailyWorkoutPolicy)
@@ -41,53 +104,47 @@ func run() error {
 	return nil
 }
 
-func parseFlagsAndConfig() (*config.Config, *input.SaveWorkoutPeriodRequest, error) {
+func buildRuntimeConfig(options config.CLIOptions) *config.Config {
 	cfg := config.Load()
+	if options.OutputFilePath != "" {
+		cfg.OutputFilePath = options.OutputFilePath
+	}
+	return cfg
+}
 
-	startDateStr := flag.String("start-date", "", "Start date in MM/DD/YYYY format")
-	endDateStr := flag.String("end-date", "", "End date in MM/DD/YYYY format")
-	outputFilePath := flag.String("output-file", "", "Output file path for the CSV")
-	minimalWorkoutDuration := flag.Int("min-duration", 30, "Minimal workout duration in minutes")
-	dailyWorkoutPolicy := flag.String("daily-workout-policy", "longest", "Daily workout policy")
-	flag.Parse()
-
-	if *startDateStr == "" || *endDateStr == "" {
-		return nil, nil, errors.New("flags --start-date and --end-date are required")
+func buildSaveWorkoutRequest(options config.CLIOptions) (*input.SaveWorkoutPeriodRequest, error) {
+	if options.StartDate == "" || options.EndDate == "" {
+		return nil, errors.New("flags --start-date and --end-date are required")
 	}
 
-	const layout = "01/02/2006"
-	startDate, err := time.Parse(layout, *startDateStr)
+	startDate, err := time.Parse(dateLayout, options.StartDate)
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid start date: %w", err)
+		return nil, fmt.Errorf("invalid start date: %w", err)
 	}
 
-	endDate, err := time.Parse(layout, *endDateStr)
+	endDate, err := time.Parse(dateLayout, options.EndDate)
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid end date: %w", err)
+		return nil, fmt.Errorf("invalid end date: %w", err)
 	}
 
 	period, err := domain.NewPeriod(startDate, endDate)
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid period: %w", err)
+		return nil, fmt.Errorf("invalid period: %w", err)
 	}
 
-	if *dailyWorkoutPolicy != "longest" && *dailyWorkoutPolicy != "merge" {
-		return nil, nil, fmt.Errorf("invalid daily workout policy: %s. Allowed values are 'longest' or 'merge'", *dailyWorkoutPolicy)
+	if options.DailyWorkoutPolicy != "longest" && options.DailyWorkoutPolicy != "merge" {
+		return nil, fmt.Errorf("invalid daily workout policy: %s. Allowed values are 'longest' or 'merge'", options.DailyWorkoutPolicy)
 	}
 
-	if *minimalWorkoutDuration < 30 {
-		*minimalWorkoutDuration = 30
+	minimalDuration := options.MinimalWorkoutDuration
+	if minimalDuration < 30 {
+		minimalDuration = 30
 	}
 
-	if *outputFilePath == "" {
-		*outputFilePath = fmt.Sprintf("workouts_summary_%s_to_%s.csv", startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
-	}
-	cfg.OutputFilePath = *outputFilePath
-
-	request, err := input.NewSaveWorkoutPeriodRequest(period, *dailyWorkoutPolicy, *minimalWorkoutDuration)
+	request, err := input.NewSaveWorkoutPeriodRequest(period, options.DailyWorkoutPolicy, minimalDuration)
 	if err != nil {
-		return nil, nil, fmt.Errorf("invalid input: %w", err)
+		return nil, fmt.Errorf("invalid input: %w", err)
 	}
 
-	return cfg, request, nil
+	return request, nil
 }
