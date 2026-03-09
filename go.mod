@@ -11,6 +11,7 @@ require (
 require (
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/smarty/assertions v1.15.0 // indirect
-	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/text v0.33.0 // indirect
 )
