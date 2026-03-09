@@ -20,6 +20,7 @@ var startWeeklySunday20 = func(job func()) error {
 	s := scheduler.New()
 	return s.StartWeeklySunday20(job)
 }
+
 var waitForCronMode = func() {
 	select {}
 }
