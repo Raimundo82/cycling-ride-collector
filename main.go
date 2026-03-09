@@ -21,6 +21,10 @@ var startWeeklySunday20 = func(job func()) error {
 	return s.StartWeeklySunday20(job)
 }
 
+var waitForCronMode = func() {
+	select {}
+}
+
 func main() {
 	_ = godotenv.Load()
 	options, err := config.ParseCLI(os.Args[1:])
@@ -33,6 +37,11 @@ func main() {
 		log.Printf("Error: %v", err)
 		os.Exit(1)
 	}
+	if options.CronMode {
+		log.Println("Cron scheduler started. Waiting for weekly runs...")
+		waitForCronMode()
+		return
+	}
 	log.Println("Workout summary saved successfully.")
 }
 
@@ -41,18 +50,6 @@ func run(options config.CLIOptions) error {
 		return runCronMode()
 	}
 	return runOnceMode(options)
-}
-
-func runByMode(
-	options config.CLIOptions,
-	runCron func() error,
-	runOnce func(config.CLIOptions) error,
-) error {
-	if options.CronMode {
-		return runCron()
-	}
-
-	return runOnce(options)
 }
 
 func runCronMode() error {

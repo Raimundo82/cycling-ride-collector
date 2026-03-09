@@ -9,86 +9,6 @@ import (
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
 )
 
-func TestRunByModeCallsCronModeWhenCronEnabled(t *testing.T) {
-	cronCalled := 0
-	onceCalled := 0
-
-	err := runByMode(
-		config.CLIOptions{CronMode: true},
-		func() error {
-			cronCalled++
-			return nil
-		},
-		func(config.CLIOptions) error {
-			onceCalled++
-			return nil
-		},
-	)
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
-	if cronCalled != 1 {
-		t.Fatalf("expected cron path to be called once, got %d", cronCalled)
-	}
-	if onceCalled != 0 {
-		t.Fatalf("expected once path not to be called, got %d", onceCalled)
-	}
-}
-
-func TestRunByModeCallsOnceModeWhenCronDisabled(t *testing.T) {
-	cronCalled := 0
-	onceCalled := 0
-	input := config.CLIOptions{CronMode: false, StartDate: "01/01/2026"}
-
-	err := runByMode(
-		input,
-		func() error {
-			cronCalled++
-			return nil
-		},
-		func(opts config.CLIOptions) error {
-			onceCalled++
-			if opts.StartDate != input.StartDate {
-				t.Fatalf("expected options to be forwarded, got %+v", opts)
-			}
-			return nil
-		},
-	)
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
-	if onceCalled != 1 {
-		t.Fatalf("expected once path to be called once, got %d", onceCalled)
-	}
-	if cronCalled != 0 {
-		t.Fatalf("expected cron path not to be called, got %d", cronCalled)
-	}
-}
-
-func TestRunByModePropagatesCronError(t *testing.T) {
-	expectedErr := errors.New("cron failed")
-	err := runByMode(
-		config.CLIOptions{CronMode: true},
-		func() error { return expectedErr },
-		func(config.CLIOptions) error { return nil },
-	)
-	if !errors.Is(err, expectedErr) {
-		t.Fatalf("expected cron error to propagate, got %v", err)
-	}
-}
-
-func TestRunByModePropagatesOnceError(t *testing.T) {
-	expectedErr := errors.New("once failed")
-	err := runByMode(
-		config.CLIOptions{CronMode: false},
-		func() error { return nil },
-		func(config.CLIOptions) error { return expectedErr },
-	)
-	if !errors.Is(err, expectedErr) {
-		t.Fatalf("expected once error to propagate, got %v", err)
-	}
-}
-
 func TestRunCronModePropagatesSchedulerError(t *testing.T) {
 	originalStart := startWeeklySunday20
 	defer func() {
@@ -103,6 +23,23 @@ func TestRunCronModePropagatesSchedulerError(t *testing.T) {
 	err := runCronMode()
 	if !errors.Is(err, expectedErr) {
 		t.Fatalf("expected scheduler error to propagate, got %v", err)
+	}
+}
+
+func TestRunDelegatesToCronModeWhenEnabled(t *testing.T) {
+	originalStart := startWeeklySunday20
+	defer func() {
+		startWeeklySunday20 = originalStart
+	}()
+
+	expectedErr := errors.New("cron path used")
+	startWeeklySunday20 = func(func()) error {
+		return expectedErr
+	}
+
+	err := run(config.CLIOptions{CronMode: true})
+	if !errors.Is(err, expectedErr) {
+		t.Fatalf("expected run to delegate to cron mode, got %v", err)
 	}
 }
 
