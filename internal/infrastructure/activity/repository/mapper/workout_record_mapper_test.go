@@ -1,4 +1,4 @@
-package activity_excel
+package mapper
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestWorkoutExcelRecordMapperReturnsTheExpectedRowWithNormalWorkout(t *testing.T) {
+func TestWorkoutCsvRecordMapperReturnsTheExpectedCsvStringLineWithNormalWorkout(t *testing.T) {
 	Convey("Given a normal workout and weight", t, func() {
 		workout := domain.NewWorkout(domain.WorkoutParams{
 			WorkoutType:            domain.Estrada,
@@ -25,16 +25,16 @@ func TestWorkoutExcelRecordMapperReturnsTheExpectedRowWithNormalWorkout(t *testi
 		})
 
 		Convey("When mapping", func() {
-			row := workoutToRow(workout, 70.0)
-			Convey("Then it returns the expected row values", func() {
+			record := WorkoutToRecord(workout, 70.0)
+			Convey("Then it returns the expected csv string line", func() {
 				expected := []string{"6/1/2024", "Estrada", "10:30", "1h0m", "25.50", "500", "200", "220", "150", "180", "90", "Boas", "70.00"}
-				So(row, ShouldResemble, expected)
+				So(record, ShouldResemble, expected)
 			})
 		})
 	})
 }
 
-func TestWorkoutExcelRecordMapperReturnsTheExpectedRowWithRestWorkout(t *testing.T) {
+func TestWorkoutCsvRecordMapperReturnsTheExpectedCsvStringLineWithRestWorkout(t *testing.T) {
 	Convey("Given a rest workout and a weight", t, func() {
 		workout := domain.NewWorkout(domain.WorkoutParams{
 			WorkoutType:            domain.Descanso,
@@ -51,10 +51,10 @@ func TestWorkoutExcelRecordMapperReturnsTheExpectedRowWithRestWorkout(t *testing
 		})
 
 		Convey("When mapping", func() {
-			row := workoutToRow(workout, 70.0)
-			Convey("Then it returns the expected row with empty values", func() {
+			record := WorkoutToRecord(workout, 70.0)
+			Convey("Then it returns the expected csv string line", func() {
 				expected := []string{"6/1/2024", "Descanso", "", "", "", "", "", "", "", "", "", "", "70.00"}
-				So(row, ShouldResemble, expected)
+				So(record, ShouldResemble, expected)
 			})
 		})
 	})
