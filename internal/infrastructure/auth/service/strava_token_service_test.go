@@ -5,49 +5,18 @@ import (
 	"testing"
 	"time"
 
-	authInterfaces "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/interfaces"
 	auth_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
 	. "github.com/smartystreets/goconvey/convey"
-)
-
-type mockTokenProvider struct {
-	Token *auth_model.Token
-	Err   error
-}
-
-// RefreshToken implements [authInterfaces.OAuthProvider].
-func (m *mockTokenProvider) RefreshToken(refreshToken string) (*auth_model.Token, error) {
-	return m.Token, m.Err
-}
-
-type mockTokenRepository struct {
-	SaveErr error
-	GetErr  error
-	Token   *auth_model.Token
-}
-
-// GetTokens implements [authInterfaces.TokenRepository].
-func (m *mockTokenRepository) GetTokens() (*auth_model.Token, error) {
-	return m.Token, m.GetErr
-}
-
-// SaveTokens implements [authInterfaces.TokenRepository].
-func (m *mockTokenRepository) SaveTokens(token *auth_model.Token) error {
-	return m.SaveErr
-}
-
-var (
-	_ authInterfaces.OAuthProvider   = (*mockTokenProvider)(nil)
-	_ authInterfaces.TokenRepository = (*mockTokenRepository)(nil)
 )
 
 func TestGetValidAccessTokenReturnsExistingTokenWhenRepositoryTokenStillValid(t *testing.T) {
 	Convey("Given a valid token", t, func() {
 		token := &auth_model.Token{AccessToken: "access_token", RefreshToken: "refresh_token", ExpiresAt: time.Now().Add(1 * time.Hour)}
+		tokens := &auth_model.Tokens{StravaToken: token, GoogleToken: token}
 
-		tokenRepo := &mockTokenRepository{Token: token}
+		tokenRepo := &mockTokenRepository{Tokens: tokens}
 		tokenProvider := &mockTokenProvider{}
-		tokenService := NewTokenService(tokenProvider, tokenRepo)
+		tokenService := NewStravaTokenService(tokenProvider, tokenRepo)
 
 		Convey("When executing GetValidAccessToken", func() {
 			result, err := tokenService.GetValidToken()
@@ -65,9 +34,9 @@ func TestGetValidAccessTokenReturnsNewTokenWhenRepositoryTokenExpiredAndRefreshS
 		expiredToken := &auth_model.Token{AccessToken: "expired_access_token", RefreshToken: "expired_refresh_token", ExpiresAt: time.Now().Add(-1 * time.Hour)}
 		newToken := &auth_model.Token{AccessToken: "new_access_token", RefreshToken: "new_refresh_token", ExpiresAt: time.Now().Add(1 * time.Hour)}
 
-		tokenRepo := &mockTokenRepository{Token: expiredToken}
-		tokenProvider := &mockTokenProvider{Token: newToken}
-		tokenService := NewTokenService(tokenProvider, tokenRepo)
+		tokenRepo := &mockTokenRepository{Tokens: &auth_model.Tokens{StravaToken: expiredToken}}
+		tokenProvider := &mockTokenProvider{Tokens: &auth_model.Tokens{StravaToken: newToken}}
+		tokenService := NewStravaTokenService(tokenProvider, tokenRepo)
 
 		Convey("When executing GetValidAccessToken", func() {
 			result, err := tokenService.GetValidToken()
@@ -85,9 +54,9 @@ func TestGetValidAccessTokenReturnsErrorWhenTokenExpiredAndRefreshAccessTokenReq
 		expiredToken := &auth_model.Token{AccessToken: "expired_access_token", RefreshToken: "expired_refresh_token", ExpiresAt: time.Now().Add(-1 * time.Hour)}
 		refreshErr := errors.New("refresh error")
 
-		tokenRepo := &mockTokenRepository{Token: expiredToken}
+		tokenRepo := &mockTokenRepository{Tokens: &auth_model.Tokens{StravaToken: expiredToken}}
 		tokenProvider := &mockTokenProvider{Err: refreshErr}
-		tokenService := NewTokenService(tokenProvider, tokenRepo)
+		tokenService := NewStravaTokenService(tokenProvider, tokenRepo)
 
 		Convey("When executing GetValidAccessToken", func() {
 			result, err := tokenService.GetValidToken()
@@ -105,9 +74,9 @@ func TestGetValidAccessTokenReturnsErrorWhenNoAccessTokenAndRefreshAccessTokenRe
 		expiredToken := &auth_model.Token{AccessToken: "", RefreshToken: "expired_refresh_token", ExpiresAt: time.Time{}}
 		refreshErr := errors.New("refresh error")
 
-		tokenRepo := &mockTokenRepository{Token: expiredToken}
+		tokenRepo := &mockTokenRepository{Tokens: &auth_model.Tokens{StravaToken: expiredToken}}
 		tokenProvider := &mockTokenProvider{Err: refreshErr}
-		tokenService := NewTokenService(tokenProvider, tokenRepo)
+		tokenService := NewStravaTokenService(tokenProvider, tokenRepo)
 
 		Convey("When executing GetValidAccessToken", func() {
 			result, err := tokenService.GetValidToken()
@@ -126,7 +95,7 @@ func TestGetValidAccessTokenReturnsErrorWhenRepositoryGetFails(t *testing.T) {
 
 		tokenRepo := &mockTokenRepository{GetErr: repoErr}
 		tokenProvider := &mockTokenProvider{}
-		tokenService := NewTokenService(tokenProvider, tokenRepo)
+		tokenService := NewStravaTokenService(tokenProvider, tokenRepo)
 
 		Convey("When executing GetValidAccessToken", func() {
 			result, err := tokenService.GetValidToken()
@@ -141,9 +110,9 @@ func TestGetValidAccessTokenReturnsErrorWhenRepositoryGetFails(t *testing.T) {
 
 func TestGetValidAccessTokenReturnsErrorWhenRepositoryReturnsNilTokens(t *testing.T) {
 	Convey("Given repository returns nil tokens", t, func() {
-		tokenRepo := &mockTokenRepository{Token: nil}
+		tokenRepo := &mockTokenRepository{Tokens: nil}
 		tokenProvider := &mockTokenProvider{}
-		tokenService := NewTokenService(tokenProvider, tokenRepo)
+		tokenService := NewStravaTokenService(tokenProvider, tokenRepo)
 
 		Convey("When executing GetValidAccessToken", func() {
 			result, err := tokenService.GetValidToken()
@@ -151,7 +120,7 @@ func TestGetValidAccessTokenReturnsErrorWhenRepositoryReturnsNilTokens(t *testin
 			Convey("Then it should return the repository error", func() {
 				So(err, ShouldNotBeNil)
 				So(result, ShouldBeEmpty)
-				So(err.Error(), ShouldEqual, "no tokens available")
+				So(err.Error(), ShouldEqual, "no strava tokens available")
 			})
 		})
 	})
@@ -163,9 +132,9 @@ func TestGetValidAccessTokenReturnsErrorWhenRepositorySaveFailsAfterRefresh(t *t
 		newToken := &auth_model.Token{AccessToken: "new_access_token", RefreshToken: "new_refresh_token", ExpiresAt: time.Now().Add(1 * time.Hour)}
 		saveErr := errors.New("save error")
 
-		tokenRepo := &mockTokenRepository{Token: expiredToken, SaveErr: saveErr}
-		tokenProvider := &mockTokenProvider{Token: newToken}
-		tokenService := NewTokenService(tokenProvider, tokenRepo)
+		tokenRepo := &mockTokenRepository{Tokens: &auth_model.Tokens{StravaToken: expiredToken}, SaveErr: saveErr}
+		tokenProvider := &mockTokenProvider{Tokens: &auth_model.Tokens{StravaToken: newToken}}
+		tokenService := NewStravaTokenService(tokenProvider, tokenRepo)
 
 		Convey("When executing GetValidAccessToken", func() {
 			result, err := tokenService.GetValidToken()
@@ -181,9 +150,9 @@ func TestGetValidAccessTokenReturnsErrorWhenRepositorySaveFailsAfterRefresh(t *t
 func TestGetValidAccessTokenReturnsErrorWhenRepositoryReturnsNoValidTokenAndNoRefreshToken(t *testing.T) {
 	Convey("Given repository returns empty access and refresh tokens", t, func() {
 		token := &auth_model.Token{AccessToken: "", RefreshToken: "", ExpiresAt: time.Now().Add(1 * time.Hour)}
-		tokenRepo := &mockTokenRepository{Token: token}
+		tokenRepo := &mockTokenRepository{Tokens: &auth_model.Tokens{StravaToken: token}}
 		tokenProvider := &mockTokenProvider{}
-		tokenService := NewTokenService(tokenProvider, tokenRepo)
+		tokenService := NewStravaTokenService(tokenProvider, tokenRepo)
 
 		Convey("When executing GetValidAccessToken", func() {
 			result, err := tokenService.GetValidToken()
@@ -191,7 +160,7 @@ func TestGetValidAccessTokenReturnsErrorWhenRepositoryReturnsNoValidTokenAndNoRe
 			Convey("Then it should return the expected error", func() {
 				So(err, ShouldNotBeNil)
 				So(result, ShouldBeEmpty)
-				So(err.Error(), ShouldEqual, "no valid access token and no refresh token available")
+				So(err.Error(), ShouldEqual, "no strava refresh token available")
 			})
 		})
 	})
@@ -200,9 +169,9 @@ func TestGetValidAccessTokenReturnsErrorWhenRepositoryReturnsNoValidTokenAndNoRe
 func TestGetValidAccessTokenReturnsErrorWhenRepositoryReturnsExpiredAccessTokenAndEmptyRefreshToken(t *testing.T) {
 	Convey("Given repository returns expired access token and empty refresh token", t, func() {
 		token := &auth_model.Token{AccessToken: "test-token", RefreshToken: "", ExpiresAt: time.Now().Add(-1 * time.Hour)}
-		tokenRepo := &mockTokenRepository{Token: token}
+		tokenRepo := &mockTokenRepository{Tokens: &auth_model.Tokens{StravaToken: token}}
 		tokenProvider := &mockTokenProvider{}
-		tokenService := NewTokenService(tokenProvider, tokenRepo)
+		tokenService := NewStravaTokenService(tokenProvider, tokenRepo)
 
 		Convey("When executing GetValidAccessToken", func() {
 			result, err := tokenService.GetValidToken()
@@ -210,7 +179,7 @@ func TestGetValidAccessTokenReturnsErrorWhenRepositoryReturnsExpiredAccessTokenA
 			Convey("Then it should return the expected error", func() {
 				So(err, ShouldNotBeNil)
 				So(result, ShouldBeEmpty)
-				So(err.Error(), ShouldEqual, "no valid access token and no refresh token available")
+				So(err.Error(), ShouldEqual, "no strava refresh token available")
 			})
 		})
 	})
