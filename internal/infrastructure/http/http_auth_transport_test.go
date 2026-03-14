@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	activity_interfaces "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/interfaces"
+	auth_interfaces "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/interfaces"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -24,7 +24,7 @@ func (f authTransportRoundTripFunc) RoundTrip(req *http.Request) (*http.Response
 	return f(req)
 }
 
-var _ activity_interfaces.TokenProvider = (*authTransportMockTokenProvider)(nil)
+var _ auth_interfaces.TokenProvider = (*authTransportMockTokenProvider)(nil)
 
 const uri = "http://example.com"
 
