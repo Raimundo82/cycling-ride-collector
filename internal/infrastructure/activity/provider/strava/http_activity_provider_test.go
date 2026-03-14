@@ -10,7 +10,7 @@ import (
 
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
-	activity_interfaces "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/interfaces"
+	auth_interfaces "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/interfaces"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -23,7 +23,7 @@ func (m *mockTokenProvider) GetValidToken() (string, error) {
 	return m.token, m.err
 }
 
-var _ activity_interfaces.TokenProvider = (*mockTokenProvider)(nil)
+var _ auth_interfaces.TokenProvider = (*mockTokenProvider)(nil)
 
 const TOKEN = "test-access-token"
 
