@@ -8,6 +8,11 @@ type Token struct {
 	ExpiresAt    time.Time `json:"expires_at"`
 }
 
+type Tokens struct {
+	StravaToken *Token `json:"strava_token"`
+	GoogleToken *Token `json:"google_token"`
+}
+
 func (t *Token) IsExpired() bool {
 	return time.Now().After(t.ExpiresAt.Add(-1 * time.Minute))
 }

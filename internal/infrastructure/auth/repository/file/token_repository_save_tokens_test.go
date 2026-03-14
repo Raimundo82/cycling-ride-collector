@@ -12,8 +12,8 @@ import (
 
 const saveTokenFile = "test_tokens.json"
 
-func TestSaveTokensSuccess(t *testing.T) {
-	Convey("Given a valid token file and, a token and a token repo", t, func() {
+func TestSaveStravaTokenSuccessAndKeepGoogleToken(t *testing.T) {
+	Convey("Given a valid token file and, a strava token and a token repo", t, func() {
 		tokenFile, _ := os.CreateTemp("", saveTokenFile)
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
 
@@ -22,28 +22,67 @@ func TestSaveTokensSuccess(t *testing.T) {
 			RefreshToken: "valid_refresh_token",
 			ExpiresAt:    time.Now().Add(1 * time.Hour),
 		}
-		_ = json.NewEncoder(tokenFile).Encode(*token)
+		_ = json.NewEncoder(tokenFile).Encode(&auth_model.Tokens{GoogleToken: token})
 		_ = tokenFile.Close()
 
 		repo, err := NewTokenRepository(tokenFile.Name())
 		So(err, ShouldBeNil)
-		Convey("When saving tokens", func() {
-			err := repo.SaveTokens(token)
+		Convey("When saving strava token", func() {
+			err := repo.SaveStravaToken(token)
 
 			Convey("Then it saves the expected token", func() {
 				So(err, ShouldBeNil)
-				savedToken, err := readTokenFromFile(tokenFile.Name())
+				tokens, err := readTokenFromFile(tokenFile.Name())
 				So(err, ShouldBeNil)
-				So(savedToken.AccessToken, ShouldEqual, "valid_access_token")
-				So(savedToken.RefreshToken, ShouldEqual, "valid_refresh_token")
-				So(savedToken.IsExpired(), ShouldBeFalse)
-				So(savedToken.ExpiresAt, ShouldHappenAfter, time.Now())
+				So(tokens.StravaToken.AccessToken, ShouldEqual, "valid_access_token")
+				So(tokens.StravaToken.RefreshToken, ShouldEqual, "valid_refresh_token")
+				So(tokens.StravaToken.IsExpired(), ShouldBeFalse)
+				So(tokens.StravaToken.ExpiresAt, ShouldHappenAfter, time.Now())
+				So(tokens.GoogleToken.AccessToken, ShouldEqual, "valid_access_token")
+				So(tokens.GoogleToken.RefreshToken, ShouldEqual, "valid_refresh_token")
+				So(tokens.GoogleToken.IsExpired(), ShouldBeFalse)
+				So(tokens.GoogleToken.ExpiresAt, ShouldHappenAfter, time.Now())
 			})
 		})
 	})
 }
 
-func TestSaveTokensWriteFileError(t *testing.T) {
+func TestSaveGoogleTokenSuccessAndKeepStravaToken(t *testing.T) {
+	Convey("Given a valid token file and, a google token and a token repo", t, func() {
+		tokenFile, _ := os.CreateTemp("", saveTokenFile)
+		defer func() { _ = os.Remove(tokenFile.Name()) }()
+
+		token := &auth_model.Token{
+			AccessToken:  "valid_access_token",
+			RefreshToken: "valid_refresh_token",
+			ExpiresAt:    time.Now().Add(1 * time.Hour),
+		}
+		_ = json.NewEncoder(tokenFile).Encode(&auth_model.Tokens{StravaToken: token})
+		_ = tokenFile.Close()
+
+		repo, err := NewTokenRepository(tokenFile.Name())
+		So(err, ShouldBeNil)
+		Convey("When saving google token", func() {
+			err := repo.SaveGoogleToken(token)
+
+			Convey("Then it saves the expected token", func() {
+				So(err, ShouldBeNil)
+				tokens, err := readTokenFromFile(tokenFile.Name())
+				So(err, ShouldBeNil)
+				So(tokens.StravaToken.AccessToken, ShouldEqual, "valid_access_token")
+				So(tokens.StravaToken.RefreshToken, ShouldEqual, "valid_refresh_token")
+				So(tokens.StravaToken.IsExpired(), ShouldBeFalse)
+				So(tokens.StravaToken.ExpiresAt, ShouldHappenAfter, time.Now())
+				So(tokens.GoogleToken.AccessToken, ShouldEqual, "valid_access_token")
+				So(tokens.GoogleToken.RefreshToken, ShouldEqual, "valid_refresh_token")
+				So(tokens.GoogleToken.IsExpired(), ShouldBeFalse)
+				So(tokens.GoogleToken.ExpiresAt, ShouldHappenAfter, time.Now())
+			})
+		})
+	})
+}
+
+func TestSaveGoogleTokenWriteFileError(t *testing.T) {
 	Convey("Given an invalid token file and, a token and a token repo", t, func() {
 		tokenFile, _ := os.CreateTemp("", saveTokenFile)
 		defer func() { _ = os.Remove(tokenFile.Name()) }()
@@ -52,15 +91,14 @@ func TestSaveTokensWriteFileError(t *testing.T) {
 			RefreshToken: "valid_refresh_token",
 			ExpiresAt:    time.Now().Add(1 * time.Hour),
 		}
-		_ = json.NewEncoder(tokenFile).Encode(*token)
+		_ = json.NewEncoder(tokenFile).Encode(&auth_model.Tokens{GoogleToken: token})
 		_ = tokenFile.Close()
-		_ = os.Chmod(tokenFile.Name(), 0o400)
-		defer func() { _ = os.Chmod(tokenFile.Name(), 0o600) }()
 		repo, err := NewTokenRepository(tokenFile.Name())
 		So(err, ShouldBeNil)
+		repo.filePath = tokenFile.Name() + "/missing/tokens.json"
 
-		Convey("When saving tokens", func() {
-			err := repo.SaveTokens(token)
+		Convey("When saving google token", func() {
+			err := repo.SaveGoogleToken(token)
 
 			Convey("Then it returns an error", func() {
 				So(err, ShouldNotBeNil)
@@ -79,7 +117,7 @@ func TestSaveTokensExpiredToken(t *testing.T) {
 			RefreshToken: "valid_refresh_token",
 			ExpiresAt:    time.Now().Add(1 * time.Hour),
 		}
-		_ = json.NewEncoder(tokenFile).Encode(*initialToken)
+		_ = json.NewEncoder(tokenFile).Encode(&auth_model.Tokens{GoogleToken: initialToken})
 		_ = tokenFile.Close()
 		repo, err := NewTokenRepository(tokenFile.Name())
 		So(err, ShouldBeNil)
@@ -88,20 +126,16 @@ func TestSaveTokensExpiredToken(t *testing.T) {
 			RefreshToken: "",
 			ExpiresAt:    time.Now().Add(-1 * time.Hour),
 		}
-		Convey("When saving tokens", func() {
-			err := repo.SaveTokens(token)
+		Convey("When saving  a google token", func() {
+			err := repo.SaveGoogleToken(token)
 			Convey("Then it saves the expected token", func() {
 				So(err, ShouldBeNil)
-				savedToken, err := readTokenFromFile(tokenFile.Name())
+				tokens, err := readTokenFromFile(tokenFile.Name())
 				So(err, ShouldBeNil)
-				So(savedToken.AccessToken, ShouldEqual, "")
-				So(savedToken.RefreshToken, ShouldEqual, "")
-				So(savedToken.IsExpired(), ShouldBeTrue)
-				So(savedToken.ExpiresAt, ShouldHappenBefore, time.Now())
-				So(repo.token.AccessToken, ShouldEqual, "")
-				So(repo.token.RefreshToken, ShouldEqual, "")
-				So(repo.token.IsExpired(), ShouldBeTrue)
-				So(repo.token.ExpiresAt, ShouldHappenBefore, time.Now())
+				So(tokens.GoogleToken.AccessToken, ShouldEqual, "")
+				So(tokens.GoogleToken.RefreshToken, ShouldEqual, "")
+				So(tokens.GoogleToken.IsExpired(), ShouldBeTrue)
+				So(tokens.GoogleToken.ExpiresAt, ShouldHappenBefore, time.Now())
 			})
 		})
 	})
@@ -116,7 +150,7 @@ func TestSaveTokensSerializationError(t *testing.T) {
 			RefreshToken: "valid_refresh_token",
 			ExpiresAt:    time.Now().Add(1 * time.Hour),
 		}
-		_ = json.NewEncoder(tokenFile).Encode(*initialToken)
+		_ = json.NewEncoder(tokenFile).Encode(&auth_model.Tokens{StravaToken: initialToken})
 		_ = tokenFile.Close()
 		repo, err := NewTokenRepository(tokenFile.Name())
 		So(err, ShouldBeNil)
@@ -127,11 +161,11 @@ func TestSaveTokensSerializationError(t *testing.T) {
 		}
 
 		Convey("When saving tokens", func() {
-			err := repo.SaveTokens(token)
+			err := repo.SaveGoogleToken(token)
 
 			Convey("Then it returns a serialization error", func() {
 				So(err, ShouldNotBeNil)
-				So(err.Error(), ShouldContainSubstring, "failed to serialize token")
+				So(err.Error(), ShouldContainSubstring, "failed to serialize tokens")
 				So(err.Error(), ShouldContainSubstring, "year outside of range [0,9999]")
 			})
 		})
@@ -140,7 +174,10 @@ func TestSaveTokensSerializationError(t *testing.T) {
 
 func TestSaveTokensSetFilePermissionsError(t *testing.T) {
 	Convey("Given a token repo writing to a device file", t, func() {
-		repo := &tokenRepository{filePath: "/dev/null"}
+		repo := &tokenRepository{
+			filePath: "/dev/null",
+			tokens:   ensureTokens(nil),
+		}
 		token := &auth_model.Token{
 			AccessToken:  "valid_access_token",
 			RefreshToken: "valid_refresh_token",
@@ -148,25 +185,25 @@ func TestSaveTokensSetFilePermissionsError(t *testing.T) {
 		}
 
 		Convey("When saving tokens", func() {
-			err := repo.SaveTokens(token)
+			err := repo.SaveStravaToken(token)
 
 			Convey("Then it returns a file permission error", func() {
 				So(err, ShouldNotBeNil)
-				So(err.Error(), ShouldContainSubstring, "failed to set token file permissions")
+				So(err.Error(), ShouldContainSubstring, "failed to write token file")
 			})
 		})
 	})
 }
 
-func readTokenFromFile(filepath string) (*auth_model.Token, error) {
+func readTokenFromFile(filepath string) (*auth_model.Tokens, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
 		return nil, err
 	}
 	defer func() { _ = file.Close() }()
-	var token auth_model.Token
-	if err := json.NewDecoder(file).Decode(&token); err != nil {
+	var tokens auth_model.Tokens
+	if err := json.NewDecoder(file).Decode(&tokens); err != nil {
 		return nil, err
 	}
-	return &token, nil
+	return &tokens, nil
 }

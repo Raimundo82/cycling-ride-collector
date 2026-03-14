@@ -14,3 +14,10 @@ type RefreshAccessTokenRequest struct {
 	GrantType    string `json:"grant_type"`
 	RefreshToken string `json:"refresh_token"`
 }
+
+type GoogleRefreshAccessTokenResponse struct {
+	AccessToken string `json:"access_token"`
+	ExpiresIn   int64  `json:"expires_in"`
+	Scope       string `json:"scope"`
+	TokenType   string `json:"token_type"`
+}
