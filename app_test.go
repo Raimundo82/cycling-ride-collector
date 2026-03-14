@@ -17,6 +17,8 @@ import (
 
 var athlete = domain.NewAthlete(75, 135, 240)
 
+const testWorkoutReportPath = "/tmp/workout-report.xlsx"
+
 type spyDailyWorkoutPolicy struct {
 	Called                int
 	MinWorkoutDuration    int
@@ -48,6 +50,18 @@ var _ contracts.WorkoutRepository = (*spyWorkoutRepository)(nil)
 func (s *spyWorkoutRepository) SaveAll(workouts []*domain.Workout, athlete *domain.Athlete) error {
 	s.Called++
 	s.Workouts = workouts
+	return s.Err
+}
+
+type spyReportSender struct {
+	Called     int
+	ReportPath string
+	Err        error
+}
+
+func (s *spyReportSender) Send(reportPath string) error {
+	s.Called++
+	s.ReportPath = reportPath
 	return s.Err
 }
 
@@ -178,13 +192,16 @@ func TestAppRunDelegatesToUseCase(t *testing.T) {
 		}
 		athleteProvider := &stubAthleteProvider{Athlete: athlete}
 		uc := usecase.NewSaveWorkoutPeriod(spyPolicy, spyRepo, provider, athleteProvider)
-		app := &App{SaveWorkoutPeriod: *uc}
 
 		period, _ := domain.NewPeriod(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC))
 		request := &input.SaveWorkoutPeriodRequest{Period: period, MinimalWorkoutDuration: 45}
 
+		sender := &spyReportSender{}
+		sendUseCase := usecase.NewSendWorkoutReport(sender)
+		app := &App{SaveWorkoutPeriod: *uc, SendWorkoutReport: *sendUseCase}
+
 		Convey("When Run is called", func() {
-			err := app.Run(request)
+			err := app.Run(request, testWorkoutReportPath)
 
 			Convey("Then it executes SaveWorkoutPeriod with request values", func() {
 				So(err, ShouldBeNil)
@@ -213,7 +230,7 @@ func TestAppRunPropagatesError(t *testing.T) {
 		request := &input.SaveWorkoutPeriodRequest{Period: period, MinimalWorkoutDuration: 45}
 
 		Convey("When Run is called", func() {
-			err := app.Run(request)
+			err := app.Run(request, testWorkoutReportPath)
 
 			Convey("Then it propagates the use case error", func() {
 				So(err, ShouldNotBeNil)
@@ -221,6 +238,97 @@ func TestAppRunPropagatesError(t *testing.T) {
 				So(provider.Called, ShouldEqual, 1)
 				So(spyPolicy.Called, ShouldEqual, 0)
 				So(spyRepo.Called, ShouldEqual, 0)
+			})
+		})
+	})
+}
+
+func TestAppRunCallsSenderWithProvidedReportPath(t *testing.T) {
+	Convey("Given an App with successful save and report sender use cases", t, func() {
+		spyPolicy := &spyDailyWorkoutPolicy{}
+		spyRepo := &spyWorkoutRepository{}
+		provider := &stubWorkoutProvider{
+			Result: []*domain.Workout{
+				domain.NewWorkout(domain.WorkoutParams{ID: 10, DurationInMin: 90, StartTime: time.Date(2026, 1, 1, 8, 0, 0, 0, time.UTC)}),
+			},
+		}
+		athleteProvider := &stubAthleteProvider{Athlete: athlete}
+		saveUseCase := usecase.NewSaveWorkoutPeriod(spyPolicy, spyRepo, provider, athleteProvider)
+
+		sender := &spyReportSender{}
+		sendUseCase := usecase.NewSendWorkoutReport(sender)
+
+		app := &App{SaveWorkoutPeriod: *saveUseCase, SendWorkoutReport: *sendUseCase}
+
+		period, _ := domain.NewPeriod(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC))
+		request := &input.SaveWorkoutPeriodRequest{Period: period, MinimalWorkoutDuration: 45}
+
+		Convey("When Run is called", func() {
+			err := app.Run(request, testWorkoutReportPath)
+
+			Convey("Then it should send the report using the provided path", func() {
+				So(err, ShouldBeNil)
+				So(spyRepo.Called, ShouldEqual, 1)
+				So(sender.Called, ShouldEqual, 1)
+				So(sender.ReportPath, ShouldEqual, testWorkoutReportPath)
+			})
+		})
+	})
+}
+
+func TestAppRunDoesNotCallSenderWhenSaveFails(t *testing.T) {
+	Convey("Given an App where save use case returns an error", t, func() {
+		spyPolicy := &spyDailyWorkoutPolicy{}
+		spyRepo := &spyWorkoutRepository{}
+		provider := &stubWorkoutProvider{Err: errors.New("provider failure")}
+		athleteProvider := &stubAthleteProvider{Athlete: athlete}
+		saveUseCase := usecase.NewSaveWorkoutPeriod(spyPolicy, spyRepo, provider, athleteProvider)
+
+		sender := &spyReportSender{}
+		sendUseCase := usecase.NewSendWorkoutReport(sender)
+
+		app := &App{SaveWorkoutPeriod: *saveUseCase, SendWorkoutReport: *sendUseCase}
+
+		period, _ := domain.NewPeriod(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC))
+		request := &input.SaveWorkoutPeriodRequest{Period: period, MinimalWorkoutDuration: 45}
+
+		Convey("When Run is called", func() {
+			err := app.Run(request, testWorkoutReportPath)
+
+			Convey("Then sender should not be called", func() {
+				So(err, ShouldNotBeNil)
+				So(sender.Called, ShouldEqual, 0)
+			})
+		})
+	})
+}
+
+func TestAppRunPropagatesSenderError(t *testing.T) {
+	Convey("Given an App where sender use case returns an error", t, func() {
+		spyPolicy := &spyDailyWorkoutPolicy{}
+		spyRepo := &spyWorkoutRepository{}
+		provider := &stubWorkoutProvider{
+			Result: []*domain.Workout{
+				domain.NewWorkout(domain.WorkoutParams{ID: 10, DurationInMin: 90, StartTime: time.Date(2026, 1, 1, 8, 0, 0, 0, time.UTC)}),
+			},
+		}
+		athleteProvider := &stubAthleteProvider{Athlete: athlete}
+		saveUseCase := usecase.NewSaveWorkoutPeriod(spyPolicy, spyRepo, provider, athleteProvider)
+
+		sender := &spyReportSender{Err: errors.New("send failed")}
+		sendUseCase := usecase.NewSendWorkoutReport(sender)
+
+		app := &App{SaveWorkoutPeriod: *saveUseCase, SendWorkoutReport: *sendUseCase}
+
+		period, _ := domain.NewPeriod(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC))
+		request := &input.SaveWorkoutPeriodRequest{Period: period, MinimalWorkoutDuration: 45}
+
+		Convey("When Run is called", func() {
+			err := app.Run(request, testWorkoutReportPath)
+
+			Convey("Then it should propagate the sender error", func() {
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "send failed")
 			})
 		})
 	})

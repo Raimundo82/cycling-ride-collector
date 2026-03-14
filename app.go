@@ -18,10 +18,12 @@ import (
 	auth_repository "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/repository/file"
 	authService "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/service"
 	custom_http "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/http"
+	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/notification/email"
 )
 
 type App struct {
 	SaveWorkoutPeriod usecase.SaveWorkoutPeriod
+	SendWorkoutReport usecase.SendWorkoutReport
 }
 
 func NewApp(cfg *config.Config, dailyWorkoutPolicy string) (*App, error) {
@@ -34,8 +36,10 @@ func NewApp(cfg *config.Config, dailyWorkoutPolicy string) (*App, error) {
 
 	oauthClient := stravaAuthProvider.NewOAuthHttpClient(&http.Client{Timeout: 10 * time.Second}, cfg)
 	oauthProvider := authProvider.NewOAuthProvider(oauthClient, cfg)
-	tokenProvider := authService.NewTokenService(oauthProvider, tokenRepo)
-	authTransport := custom_http.NewAuthTransport(tokenProvider)
+	stravaTokenProvider := authService.NewStravaTokenService(oauthProvider, tokenRepo)
+	googleTokenProvider := authService.NewGoogleTokenService(oauthProvider, tokenRepo)
+
+	authTransport := custom_http.NewAuthTransport(stravaTokenProvider)
 
 	apiHttpClient := &http.Client{Timeout: 10 * time.Second, Transport: authTransport}
 	workoutProvider := activityProvider.NewWorkoutProvider(
@@ -45,10 +49,10 @@ func NewApp(cfg *config.Config, dailyWorkoutPolicy string) (*App, error) {
 	httpAthleteStatsProvider := athlete_strava.NewHttpAthleteStatsProvider(apiHttpClient, cfg.StravaApiBaseUrl)
 	athleteProvider := athlete_provider.NewAthleteProvider(httpAthleteStatsProvider)
 
-	useCase := usecase.NewSaveWorkoutPeriod(
+	saveWorkoutPeriodUseCase := usecase.NewSaveWorkoutPeriod(
 		policy,
 		activity_excel.NewExcelWorkoutPeriodSaverWithOptions(
-			cfg.OutputFilePath+".xlsx",
+			cfg.OutputFilePath,
 			cfg.ExcelTemplate.TemplatePath,
 			cfg.ExcelTemplate.SheetName,
 			cfg.ExcelTemplate.StartCell,
@@ -57,11 +61,25 @@ func NewApp(cfg *config.Config, dailyWorkoutPolicy string) (*App, error) {
 		athleteProvider,
 	)
 
-	return &App{SaveWorkoutPeriod: *useCase}, nil
+	sendWorkoutReportUseCase := usecase.NewSendWorkoutReport(
+		email.NewGmailWorkoutReportSender(&http.Client{Timeout: 10 * time.Second}, googleTokenProvider, cfg),
+	)
+
+	return &App{
+		SaveWorkoutPeriod: *saveWorkoutPeriodUseCase,
+		SendWorkoutReport: *sendWorkoutReportUseCase,
+	}, nil
 }
 
-func (a *App) Run(request *input.SaveWorkoutPeriodRequest) error {
-	return a.SaveWorkoutPeriod.Execute(request.Period, request.MinimalWorkoutDuration)
+func (a *App) Run(request *input.SaveWorkoutPeriodRequest, reportPath string) error {
+	err := a.SaveWorkoutPeriod.Execute(request.Period, request.MinimalWorkoutDuration)
+	if err != nil {
+		return err
+	}
+	if err := a.SendWorkoutReport.Execute(reportPath); err != nil {
+		return err
+	}
+	return nil
 }
 
 func buildDailyWorkoutPolicy(workoutPolicy string) contracts.DailyWorkoutPolicy {
