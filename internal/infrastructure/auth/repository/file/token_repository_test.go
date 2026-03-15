@@ -1,9 +1,13 @@
 package auth_repository
 
 import (
+	"encoding/json"
 	"os"
+	"path/filepath"
 	"testing"
+	"time"
 
+	auth_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -19,12 +23,12 @@ func TestNewTokenRepositorySuccess(t *testing.T) {
 		_, err := tokenFile.Write(
 			[]byte(
 				`{
-					"strava_token": {
+					"strava": {
 						"access_token":"",
 						"refresh_token":"strava_refresh_token",
 						"expires_at":"0001-01-01T00:00:00Z"
 					},
-				    "google_token":{
+				    "google":{
 						"access_token":"",
 						"refresh_token":"google_refresh_token",
 						"expires_at":"0001-01-01T00:00:00Z"
@@ -123,7 +127,7 @@ func TestEmptyTokenJsonFile(t *testing.T) {
 func TestNewTokenRepositoryWithNullTokens(t *testing.T) {
 	Convey("Given a token file with both tokens set to null", t, func() {
 		tokenFile, _ := os.CreateTemp("", tokenRepositoryTestFile)
-		_, err := tokenFile.Write([]byte(`{"strava_token": null, "google_token": null}`))
+		_, err := tokenFile.Write([]byte(`{"strava": null, "google": null}`))
 		if err != nil {
 			t.Fatalf("Failed to write to token file: %v", err)
 		}
@@ -153,7 +157,7 @@ func TestNewTokenRepositoryWithMissingStravaToken(t *testing.T) {
 	Convey("Given a token file with only google token defined", t, func() {
 		tokenFile, _ := os.CreateTemp("", tokenRepositoryTestFile)
 		_, err := tokenFile.Write([]byte(`{
-			"google_token": {
+			"google": {
 				"access_token": "google_access_token",
 				"refresh_token": "google_refresh_token",
 				"expires_at": "0001-01-01T00:00:00Z"
@@ -186,7 +190,7 @@ func TestNewTokenRepositoryWithMissingGoogleToken(t *testing.T) {
 	Convey("Given a token file with only strava token defined", t, func() {
 		tokenFile, _ := os.CreateTemp("", tokenRepositoryTestFile)
 		_, err := tokenFile.Write([]byte(`{
-			"strava_token": {
+			"strava": {
 				"access_token": "strava_access_token",
 				"refresh_token": "strava_refresh_token",
 				"expires_at": "0001-01-01T00:00:00Z"
@@ -210,6 +214,68 @@ func TestNewTokenRepositoryWithMissingGoogleToken(t *testing.T) {
 				So(repo.tokens.GoogleToken.RefreshToken, ShouldEqual, "")
 				So(repo.tokens.StravaToken.AccessToken, ShouldEqual, "strava_access_token")
 				So(repo.tokens.StravaToken.RefreshToken, ShouldEqual, "strava_refresh_token")
+			})
+		})
+	})
+}
+
+func TestSaveStravaTokenWithRelativePath(t *testing.T) {
+	Convey("Given a repository created with a relative token file path", t, func() {
+		tempDir := t.TempDir()
+		originalWD, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("Failed to get working directory: %v", err)
+		}
+		if err := os.Chdir(tempDir); err != nil {
+			t.Fatalf("Failed to change working directory: %v", err)
+		}
+		defer func() {
+			_ = os.Chdir(originalWD)
+		}()
+
+		filePath := "tokens.json"
+		err = os.WriteFile(filePath, []byte(`{
+			"strava": {
+				"access_token": "",
+				"refresh_token": "strava_refresh_token",
+				"expires_at": "0001-01-01T00:00:00Z"
+			},
+			"google": {
+				"access_token": "",
+				"refresh_token": "google_refresh_token",
+				"expires_at": "0001-01-01T00:00:00Z"
+			}
+		}`), 0o600)
+		if err != nil {
+			t.Fatalf("Failed to write token file: %v", err)
+		}
+
+		repo, err := NewTokenRepository(filePath)
+		if err != nil {
+			t.Fatalf("Failed to create repository: %v", err)
+		}
+
+		newToken := &auth_model.Token{
+			AccessToken:  "new_access_token",
+			RefreshToken: "new_refresh_token",
+			ExpiresAt:    time.Date(2026, time.March, 14, 23, 0, 0, 0, time.UTC),
+		}
+
+		Convey("When saving a Strava token", func() {
+			err := repo.SaveStravaToken(newToken)
+
+			Convey("Then it should update the relative token file successfully", func() {
+				So(err, ShouldBeNil)
+
+				fileBytes, readErr := os.ReadFile(filepath.Join(tempDir, filePath))
+				So(readErr, ShouldBeNil)
+
+				var savedTokens auth_model.Tokens
+				unmarshalErr := json.Unmarshal(fileBytes, &savedTokens)
+				So(unmarshalErr, ShouldBeNil)
+				So(savedTokens.StravaToken.AccessToken, ShouldEqual, "new_access_token")
+				So(savedTokens.StravaToken.RefreshToken, ShouldEqual, "new_refresh_token")
+				So(savedTokens.GoogleToken.RefreshToken, ShouldEqual, "google_refresh_token")
 			})
 		})
 	})

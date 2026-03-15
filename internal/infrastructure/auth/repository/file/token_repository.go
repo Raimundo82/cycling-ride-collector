@@ -34,7 +34,6 @@ func (t *tokenRepository) GetTokens() (*auth_model.Tokens, error) {
 	if t.tokens != nil {
 		return t.tokens, nil
 	}
-
 	tokens, err := t.readTokensFromFile()
 	if err != nil {
 		return nil, err
@@ -123,11 +122,12 @@ func (t *tokenRepository) SaveGoogleToken(token *auth_model.Token) error {
 }
 
 func writeTokenFileAtomically(filePath string, content []byte) error {
-	dir := filepath.Dir(filePath)
-	if dir == "" {
-		dir = "."
+	absPath, err := filepath.Abs(filePath)
+	if err != nil {
+		return err
 	}
 
+	dir := filepath.Dir(absPath)
 	tempFile, err := os.CreateTemp(dir, ".token-*")
 	if err != nil {
 		return err
@@ -146,8 +146,8 @@ func writeTokenFileAtomically(filePath string, content []byte) error {
 	if err := tempFile.Close(); err != nil {
 		return err
 	}
-	if err := os.Rename(tempPath, filePath); err != nil {
+	if err := os.Rename(tempPath, absPath); err != nil {
 		return err
 	}
-	return os.Chmod(filePath, 0o600)
+	return nil
 }
