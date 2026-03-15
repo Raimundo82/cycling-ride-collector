@@ -35,7 +35,7 @@ func TestGoogleGetValidAccessTokenReturnsNewTokenWhenRepositoryRefreshTokenExist
 		newToken := &auth_model.Token{AccessToken: "new_google_access_token", RefreshToken: "new_google_refresh_token", ExpiresAt: time.Now().Add(1 * time.Hour)}
 
 		tokenRepo := &mockTokenRepository{Tokens: &auth_model.Tokens{GoogleToken: storedToken}}
-		tokenProvider := &mockTokenProvider{Tokens: &auth_model.Tokens{StravaToken: newToken}}
+		tokenProvider := &mockTokenProvider{Tokens: &auth_model.Tokens{GoogleToken: newToken}}
 		tokenService := NewGoogleTokenService(tokenProvider, tokenRepo)
 
 		Convey("When executing GetValidToken", func() {
@@ -59,10 +59,11 @@ func TestGoogleGetValidAccessTokenReturnsErrorWhenRepositoryGetFails(t *testing.
 		tokenService := NewGoogleTokenService(tokenProvider, tokenRepo)
 
 		Convey("When executing GetValidToken", func() {
-			Convey("Then it should panic before returning the repository error", func() {
-				So(func() {
-					_, _ = tokenService.GetValidToken()
-				}, ShouldPanic)
+			Convey("Then it should return the repository error", func() {
+				result, err := tokenService.GetValidToken()
+
+				So(err, ShouldEqual, repoErr)
+				So(result, ShouldBeEmpty)
 			})
 		})
 	})
@@ -151,7 +152,7 @@ func TestGoogleGetValidAccessTokenReturnsErrorWhenRepositorySaveFailsAfterRefres
 		newToken := &auth_model.Token{AccessToken: "new_google_access_token", RefreshToken: "new_google_refresh_token", ExpiresAt: time.Now().Add(1 * time.Hour)}
 
 		tokenRepo := &mockTokenRepository{Tokens: &auth_model.Tokens{GoogleToken: storedToken}, SaveErr: saveErr}
-		tokenProvider := &mockTokenProvider{Tokens: &auth_model.Tokens{StravaToken: newToken}}
+		tokenProvider := &mockTokenProvider{Tokens: &auth_model.Tokens{GoogleToken: newToken}}
 		tokenService := NewGoogleTokenService(tokenProvider, tokenRepo)
 
 		Convey("When executing GetValidToken", func() {

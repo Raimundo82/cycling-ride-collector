@@ -2,6 +2,7 @@ package auth_service
 
 import (
 	"fmt"
+	"time"
 
 	authInterfaces "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/interfaces"
 	auth_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
@@ -31,11 +32,10 @@ func (s *GoogleTokenService) GetValidToken() (string, error) {
 	}
 
 	tokens, err := s.tokenRepo.GetTokens()
-	token := tokens.GoogleToken
-
 	if err != nil {
 		return "", err
 	}
+	token := tokens.GoogleToken
 
 	if token == nil {
 		return "", fmt.Errorf("no google tokens available")
@@ -45,10 +45,13 @@ func (s *GoogleTokenService) GetValidToken() (string, error) {
 		return "", fmt.Errorf("no google refresh token available")
 	}
 
-	token, err = s.oauthProvider.RefreshToken(token.RefreshToken)
+	token, err = s.oauthProvider.RefreshGoogleToken(token.RefreshToken)
 	if err != nil {
 		return "", err
 	}
+
+	token.RefreshToken = tokens.GoogleToken.RefreshToken
+	token.ExpiresAt = time.Now().Add(time.Duration(token.ExpiresIn) * time.Second)
 
 	s.cachedToken = token
 
