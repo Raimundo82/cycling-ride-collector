@@ -14,10 +14,30 @@ type oauthProvider struct {
 	config      *config.Config
 }
 
+// RefreshGoogleToken implements [auth_interfaces.OAuthProvider].
+func (o *oauthProvider) RefreshGoogleToken(refreshToken string) (*auth_model.Token, error) {
+	resp, err := o.oauthClient.RefreshToken(
+		context.Background(),
+		&auth_model.RefreshAccessTokenRequest{
+			ClientID:     o.config.GoogleOAuth.ClientID,
+			ClientSecret: o.config.GoogleOAuth.ClientSecret,
+			RefreshToken: refreshToken,
+			GrantType:    "refresh_token",
+		})
+	if err != nil {
+		return nil, err
+	}
+	return &auth_model.Token{
+		AccessToken:  resp.AccessToken,
+		RefreshToken: resp.RefreshToken,
+		ExpiresAt:    time.Unix(int64(resp.ExpiresAt), 0),
+	}, nil
+}
+
 var _ auth_interfaces.OAuthProvider = (*oauthProvider)(nil)
 
-// RefreshToken implements [auth_interfaces.OAuthProvider].
-func (o *oauthProvider) RefreshToken(refreshToken string) (*auth_model.Token, error) {
+// RefreshStravaToken implements [auth_interfaces.OAuthProvider].
+func (o *oauthProvider) RefreshStravaToken(refreshToken string) (*auth_model.Token, error) {
 	resp, err := o.oauthClient.RefreshToken(
 		context.Background(),
 		&auth_model.RefreshAccessTokenRequest{

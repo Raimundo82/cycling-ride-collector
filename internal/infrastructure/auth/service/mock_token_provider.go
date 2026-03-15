@@ -10,8 +10,19 @@ type mockTokenProvider struct {
 	Err    error
 }
 
-// RefreshToken implements [authInterfaces.OAuthProvider].
-func (m *mockTokenProvider) RefreshToken(refreshToken string) (*auth_model.Token, error) {
+// RefreshGoogleToken implements [auth_interfaces.OAuthProvider].
+func (m *mockTokenProvider) RefreshGoogleToken(refreshToken string) (*auth_model.Token, error) {
+	if m.Err != nil {
+		return nil, m.Err
+	}
+	if m.Tokens == nil {
+		return nil, nil
+	}
+	return m.Tokens.GoogleToken, m.Err
+}
+
+// RefreshStravaToken implements [authInterfaces.OAuthProvider].
+func (m *mockTokenProvider) RefreshStravaToken(refreshToken string) (*auth_model.Token, error) {
 	if m.Err != nil {
 		return nil, m.Err
 	}

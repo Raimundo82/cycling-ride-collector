@@ -42,7 +42,7 @@ func TestOAuthProviderRefreshTokenSuccess(t *testing.T) {
 		oauthProvider := NewOAuthProvider(refresher, cfg)
 
 		Convey("When RefreshToken is called", func() {
-			token, err := oauthProvider.RefreshToken("incoming-refresh-token")
+			token, err := oauthProvider.RefreshStravaToken("incoming-refresh-token")
 
 			Convey("Then it returns the mapped token and no error", func() {
 				So(err, ShouldBeNil)
@@ -71,7 +71,7 @@ func TestOAuthProviderRefreshTokenPassesExpectedRequest(t *testing.T) {
 		oauthProvider := NewOAuthProvider(refresher, cfg)
 
 		Convey("When RefreshToken is called", func() {
-			_, _ = oauthProvider.RefreshToken("incoming-refresh-token")
+			_, _ = oauthProvider.RefreshStravaToken("incoming-refresh-token")
 
 			Convey("Then it builds the expected request", func() {
 				So(refresher.gotRequest, ShouldNotBeNil)
@@ -96,7 +96,7 @@ func TestOAuthProviderRefreshTokenReturnsRefresherError(t *testing.T) {
 		oauthProvider := NewOAuthProvider(refresher, cfg)
 
 		Convey("When RefreshToken is called", func() {
-			token, err := oauthProvider.RefreshToken("incoming-refresh-token")
+			token, err := oauthProvider.RefreshStravaToken("incoming-refresh-token")
 
 			Convey("Then it returns the refresher error", func() {
 				So(err, ShouldNotBeNil)

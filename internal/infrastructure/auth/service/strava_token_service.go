@@ -44,7 +44,8 @@ func (s *StravaTokenService) GetValidToken() (string, error) {
 		if token.RefreshToken == "" {
 			return "", fmt.Errorf("no strava refresh token available")
 		}
-		token, err = s.oauthProvider.RefreshToken(token.RefreshToken)
+
+		token, err = s.oauthProvider.RefreshStravaToken(token.RefreshToken)
 		if err != nil {
 			return "", err
 		}
