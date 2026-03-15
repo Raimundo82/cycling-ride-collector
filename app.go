@@ -14,6 +14,7 @@ import (
 	athlete_provider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/athlete/provider"
 	athlete_strava "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/athlete/provider/strava"
 	authProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider"
+	googleAuthProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider/google"
 	stravaAuthProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider/strava"
 	auth_repository "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/repository/file"
 	authService "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/service"
@@ -34,10 +35,13 @@ func NewApp(cfg *config.Config, dailyWorkoutPolicy string) (*App, error) {
 		return nil, err
 	}
 
-	oauthClient := stravaAuthProvider.NewOAuthHttpClient(&http.Client{Timeout: 10 * time.Second}, cfg)
-	oauthProvider := authProvider.NewOAuthProvider(oauthClient, cfg)
-	stravaTokenProvider := authService.NewStravaTokenService(oauthProvider, tokenRepo)
-	googleTokenProvider := authService.NewGoogleTokenService(oauthProvider, tokenRepo)
+	stravaOauthClient := stravaAuthProvider.NewOAuthHttpClient(&http.Client{Timeout: 10 * time.Second}, cfg)
+	stravaOauthProvider := authProvider.NewOAuthProvider(stravaOauthClient, cfg)
+	stravaTokenProvider := authService.NewStravaTokenService(stravaOauthProvider, tokenRepo)
+
+	googleOauthClient := googleAuthProvider.NewOAuthHttpClient(&http.Client{Timeout: 10 * time.Second}, cfg)
+	googleOuathProvider := authProvider.NewOAuthProvider(googleOauthClient, cfg)
+	googleTokenProvider := authService.NewGoogleTokenService(googleOuathProvider, tokenRepo)
 
 	authTransport := custom_http.NewAuthTransport(stravaTokenProvider)
 
