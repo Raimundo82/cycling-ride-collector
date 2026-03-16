@@ -24,7 +24,7 @@ const stravaError = "strava error: %s"
 func NewActivityProvider(httpClient *http.Client, cfg *config.Config) *activityProvider {
 	return &activityProvider{
 		httpClient: httpClient,
-		baseUrl:    cfg.StravaApiBaseUrl,
+		baseUrl:    cfg.Strava.ApiBaseUrl,
 	}
 }
 

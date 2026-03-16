@@ -83,7 +83,7 @@ func runOnceMode(options config.CLIOptions) error {
 	}
 	if cfg.OutputFilePath == "" {
 		cfg.OutputFilePath = fmt.Sprintf(
-			"workouts_summary_%s_to_%s",
+			"workouts_summary_%s_to_%s.xlsx",
 			request.Period.StartDate().Format("2006-01-02"),
 			request.Period.EndDate().Format("2006-01-02"),
 		)
@@ -94,7 +94,7 @@ func runOnceMode(options config.CLIOptions) error {
 		return fmt.Errorf("failed to initialize app: %w", err)
 	}
 
-	if err := app.Run(request); err != nil {
+	if err := app.Run(request, cfg.OutputFilePath); err != nil {
 		return fmt.Errorf("error running app: %w", err)
 	}
 
