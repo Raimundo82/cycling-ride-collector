@@ -2,6 +2,7 @@ package email
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -11,10 +12,11 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/raimundo82/cycling-ride-collector/internal/application/contracts"
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
-	auth_interfaces "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/interfaces"
+	token_provider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider"
 )
 
 const (
@@ -24,7 +26,7 @@ const (
 
 type gmailWorkoutReportSender struct {
 	httpClient    *http.Client
-	tokenProvider auth_interfaces.TokenProvider
+	tokenProvider token_provider.TokenProvider
 	from          string
 	to            string
 	subject       string
@@ -41,7 +43,11 @@ type gmailSendResponse struct {
 
 var _ contracts.WorkoutReportSender = (*gmailWorkoutReportSender)(nil)
 
-func NewGmailWorkoutReportSender(httpClient *http.Client, tokenProvider auth_interfaces.TokenProvider, cfg *config.Config) *gmailWorkoutReportSender {
+func NewGmailWorkoutReportSender(
+	httpClient *http.Client,
+	tokenProvider token_provider.TokenProvider,
+	cfg *config.Config,
+) *gmailWorkoutReportSender {
 	return &gmailWorkoutReportSender{
 		httpClient:    httpClient,
 		tokenProvider: tokenProvider,
@@ -53,7 +59,10 @@ func NewGmailWorkoutReportSender(httpClient *http.Client, tokenProvider auth_int
 }
 
 func (g *gmailWorkoutReportSender) Send(reportPath string) error {
-	accessToken, err := g.tokenProvider.GetValidToken()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	accessToken, err := g.tokenProvider.GetValidToken(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get google access token: %w", err)
 	}
@@ -68,7 +77,7 @@ func (g *gmailWorkoutReportSender) Send(reportPath string) error {
 		return fmt.Errorf("failed to encode gmail request: %w", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, g.apiURL, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, g.apiURL, bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("failed to create gmail request: %w", err)
 	}
@@ -133,11 +142,11 @@ func (g *gmailWorkoutReportSender) buildMessage(reportPath string) ([]byte, erro
 	}
 
 	var message bytes.Buffer
-	message.WriteString(fmt.Sprintf("From: %s\r\n", g.from))
-	message.WriteString(fmt.Sprintf("To: %s\r\n", g.to))
-	message.WriteString(fmt.Sprintf("Subject: %s\r\n", g.subject))
+	fmt.Fprintf(&message, "From: %s\r\n", g.from)
+	fmt.Fprintf(&message, "To: %s\r\n", g.to)
+	fmt.Fprintf(&message, "Subject: %s\r\n", g.subject)
 	message.WriteString("MIME-Version: 1.0\r\n")
-	message.WriteString(fmt.Sprintf("Content-Type: multipart/mixed; boundary=%s\r\n", boundary))
+	fmt.Fprintf(&message, "Content-Type: multipart/mixed; boundary=%s\r\n", boundary)
 	message.WriteString("\r\n")
 	message.Write(body.Bytes())
 
@@ -152,10 +161,7 @@ func wrapBase64(value string) string {
 	const lineLength = 76
 	var builder strings.Builder
 	for start := 0; start < len(value); start += lineLength {
-		end := start + lineLength
-		if end > len(value) {
-			end = len(value)
-		}
+		end := min(start+lineLength, len(value))
 		builder.WriteString(value[start:end])
 		builder.WriteString("\r\n")
 	}
