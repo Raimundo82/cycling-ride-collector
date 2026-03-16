@@ -14,6 +14,7 @@ type TokenProvider interface {
 type tokenProvider struct {
 	RefreshTokenInput *token_model.RefreshTokenInput
 	TokenClient       token_client.TokenClient
+	cachedToken       token_model.Token
 }
 
 func NewTokenProvider(input *token_model.RefreshTokenInput, tokenClient token_client.TokenClient) TokenProvider {
@@ -25,11 +26,17 @@ func NewTokenProvider(input *token_model.RefreshTokenInput, tokenClient token_cl
 
 // GetValidToken implements [TokenProvider].
 func (t *tokenProvider) GetValidToken(ctx context.Context) (string, error) {
+	if t.cachedToken.IsValid() {
+		return t.cachedToken.AccessToken(), nil
+	}
+
 	resp, err := t.TokenClient.RefreshToken(ctx, t.RefreshTokenInput)
 	if err != nil {
 		return "", err
 	}
-	return resp.AccessToken, nil
+
+	t.cachedToken = token_model.NewToken(resp.AccessToken, resp.ExpiresIn)
+	return t.cachedToken.AccessToken(), nil
 }
 
 var _ TokenProvider = (*tokenProvider)(nil)
