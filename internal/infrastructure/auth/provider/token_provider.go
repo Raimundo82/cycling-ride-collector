@@ -2,7 +2,6 @@ package token_provider
 
 import (
 	"context"
-
 	"time"
 
 	token_client "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/client"

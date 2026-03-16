@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"testing"
-
 	"time"
 
 	token_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
