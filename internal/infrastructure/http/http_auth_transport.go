@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"net/http"
 
-	activity_interfaces "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/interfaces"
+	auth_provider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider"
 )
 
 type authTransport struct {
 	underlying    http.RoundTripper
-	tokenProvider activity_interfaces.TokenProvider
+	tokenProvider auth_provider.TokenProvider
 }
 
 var _ http.RoundTripper = (*authTransport)(nil)
@@ -27,7 +27,7 @@ func (a *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return a.underlying.RoundTrip(req)
 }
 
-func NewAuthTransport(tokenProvider activity_interfaces.TokenProvider) *authTransport {
+func NewAuthTransport(tokenProvider auth_provider.TokenProvider) *authTransport {
 	return &authTransport{
 		underlying:    http.DefaultTransport,
 		tokenProvider: tokenProvider,
