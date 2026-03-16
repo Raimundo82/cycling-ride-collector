@@ -52,6 +52,7 @@ func Load() *Config {
 			ClientID:     getEnv("GOOGLE_CLIENT_ID"),
 			ClientSecret: getEnv("GOOGLE_CLIENT_SECRET"),
 			OAuthBaseUrl: getEnv("GOOGLE_OAUTH_TOKEN_URL"),
+			RefreshToken: getEnv("GOOGLE_REFRESH_TOKEN"),
 		},
 		Email: &EmailConfig{
 			From:    getEnv("EMAIL_FROM"),
