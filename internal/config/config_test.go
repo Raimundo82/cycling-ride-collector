@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestLoad(t *testing.T) {
+func TestLoadShouldPopulateNestedConfigWhenEnvVarsAreSet(t *testing.T) {
 	t.Setenv("STRAVA_API_BASE_URL", "https://api.strava.test")
 	t.Setenv("STRAVA_OAUTH_BASE_URL", "https://oauth.strava.test")
 	t.Setenv("STRAVA_CLIENT_ID", "client-id")
@@ -68,7 +68,7 @@ func TestLoad(t *testing.T) {
 	}
 }
 
-func TestLoadMissingEnv(t *testing.T) {
+func TestLoadShouldReturnEmptyValuesWhenEnvVarsAreMissing(t *testing.T) {
 	t.Setenv("STRAVA_API_BASE_URL", "")
 	t.Setenv("STRAVA_OAUTH_BASE_URL", "")
 	t.Setenv("STRAVA_CLIENT_ID", "")
