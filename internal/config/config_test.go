@@ -131,6 +131,15 @@ func TestLoadMissingEnv(t *testing.T) {
 	}
 }
 
+func TestValidateRequiredReturnsErrorWithConfigIsNil(t *testing.T) {
+	var cfg *Config
+
+	err := cfg.ValidateRequired()
+	if err == nil {
+		t.Fatalf("expected validation error when config is nil")
+	}
+}
+
 func TestValidateRequiredReturnsErrorWithMissingValues(t *testing.T) {
 	cfg := &Config{}
 
