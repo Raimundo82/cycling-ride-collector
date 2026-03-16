@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -142,24 +141,63 @@ func TestBuildDailyWorkoutPolicyDefaultLongest(t *testing.T) {
 	})
 }
 
-func TestNewAppSuccess(t *testing.T) {
-	Convey("Given a valid config with an existing valid token file", t, func() {
-		tokenFile := createTempTokenFile(t, `{"access_token":"token","refresh_token":"refresh","expires_at":"2030-01-01T00:00:00Z"}`)
-		defer func() { _ = os.Remove(tokenFile) }()
+func TestBuildDailyWorkoutPolicyLongest(t *testing.T) {
+	Convey("Given the longest daily workout policy", t, func() {
+		workouts := []*domain.Workout{
+			domain.NewWorkout(domain.WorkoutParams{ID: 1, DurationInMin: 30, DistanceInKm: 10}),
+			domain.NewWorkout(domain.WorkoutParams{ID: 2, DurationInMin: 40, DistanceInKm: 20}),
+		}
 
+		Convey("When building and selecting the daily workout", func() {
+			policy := buildDailyWorkoutPolicy("longest")
+			dailyWorkout := policy.GetDailyWorkout(workouts, 30)
+
+			Convey("Then it should select the longest workout", func() {
+				So(dailyWorkout, ShouldNotBeNil)
+				So(dailyWorkout.ID, ShouldEqual, int64(2))
+				So(dailyWorkout.DurationInMin, ShouldEqual, 40)
+			})
+		})
+	})
+}
+
+func TestNewAppBuildsUseCasesFromConfig(t *testing.T) {
+	Convey("Given a complete application configuration", t, func() {
 		cfg := &config.Config{
-			TokenFilePath:      tokenFile,
-			OutputFilePath:     filepath.Join(t.TempDir(), "workouts.csv"),
-			StravaApiBaseUrl:   "https://example.com/api/v3",
-			StravaOauthBaseUrl: "https://example.com/oauth",
+			OutputFilePath: os.TempDir() + "/workouts.xlsx",
+			Strava: &config.StravaConfig{
+				ClientId:     "strava-client-id",
+				ClientSecret: "strava-client-secret",
+				RefreshToken: "strava-refresh-token",
+				ApiBaseUrl:   "https://www.strava.com/api/v3",
+				OAuthBaseUrl: "https://www.strava.com/oauth/token",
+			},
+			GoogleOAuth: &config.GoogleOAuthConfig{
+				ClientID:     "google-client-id",
+				ClientSecret: "google-client-secret",
+				RefreshToken: "google-refresh-token",
+				OAuthBaseUrl: "https://oauth2.googleapis.com/token",
+			},
+			Email: &config.EmailConfig{
+				From:    "from@example.com",
+				To:      "to@example.com",
+				Subject: "Workout report",
+			},
+			ExcelTemplate: &config.ExcelTemplateConfig{
+				TemplatePath: "",
+				SheetName:    "",
+				StartCell:    "",
+			},
 		}
 
 		Convey("When NewApp is called", func() {
-			app, err := NewApp(cfg, "longest")
+			app, err := NewApp(cfg, "merge")
 
-			Convey("Then the app is initialized", func() {
+			Convey("Then it should build app with initialized use cases", func() {
 				So(err, ShouldBeNil)
 				So(app, ShouldNotBeNil)
+				So(app.SaveWorkoutPeriod, ShouldHaveSameTypeAs, usecase.SaveWorkoutPeriod{})
+				So(app.SendWorkoutReport, ShouldHaveSameTypeAs, usecase.SendWorkoutReport{})
 			})
 		})
 	})
@@ -222,6 +260,36 @@ func TestAppRunPropagatesError(t *testing.T) {
 				So(provider.Called, ShouldEqual, 1)
 				So(spyPolicy.Called, ShouldEqual, 0)
 				So(spyRepo.Called, ShouldEqual, 0)
+			})
+		})
+	})
+}
+
+func TestAppRunPropagatesAthleteProviderError(t *testing.T) {
+	Convey("Given an App where athlete provider returns an error", t, func() {
+		spyPolicy := &spyDailyWorkoutPolicy{}
+		spyRepo := &spyWorkoutRepository{}
+		provider := &stubWorkoutProvider{}
+		athleteProvider := &stubAthleteProvider{Err: errors.New("athlete failure")}
+
+		saveUseCase := usecase.NewSaveWorkoutPeriod(spyPolicy, spyRepo, provider, athleteProvider)
+		sender := &spyReportSender{}
+		sendUseCase := usecase.NewSendWorkoutReport(sender)
+		app := &App{SaveWorkoutPeriod: *saveUseCase, SendWorkoutReport: *sendUseCase}
+
+		period, _ := domain.NewPeriod(time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC))
+		request := &input.SaveWorkoutPeriodRequest{Period: period, MinimalWorkoutDuration: 45}
+
+		Convey("When Run is called", func() {
+			err := app.Run(request, testWorkoutReportPath)
+
+			Convey("Then it should propagate athlete provider error and skip downstream calls", func() {
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, "athlete failure")
+				So(athleteProvider.Called, ShouldEqual, 1)
+				So(provider.Called, ShouldEqual, 0)
+				So(spyRepo.Called, ShouldEqual, 0)
+				So(sender.Called, ShouldEqual, 0)
 			})
 		})
 	})
@@ -316,24 +384,4 @@ func TestAppRunPropagatesSenderError(t *testing.T) {
 			})
 		})
 	})
-}
-
-func createTempTokenFile(t *testing.T, content string) string {
-	t.Helper()
-
-	file, err := os.CreateTemp("", "token-*.json")
-	if err != nil {
-		t.Fatalf("failed to create temp token file: %v", err)
-	}
-
-	if _, err := file.WriteString(content); err != nil {
-		_ = file.Close()
-		t.Fatalf("failed to write temp token file: %v", err)
-	}
-
-	if err := file.Close(); err != nil {
-		t.Fatalf("failed to close temp token file: %v", err)
-	}
-
-	return file.Name()
 }
