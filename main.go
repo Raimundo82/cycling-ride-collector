@@ -77,6 +77,10 @@ func buildCronOptions(now time.Time) config.CLIOptions {
 
 func runOnceMode(options config.CLIOptions) error {
 	cfg := buildRuntimeConfig(options)
+	if err := cfg.ValidateRequired(); err != nil {
+		return fmt.Errorf("invalid config: %w", err)
+	}
+
 	request, err := buildSaveWorkoutRequest(options)
 	if err != nil {
 		return err
