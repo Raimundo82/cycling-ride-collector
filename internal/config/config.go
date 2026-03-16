@@ -1,7 +1,9 @@
 package config
 
 import (
+	"fmt"
 	"os"
+	"strings"
 )
 
 type Config struct {
@@ -65,6 +67,59 @@ func Load() *Config {
 			StartCell:    getEnv("EXCEL_TEMPLATE_STARTCELL"),
 		},
 	}
+}
+
+func (c *Config) ValidateRequired() error {
+	missing := make([]string, 0)
+
+	if c == nil {
+		return fmt.Errorf("missing required config values: STRAVA_API_BASE_URL, STRAVA_OAUTH_BASE_URL, STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, STRAVA_REFRESH_TOKEN, GOOGLE_OAUTH_TOKEN_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN, EMAIL_FROM, EMAIL_TO, EMAIL_SUBJECT")
+	}
+
+	if c.Strava == nil || c.Strava.ApiBaseUrl == "" {
+		missing = append(missing, "STRAVA_API_BASE_URL")
+	}
+	if c.Strava == nil || c.Strava.OAuthBaseUrl == "" {
+		missing = append(missing, "STRAVA_OAUTH_BASE_URL")
+	}
+	if c.Strava == nil || c.Strava.ClientId == "" {
+		missing = append(missing, "STRAVA_CLIENT_ID")
+	}
+	if c.Strava == nil || c.Strava.ClientSecret == "" {
+		missing = append(missing, "STRAVA_CLIENT_SECRET")
+	}
+	if c.Strava == nil || c.Strava.RefreshToken == "" {
+		missing = append(missing, "STRAVA_REFRESH_TOKEN")
+	}
+
+	if c.GoogleOAuth == nil || c.GoogleOAuth.OAuthBaseUrl == "" {
+		missing = append(missing, "GOOGLE_OAUTH_TOKEN_URL")
+	}
+	if c.GoogleOAuth == nil || c.GoogleOAuth.ClientID == "" {
+		missing = append(missing, "GOOGLE_CLIENT_ID")
+	}
+	if c.GoogleOAuth == nil || c.GoogleOAuth.ClientSecret == "" {
+		missing = append(missing, "GOOGLE_CLIENT_SECRET")
+	}
+	if c.GoogleOAuth == nil || c.GoogleOAuth.RefreshToken == "" {
+		missing = append(missing, "GOOGLE_REFRESH_TOKEN")
+	}
+
+	if c.Email == nil || c.Email.From == "" {
+		missing = append(missing, "EMAIL_FROM")
+	}
+	if c.Email == nil || c.Email.To == "" {
+		missing = append(missing, "EMAIL_TO")
+	}
+	if c.Email == nil || c.Email.Subject == "" {
+		missing = append(missing, "EMAIL_SUBJECT")
+	}
+
+	if len(missing) > 0 {
+		return fmt.Errorf("missing required config values: %s", strings.Join(missing, ", "))
+	}
+
+	return nil
 }
 
 func getEnv(key string) string {
