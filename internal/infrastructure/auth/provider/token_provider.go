@@ -23,13 +23,12 @@ func NewTokenProvider(input *token_model.RefreshTokenInput, tokenClient token_cl
 	}
 }
 
-// GetToken implements [TokenProvider].
+// GetValidToken implements [TokenProvider].
 func (t *tokenProvider) GetValidToken(ctx context.Context) (string, error) {
 	resp, err := t.TokenClient.RefreshToken(ctx, t.RefreshTokenInput)
 	if err != nil {
 		return "", err
 	}
-
 	return resp.AccessToken, nil
 }
 
