@@ -36,8 +36,11 @@ go.work.sum
 *.xls
 *.xlsx
 stava_client.http
+google_client.http
 training-log*
 cycling-ride-collector
 tokens.json
 # Local Go build cache
 .gocache/
+
+.github/prompts/

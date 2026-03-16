@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	token_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
 )
@@ -21,10 +20,10 @@ type tokenClient struct {
 	httpClient *http.Client
 }
 
-func NewTokenClient(tokenUrl string) TokenClient {
+func NewTokenClient(tokenUrl string, httpClient *http.Client) TokenClient {
 	return &tokenClient{
 		tokenUrl:   tokenUrl,
-		httpClient: &http.Client{Timeout: 10 * time.Second},
+		httpClient: httpClient,
 	}
 }
 
