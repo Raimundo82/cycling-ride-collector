@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	token_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
 )
@@ -23,7 +24,7 @@ type tokenClient struct {
 func NewTokenClient(tokenUrl string) TokenClient {
 	return &tokenClient{
 		tokenUrl:   tokenUrl,
-		httpClient: http.DefaultClient,
+		httpClient: &http.Client{Timeout: 10 * time.Second},
 	}
 }
 
@@ -48,7 +49,7 @@ func (o *tokenClient) RefreshToken(ctx context.Context, input *token_model.Refre
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("google error: %s", resp.Status)
+		return nil, fmt.Errorf("error: %s", resp.Status)
 	}
 
 	var refreshResponse token_model.RefreshTokenOutput
