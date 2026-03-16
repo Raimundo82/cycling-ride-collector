@@ -11,7 +11,7 @@ Main capabilities:
 - Map Strava payloads to internal workout model
 - Resolve multiple rides per day with policy-based selection (`longest` or `merge`)
 - Persist daily results to CSV or Excel (`.xlsx`)
-- Handle OAuth token refresh and local token persistence
+- Handle OAuth token refresh from environment configuration
 
 ## Architecture
 
@@ -37,7 +37,7 @@ Architecture and auth diagrams (Mermaid) are in `docs/diagrams`:
 
 - Go `1.25.3+`
 - A Strava API app (client id/secret)
-- A token JSON file (`TOKEN_FILE_PATH`) with at least a refresh token
+- A Strava refresh token
 
 ## Installation
 
@@ -58,7 +58,7 @@ The app uses environment variables loaded by `internal/config/config.go`.
 | `STRAVA_OAUTH_BASE_URL` | yes | Strava OAuth base URL (example: `https://www.strava.com/oauth`) |
 | `STRAVA_CLIENT_ID` | yes | Strava client id (used for refresh) |
 | `STRAVA_CLIENT_SECRET` | yes | Strava client secret (used for refresh) |
-| `TOKEN_FILE_PATH` | yes | Path to local token JSON file |
+| `STRAVA_REFRESH_TOKEN` | yes | Strava refresh token used to obtain access tokens |
 | `EXCEL_TEMPLATE_PATH` | no* | Excel template path used by Excel exporter (example: `template.xlsx`) |
 | `EXCEL_TEMPLATE_SHEETNAME` | no* | Template sheet name (example: `Registos`) |
 | `EXCEL_TEMPLATE_STARTCELL` | no* | Start cell where workout rows are written (example: `B8`) |
@@ -67,18 +67,6 @@ Notes:
 - `OutputFilePath` is defined by CLI flag `--output-file` (or auto-generated if omitted).
 - Minimal workout duration and policy are CLI parameters, not environment variables.
 - `*` Excel template env vars are required when the Excel exporter is selected in code.
-
-### Token File Format
-
-`TOKEN_FILE_PATH` should point to a JSON file with this shape:
-
-```json
-{
-  "access_token": "...",
-  "refresh_token": "...",
-  "expires_at": "2030-01-01T00:00:00Z"
-}
-```
 
 ## Usage
 
@@ -99,7 +87,7 @@ export STRAVA_API_BASE_URL="https://www.strava.com/api/v3"
 export STRAVA_OAUTH_BASE_URL="https://www.strava.com/oauth"
 export STRAVA_CLIENT_ID="<client-id>"
 export STRAVA_CLIENT_SECRET="<client-secret>"
-export TOKEN_FILE_PATH="/absolute/path/to/token.json"
+export STRAVA_REFRESH_TOKEN="<refresh-token>"
 
 ./cycling-ride-collector \
   --start-date 01/01/2026 \
