@@ -151,22 +151,6 @@ func TestNewAppSuccess(t *testing.T) {
 	})
 }
 
-func TestNewAppMissingTokenFile(t *testing.T) {
-	Convey("Given a config with a non-existing token file", t, func() {
-		cfg := &config.Config{TokenFilePath: "token-file-does-not-exist.json"}
-
-		Convey("When NewApp is called", func() {
-			app, err := NewApp(cfg, "longest")
-
-			Convey("Then it returns an initialization error", func() {
-				So(err, ShouldNotBeNil)
-				So(err.Error(), ShouldContainSubstring, "failed to open token file")
-				So(app, ShouldBeNil)
-			})
-		})
-	})
-}
-
 func TestAppRunDelegatesToUseCase(t *testing.T) {
 	Convey("Given an App with SaveWorkoutPeriod use case dependencies", t, func() {
 		spyPolicy := &spyDailyWorkoutPolicy{}

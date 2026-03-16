@@ -13,10 +13,9 @@ import (
 	activity_excel "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/repository/excel"
 	athlete_provider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/athlete/provider"
 	athlete_strava "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/athlete/provider/strava"
-	authProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider"
-	stravaAuthProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider/strava"
-	auth_repository "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/repository/file"
-	authService "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/service"
+	token_client "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/client"
+	token_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
+	token_provider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider"
 	custom_http "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/http"
 )
 
@@ -27,15 +26,16 @@ type App struct {
 func NewApp(cfg *config.Config, dailyWorkoutPolicy string) (*App, error) {
 	policy := buildDailyWorkoutPolicy(dailyWorkoutPolicy)
 
-	tokenRepo, err := auth_repository.NewTokenRepository(cfg.TokenFilePath)
-	if err != nil {
-		return nil, err
+	stravaTokenClient := token_client.NewTokenClient(cfg.StravaOauthBaseUrl)
+	stravaTokenInput := &token_model.RefreshTokenInput{
+		ClientID:     cfg.StravaClientId,
+		ClientSecret: cfg.StravaClientSecret,
+		GrantType:    "refresh_token",
+		RefreshToken: cfg.StravaRefreshToken,
 	}
+	stravaTokenProvider := token_provider.NewTokenProvider(stravaTokenInput, stravaTokenClient)
 
-	oauthClient := stravaAuthProvider.NewOAuthHttpClient(&http.Client{Timeout: 10 * time.Second}, cfg)
-	oauthProvider := authProvider.NewOAuthProvider(oauthClient, cfg)
-	tokenProvider := authService.NewTokenService(oauthProvider, tokenRepo)
-	authTransport := custom_http.NewAuthTransport(tokenProvider)
+	authTransport := custom_http.NewAuthTransport(stravaTokenProvider)
 
 	apiHttpClient := &http.Client{Timeout: 10 * time.Second, Transport: authTransport}
 	workoutProvider := activityProvider.NewWorkoutProvider(

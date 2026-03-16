@@ -174,23 +174,6 @@ func TestBuildSaveWorkoutRequestInvalidDailyWorkoutPolicy(t *testing.T) {
 	}
 }
 
-func TestRunReturnsInitializationError(t *testing.T) {
-	t.Setenv("TOKEN_FILE_PATH", "token-file-does-not-exist.json")
-
-	err := run(config.CLIOptions{
-		StartDate:              "01/01/2026",
-		EndDate:                "01/02/2026",
-		DailyWorkoutPolicy:     "longest",
-		MinimalWorkoutDuration: 30,
-	})
-	if err == nil {
-		t.Fatal("expected run initialization error")
-	}
-	if !strings.Contains(err.Error(), "failed to initialize app: failed to open token file") {
-		t.Fatalf("unexpected error message: %q", err.Error())
-	}
-}
-
 func TestBuildCronOptionsCoversMondayToSunday(t *testing.T) {
 	// Sunday, March 8, 2026
 	now := time.Date(2026, 3, 8, 20, 0, 0, 0, time.UTC)
