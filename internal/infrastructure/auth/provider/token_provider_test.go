@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	token_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
 	. "github.com/smartystreets/goconvey/convey"
@@ -64,7 +63,7 @@ func TestShouldReturnErrorAndEmptyTokenWhenRefreshFails(t *testing.T) {
 			Convey("Then it should return the refresh error and an empty token", func() {
 				So(token, ShouldBeBlank)
 				So(errors.Is(err, refreshErr), ShouldBeTrue)
-				So(provider.(*tokenProvider).cachedToken, ShouldBeBlank)
+				So(provider.(*tokenProvider).cachedToken, ShouldResemble, token_model.Token{})
 			})
 		})
 	})
@@ -92,8 +91,7 @@ func TestShouldRefreshTokenWhenCachedTokenIsExpired(t *testing.T) {
 	Convey("Given a token provider with an expired cached token", t, func() {
 		spy := &tokenClientSpy{output: &token_model.RefreshTokenOutput{AccessToken: "new-token", ExpiresIn: 3600}}
 		p := NewTokenProvider(&token_model.RefreshTokenInput{}, spy).(*tokenProvider)
-		p.cachedToken = "old-token"
-		p.tokenExpiresAt = time.Now().Add(-1 * time.Second)
+		p.cachedToken = token_model.NewToken("old-token", -2)
 
 		Convey("When GetValidToken is called", func() {
 			token, err := p.GetValidToken(context.Background())
