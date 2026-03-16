@@ -21,9 +21,10 @@ func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 func TestShouldCreateTokenClientWithTokenURLAndDefaultTimeoutWhenNewTokenClientIsCalled(t *testing.T) {
 	Convey("Given a token url", t, func() {
 		const tokenURL = "https://www.strava.com/oauth/token"
+		injectedHTTPClient := &http.Client{Timeout: 10 * time.Second}
 
 		Convey("When NewTokenClient is called", func() {
-			client := NewTokenClient(tokenURL)
+			client := NewTokenClient(tokenURL, injectedHTTPClient)
 
 			Convey("Then it should create a token client with configured url and timeout", func() {
 				So(client, ShouldNotBeNil)
