@@ -8,7 +8,7 @@ import (
 )
 
 type TokenProvider interface {
-	GetValidToken() (string, error)
+	GetValidToken(ctx context.Context) (string, error)
 }
 
 type tokenProvider struct {
@@ -24,8 +24,8 @@ func NewTokenProvider(input *token_model.RefreshTokenInput, tokenClient token_cl
 }
 
 // GetToken implements [TokenProvider].
-func (t *tokenProvider) GetValidToken() (string, error) {
-	resp, err := t.TokenClient.RefreshToken(context.Background(), t.RefreshTokenInput)
+func (t *tokenProvider) GetValidToken(ctx context.Context) (string, error) {
+	resp, err := t.TokenClient.RefreshToken(ctx, t.RefreshTokenInput)
 	if err != nil {
 		return "", err
 	}
