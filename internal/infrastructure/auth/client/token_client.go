@@ -26,6 +26,7 @@ func NewTokenClient(tokenUrl string) TokenClient {
 		httpClient: http.DefaultClient,
 	}
 }
+
 // RefreshToken implements [TokenProvider].
 func (o *tokenClient) RefreshToken(ctx context.Context, input *token_model.RefreshTokenInput) (*token_model.RefreshTokenOutput, error) {
 	form := url.Values{}
@@ -56,4 +57,5 @@ func (o *tokenClient) RefreshToken(ctx context.Context, input *token_model.Refre
 	}
 	return &refreshResponse, nil
 }
+
 var _ TokenClient = (*tokenClient)(nil)
