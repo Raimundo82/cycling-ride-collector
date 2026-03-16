@@ -13,11 +13,9 @@ import (
 	activity_excel "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/activity/repository/excel"
 	athlete_provider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/athlete/provider"
 	athlete_strava "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/athlete/provider/strava"
-	authProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider"
-	googleAuthProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider/google"
-	stravaAuthProvider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider/strava"
-	auth_repository "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/repository/file"
-	authService "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/service"
+	token_client "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/client"
+	token_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
+	token_provider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider"
 	custom_http "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/http"
 	"github.com/raimundo82/cycling-ride-collector/internal/infrastructure/notification/email"
 )
@@ -30,18 +28,14 @@ type App struct {
 func NewApp(cfg *config.Config, dailyWorkoutPolicy string) (*App, error) {
 	policy := buildDailyWorkoutPolicy(dailyWorkoutPolicy)
 
-	tokenRepo, err := auth_repository.NewTokenRepository(cfg.TokenFilePath)
-	if err != nil {
-		return nil, err
+	stravaTokenClient := token_client.NewTokenClient(cfg.StravaOauthBaseUrl)
+	stravaTokenInput := &token_model.RefreshTokenInput{
+		ClientID:     cfg.StravaClientId,
+		ClientSecret: cfg.StravaClientSecret,
+		GrantType:    "refresh_token",
+		RefreshToken: cfg.StravaRefreshToken,
 	}
-
-	stravaOauthClient := stravaAuthProvider.NewOAuthHttpClient(&http.Client{Timeout: 10 * time.Second}, cfg)
-	stravaOauthProvider := authProvider.NewOAuthProvider(stravaOauthClient, cfg)
-	stravaTokenProvider := authService.NewStravaTokenService(stravaOauthProvider, tokenRepo)
-
-	googleOauthClient := googleAuthProvider.NewOAuthHttpClient(&http.Client{Timeout: 10 * time.Second}, cfg)
-	googleOuathProvider := authProvider.NewOAuthProvider(googleOauthClient, cfg)
-	googleTokenProvider := authService.NewGoogleTokenService(googleOuathProvider, tokenRepo)
+	stravaTokenProvider := token_provider.NewTokenProvider(stravaTokenInput, stravaTokenClient)
 
 	authTransport := custom_http.NewAuthTransport(stravaTokenProvider)
 

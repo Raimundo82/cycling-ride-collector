@@ -1,20 +1,27 @@
 package custom_http
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"testing"
 
-	auth_interfaces "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/interfaces"
+	token_provider "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/provider"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 type authTransportMockTokenProvider struct {
-	token string
-	err   error
+	token     string
+	err       error
+	gotCtx    context.Context
+	ctxChecks func(context.Context)
 }
 
-func (m *authTransportMockTokenProvider) GetValidToken() (string, error) {
+func (m *authTransportMockTokenProvider) GetValidToken(ctx context.Context) (string, error) {
+	m.gotCtx = ctx
+	if m.ctxChecks != nil {
+		m.ctxChecks(ctx)
+	}
 	return m.token, m.err
 }
 
@@ -24,7 +31,7 @@ func (f authTransportRoundTripFunc) RoundTrip(req *http.Request) (*http.Response
 	return f(req)
 }
 
-var _ auth_interfaces.TokenProvider = (*authTransportMockTokenProvider)(nil)
+var _ token_provider.TokenProvider = (*authTransportMockTokenProvider)(nil)
 
 const uri = "http://example.com"
 
@@ -50,6 +57,7 @@ func TestRoundTripReturnsWrappedErrorWhenTokenProviderFails(t *testing.T) {
 				So(err.Error(), ShouldContainSubstring, "failed to get valid token for request")
 				So(errors.Is(err, tokenErr), ShouldBeTrue)
 				So(underlyingCalled, ShouldBeFalse)
+				So(transport.tokenProvider.(*authTransportMockTokenProvider).gotCtx, ShouldEqual, req.Context())
 			})
 		})
 	})

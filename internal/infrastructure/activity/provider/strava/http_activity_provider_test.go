@@ -10,20 +10,8 @@ import (
 
 	"github.com/raimundo82/cycling-ride-collector/internal/config"
 	"github.com/raimundo82/cycling-ride-collector/internal/domain"
-	auth_interfaces "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/interfaces"
 	. "github.com/smartystreets/goconvey/convey"
 )
-
-type mockTokenProvider struct {
-	token string
-	err   error
-}
-
-func (m *mockTokenProvider) GetValidToken() (string, error) {
-	return m.token, m.err
-}
-
-var _ auth_interfaces.TokenProvider = (*mockTokenProvider)(nil)
 
 const TOKEN = "test-access-token"
 
@@ -399,7 +387,7 @@ func TestGetWattsStreamReturnsErrorWhenRequestCreationFails(t *testing.T) {
 }
 
 func TestGetDetailedActivityByIDConstructsCorrectRequestAndDecodesActivity(t *testing.T) {
-	Convey("Given a strava http server and a token", t, func() {
+	Convey("Given a strava http server", t, func() {
 		var gotPath string
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
