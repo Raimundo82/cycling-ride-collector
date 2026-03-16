@@ -9,4 +9,5 @@ type RefreshTokenInput struct {
 
 type RefreshTokenOutput struct {
 	AccessToken string `json:"access_token"`
+	ExpiresIn   int    `json:"expires_in"`
 }
