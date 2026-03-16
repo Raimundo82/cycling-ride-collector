@@ -9,6 +9,10 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+type contextKey string
+
+const requestIDKey contextKey = "request-id"
+
 type tokenClientSpy struct {
 	gotCtx   context.Context
 	gotInput *token_model.RefreshTokenInput
@@ -30,7 +34,7 @@ func TestShouldReturnAccessTokenAndPassContextAndInputWhenRefreshSucceeds(t *tes
 		input := &token_model.RefreshTokenInput{RefreshToken: "refresh"}
 		spy := &tokenClientSpy{output: &token_model.RefreshTokenOutput{AccessToken: "access-token"}}
 		provider := NewTokenProvider(input, spy)
-		ctx := context.WithValue(context.Background(), "request-id", "abc")
+		ctx := context.WithValue(context.Background(), requestIDKey, "abc")
 
 		Convey("When GetValidToken is called", func() {
 			token, err := provider.GetValidToken(ctx)
