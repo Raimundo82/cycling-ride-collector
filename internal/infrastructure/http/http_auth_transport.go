@@ -17,7 +17,7 @@ var _ http.RoundTripper = (*authTransport)(nil)
 // RoundTrip implements [http.RoundTripper].
 func (a *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	if a.tokenProvider != nil {
-		accessToken, err := a.tokenProvider.GetValidToken()
+		accessToken, err := a.tokenProvider.GetValidToken(req.Context())
 		if err != nil {
 			return nil, fmt.Errorf("failed to get valid token for request: %w", err)
 		}
