@@ -21,6 +21,8 @@ const (
 	emailFromKey                = "EMAIL_FROM"
 	emailToKey                  = "EMAIL_TO"
 	emailSubjectKey             = "EMAIL_SUBJECT"
+	excelTemplateSheetNameKey   = "excelTemplate.sheetName"
+	excelTemplateStartCellKey   = "excelTemplate.startCell"
 )
 
 type Config struct {
@@ -77,6 +79,7 @@ func (c *Config) ValidateRequired() error {
 	missing = validateStravaConfig(c, missing)
 	missing = validateGoogleOAuthConfig(c, missing)
 	missing = validateEmailConfig(c, missing)
+	missing = validateExcelTemplateConfig(c, missing)
 
 	if len(missing) > 0 {
 		return fmt.Errorf("%s%s", missingRequiredValuesPrefix, strings.Join(missing, ", "))
@@ -97,6 +100,16 @@ func validateGoogleOAuthConfig(c *Config, missing []string) []string {
 	}
 	if c.GoogleOAuth == nil || c.GoogleOAuth.OAuthBaseUrl == "" {
 		missing = append(missing, googleOAuthBaseURLKey)
+	}
+	return missing
+}
+
+func validateExcelTemplateConfig(c *Config, missing []string) []string {
+	if c.ExcelTemplate == nil || c.ExcelTemplate.SheetName == "" {
+		missing = append(missing, excelTemplateSheetNameKey)
+	}
+	if c.ExcelTemplate == nil || c.ExcelTemplate.StartCell == "" {
+		missing = append(missing, excelTemplateStartCellKey)
 	}
 	return missing
 }
