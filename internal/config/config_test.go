@@ -1,197 +1,369 @@
 package config
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestLoadShouldPopulateNestedConfigWhenEnvVarsAreSet(t *testing.T) {
-	t.Setenv("STRAVA_API_BASE_URL", "https://api.strava.test")
-	t.Setenv("STRAVA_OAUTH_BASE_URL", "https://oauth.strava.test")
-	t.Setenv("STRAVA_CLIENT_ID", "client-id")
-	t.Setenv("STRAVA_CLIENT_SECRET", "client-secret")
-	t.Setenv("STRAVA_REFRESH_TOKEN", "refresh-token")
-	t.Setenv("GOOGLE_CLIENT_ID", "google-client-id")
-	t.Setenv("GOOGLE_CLIENT_SECRET", "google-client-secret")
-	t.Setenv("GOOGLE_OAUTH_TOKEN_URL", "https://oauth2.googleapis.test/token")
-	t.Setenv("GOOGLE_REFRESH_TOKEN", "google-refresh-token")
-	t.Setenv("EMAIL_FROM", "from@example.com")
-	t.Setenv("EMAIL_TO", "to@example.com")
-	t.Setenv("EMAIL_SUBJECT", "Workout report")
+const fullConfigFixture = `{
+	"outputFilePath": "workouts.xlsx",
+	"strava": {
+		"apiBaseUrl": "https://api.strava.test",
+		"oauthBaseUrl": "https://oauth.strava.test"
+	},
+	"googleOAuth": {
+		"oauthBaseUrl": "https://oauth2.googleapis.test/token"
+	},
+	"excelTemplate": {
+		"templatePath": "template.xlsx",
+		"sheetName": "Sheet1",
+		"startCell": "A1"
+	}
+}`
 
-	cfg := Load()
+func TestLoadShouldPopulateConfigFromJSONAndSensitiveFieldsFromEnv(t *testing.T) {
+	Convey("Given a config.json file and secrets in environment variables", t, func() {
+		writeConfigFixture(t, fullConfigFixture)
+		setRuntimeEnv(
+			t,
+			"strava-client-id",
+			"client-secret",
+			"refresh-token",
+			"google-client-id",
+			"google-client-secret",
+			"google-refresh-token",
+			"from@example.com",
+			"to@example.com",
+			"Workout report",
+		)
 
-	if cfg.Strava == nil {
-		t.Fatalf("expected Strava config to be initialized")
-	}
-	if cfg.Strava.ApiBaseUrl != "https://api.strava.test" {
-		t.Fatalf("expected Strava.ApiBaseUrl to be loaded from env")
-	}
-	if cfg.Strava.OAuthBaseUrl != "https://oauth.strava.test" {
-		t.Fatalf("expected Strava.OAuthBaseUrl to be loaded from env")
-	}
-	if cfg.Strava.ClientId != "client-id" {
-		t.Fatalf("expected Strava.ClientId to be loaded from env")
-	}
-	if cfg.Strava.ClientSecret != "client-secret" {
-		t.Fatalf("expected Strava.ClientSecret to be loaded from env")
-	}
-	if cfg.Strava.RefreshToken != "refresh-token" {
-		t.Fatalf("expected Strava.RefreshToken to be loaded from env")
-	}
-	if cfg.GoogleOAuth == nil {
-		t.Fatalf("expected GoogleOAuth config to be initialized")
-	}
-	if cfg.GoogleOAuth.ClientID != "google-client-id" {
-		t.Fatalf("expected GoogleOAuth.ClientID to be loaded from env")
-	}
-	if cfg.GoogleOAuth.ClientSecret != "google-client-secret" {
-		t.Fatalf("expected GoogleOAuth.ClientSecret to be loaded from env")
-	}
-	if cfg.GoogleOAuth.OAuthBaseUrl != "https://oauth2.googleapis.test/token" {
-		t.Fatalf("expected GoogleOAuth.OAuthBaseUrl to be loaded from env")
-	}
-	if cfg.GoogleOAuth.RefreshToken != "google-refresh-token" {
-		t.Fatalf("expected GoogleOAuth.RefreshToken to be loaded from env")
-	}
-	if cfg.Email == nil {
-		t.Fatalf("expected Email config to be initialized")
-	}
-	if cfg.Email.From != "from@example.com" {
-		t.Fatalf("expected Email.From to be loaded from env")
-	}
-	if cfg.Email.To != "to@example.com" {
-		t.Fatalf("expected Email.To to be loaded from env")
-	}
-	if cfg.Email.Subject != "Workout report" {
-		t.Fatalf("expected Email.Subject to be loaded from env")
-	}
+		Convey("When Load is called", func() {
+			cfg, err := Load()
+
+			Convey("Then JSON values should come from the file", func() {
+				So(err, ShouldBeNil)
+				So(cfg.OutputFilePath, ShouldEqual, "workouts.xlsx")
+				So(cfg.Strava, ShouldNotBeNil)
+				So(cfg.Strava.ApiBaseUrl, ShouldEqual, "https://api.strava.test")
+				So(cfg.Strava.OAuthBaseUrl, ShouldEqual, "https://oauth.strava.test")
+				So(cfg.GoogleOAuth, ShouldNotBeNil)
+				So(cfg.GoogleOAuth.OAuthBaseUrl, ShouldEqual, "https://oauth2.googleapis.test/token")
+				So(cfg.Email, ShouldNotBeNil)
+				So(cfg.ExcelTemplate, ShouldNotBeNil)
+				So(cfg.ExcelTemplate.TemplatePath, ShouldEqual, "template.xlsx")
+				So(cfg.ExcelTemplate.SheetName, ShouldEqual, "Sheet1")
+				So(cfg.ExcelTemplate.StartCell, ShouldEqual, "A1")
+			})
+
+			Convey("Then sensitive values should come from environment variables", func() {
+				So(cfg.Strava.ClientId, ShouldEqual, "strava-client-id")
+				So(cfg.Strava.ClientSecret, ShouldEqual, "client-secret")
+				So(cfg.Strava.RefreshToken, ShouldEqual, "refresh-token")
+				So(cfg.GoogleOAuth.ClientID, ShouldEqual, "google-client-id")
+				So(cfg.GoogleOAuth.ClientSecret, ShouldEqual, "google-client-secret")
+				So(cfg.GoogleOAuth.RefreshToken, ShouldEqual, "google-refresh-token")
+				So(cfg.Email.From, ShouldEqual, "from@example.com")
+				So(cfg.Email.To, ShouldEqual, "to@example.com")
+				So(cfg.Email.Subject, ShouldEqual, "Workout report")
+			})
+		})
+	})
 }
 
-func TestLoadShouldReturnEmptyValuesWhenEnvVarsAreMissing(t *testing.T) {
-	t.Setenv("STRAVA_API_BASE_URL", "")
-	t.Setenv("STRAVA_OAUTH_BASE_URL", "")
-	t.Setenv("STRAVA_CLIENT_ID", "")
-	t.Setenv("STRAVA_CLIENT_SECRET", "")
-	t.Setenv("STRAVA_REFRESH_TOKEN", "")
-	t.Setenv("GOOGLE_CLIENT_ID", "")
-	t.Setenv("GOOGLE_CLIENT_SECRET", "")
-	t.Setenv("GOOGLE_OAUTH_TOKEN_URL", "")
-	t.Setenv("GOOGLE_REFRESH_TOKEN", "")
-	t.Setenv("EMAIL_FROM", "")
-	t.Setenv("EMAIL_TO", "")
-	t.Setenv("EMAIL_SUBJECT", "")
+func TestLoadShouldFailValidationWhenSensitiveEnvVarsAreMissing(t *testing.T) {
+	Convey("Given a config.json file and missing secret environment variables", t, func() {
+		writeConfigFixture(t, fullConfigFixture)
+		setRuntimeEnv(t, "", "", "", "", "", "", "", "", "")
 
-	cfg := Load()
+		Convey("When Load is called", func() {
+			cfg, err := Load()
 
-	if cfg.Strava == nil {
-		t.Fatalf("expected Strava config to be initialized")
-	}
-	if cfg.Strava.ApiBaseUrl != "" {
-		t.Fatalf("expected empty Strava.ApiBaseUrl when env var is missing")
-	}
-	if cfg.Strava.OAuthBaseUrl != "" {
-		t.Fatalf("expected empty Strava.OAuthBaseUrl when env var is missing")
-	}
-	if cfg.Strava.ClientId != "" {
-		t.Fatalf("expected empty Strava.ClientId when env var is missing")
-	}
-	if cfg.Strava.ClientSecret != "" {
-		t.Fatalf("expected empty Strava.ClientSecret when env var is missing")
-	}
-	if cfg.Strava.RefreshToken != "" {
-		t.Fatalf("expected empty Strava.RefreshToken when env var is missing")
-	}
-	if cfg.GoogleOAuth == nil {
-		t.Fatalf("expected GoogleOAuth config to be initialized")
-	}
-	if cfg.GoogleOAuth.ClientID != "" {
-		t.Fatalf("expected empty GoogleOAuth.ClientID when env var is missing")
-	}
-	if cfg.GoogleOAuth.ClientSecret != "" {
-		t.Fatalf("expected empty GoogleOAuth.ClientSecret when env var is missing")
-	}
-	if cfg.GoogleOAuth.OAuthBaseUrl != "" {
-		t.Fatalf("expected empty GoogleOAuth.OAuthBaseUrl when env var is missing")
-	}
-	if cfg.GoogleOAuth.RefreshToken != "" {
-		t.Fatalf("expected empty GoogleOAuth.RefreshToken when env var is missing")
-	}
-	if cfg.Email == nil {
-		t.Fatalf("expected Email config to be initialized")
-	}
-	if cfg.Email.From != "" {
-		t.Fatalf("expected empty Email.From when env var is missing")
-	}
-	if cfg.Email.To != "" {
-		t.Fatalf("expected empty Email.To when env var is missing")
-	}
-	if cfg.Email.Subject != "" {
-		t.Fatalf("expected empty Email.Subject when env var is missing")
-	}
+			Convey("Then JSON values should still be loaded", func() {
+				So(err, ShouldBeNil)
+				So(cfg.OutputFilePath, ShouldEqual, "workouts.xlsx")
+				So(cfg.Strava, ShouldNotBeNil)
+				So(cfg.Strava.ApiBaseUrl, ShouldEqual, "https://api.strava.test")
+				So(cfg.Strava.OAuthBaseUrl, ShouldEqual, "https://oauth.strava.test")
+				So(cfg.GoogleOAuth, ShouldNotBeNil)
+				So(cfg.GoogleOAuth.OAuthBaseUrl, ShouldEqual, "https://oauth2.googleapis.test/token")
+				So(cfg.Email, ShouldNotBeNil)
+			})
+
+			Convey("Then sensitive values should be empty before validation", func() {
+				So(cfg.Strava.ClientId, ShouldEqual, "")
+				So(cfg.Strava.ClientSecret, ShouldEqual, "")
+				So(cfg.Strava.RefreshToken, ShouldEqual, "")
+				So(cfg.GoogleOAuth.ClientID, ShouldEqual, "")
+				So(cfg.GoogleOAuth.ClientSecret, ShouldEqual, "")
+				So(cfg.GoogleOAuth.RefreshToken, ShouldEqual, "")
+				So(cfg.Email.From, ShouldEqual, "")
+				So(cfg.Email.To, ShouldEqual, "")
+				So(cfg.Email.Subject, ShouldEqual, "")
+			})
+
+			Convey("Then validation should fail because sensitive values are mandatory", func() {
+				err := cfg.ValidateRequired()
+
+				So(err, ShouldNotBeNil)
+				for _, key := range []string{
+					stravaClientIDKey,
+					stravaClientSecretKey,
+					stravaRefreshTokenKey,
+					googleClientIDKey,
+					googleClientSecretKey,
+					googleRefreshTokenKey,
+					emailFromKey,
+					emailToKey,
+					emailSubjectKey,
+				} {
+					So(err.Error(), ShouldContainSubstring, key)
+				}
+			})
+		})
+	})
 }
 
-func TestValidateRequiredReturnsErrorWithConfigIsNil(t *testing.T) {
-	var cfg *Config
+func TestLoadShouldInitializeNestedConfigsWhenJSONIsEmptyObject(t *testing.T) {
+	Convey("Given a config.json file with an empty json object", t, func() {
+		writeConfigFixture(t, `{}`)
+		setRuntimeEnv(t, "", "", "", "", "", "", "", "", "")
 
-	err := cfg.ValidateRequired()
-	if err == nil {
-		t.Fatalf("expected validation error when config is nil")
-	}
+		Convey("When Load is called", func() {
+			cfg, err := Load()
+
+			Convey("Then nested config objects should still be initialized", func() {
+				So(err, ShouldBeNil)
+				So(cfg, ShouldNotBeNil)
+				So(cfg.Strava, ShouldNotBeNil)
+				So(cfg.GoogleOAuth, ShouldNotBeNil)
+				So(cfg.Email, ShouldNotBeNil)
+				So(cfg.ExcelTemplate, ShouldNotBeNil)
+			})
+
+			Convey("Then initialized nested objects should contain zero values", func() {
+				So(cfg.OutputFilePath, ShouldEqual, "")
+				So(cfg.Strava.ClientId, ShouldEqual, "")
+				So(cfg.Strava.ApiBaseUrl, ShouldEqual, "")
+				So(cfg.Strava.OAuthBaseUrl, ShouldEqual, "")
+				So(cfg.GoogleOAuth.ClientID, ShouldEqual, "")
+				So(cfg.GoogleOAuth.OAuthBaseUrl, ShouldEqual, "")
+				So(cfg.Email.From, ShouldEqual, "")
+				So(cfg.Email.To, ShouldEqual, "")
+				So(cfg.Email.Subject, ShouldEqual, "")
+				So(cfg.ExcelTemplate.TemplatePath, ShouldEqual, "")
+				So(cfg.ExcelTemplate.SheetName, ShouldEqual, "")
+				So(cfg.ExcelTemplate.StartCell, ShouldEqual, "")
+			})
+		})
+	})
 }
 
-func TestValidateRequiredReturnsErrorWithMissingValues(t *testing.T) {
-	cfg := &Config{}
+func TestLoadShouldReturnErrorWhenConfigFileDoesNotExist(t *testing.T) {
+	Convey("Given a working directory without config.json", t, func() {
+		changeWorkingDir(t, t.TempDir())
+		setRuntimeEnv(t, "", "", "", "", "", "", "", "", "")
 
-	err := cfg.ValidateRequired()
-	if err == nil {
-		t.Fatalf("expected validation error when required config values are missing")
-	}
+		Convey("When Load is called", func() {
+			cfg, err := Load()
 
-	for _, expected := range []string{
-		"STRAVA_API_BASE_URL",
-		"STRAVA_OAUTH_BASE_URL",
-		"STRAVA_CLIENT_ID",
-		"STRAVA_CLIENT_SECRET",
-		"STRAVA_REFRESH_TOKEN",
-		"GOOGLE_OAUTH_TOKEN_URL",
-		"GOOGLE_CLIENT_ID",
-		"GOOGLE_CLIENT_SECRET",
-		"GOOGLE_REFRESH_TOKEN",
-		"EMAIL_FROM",
-		"EMAIL_TO",
-		"EMAIL_SUBJECT",
-	} {
-		if !strings.Contains(err.Error(), expected) {
-			t.Fatalf("expected validation error to contain %q, got %q", expected, err.Error())
+			Convey("Then it should return an error and still initialize nested configs", func() {
+				So(err, ShouldNotBeNil)
+				So(cfg, ShouldNotBeNil)
+				So(cfg.Strava, ShouldNotBeNil)
+				So(cfg.GoogleOAuth, ShouldNotBeNil)
+				So(cfg.Email, ShouldNotBeNil)
+				So(cfg.ExcelTemplate, ShouldNotBeNil)
+			})
+		})
+	})
+}
+
+func TestValidateRequiredShouldReturnErrorWhenConfigIsNil(t *testing.T) {
+	Convey("Given a nil config", t, func() {
+		var cfg *Config
+
+		Convey("When ValidateRequired is called", func() {
+			err := cfg.ValidateRequired()
+
+			Convey("Then it should return an error listing all required config keys", func() {
+				So(err, ShouldNotBeNil)
+				for _, key := range allRequiredConfigKeys() {
+					So(err.Error(), ShouldContainSubstring, key)
+				}
+			})
+		})
+	})
+}
+
+func TestValidateRequiredShouldReturnErrorWhenSensitiveValuesAreMissing(t *testing.T) {
+	Convey("Given a config without the required sensitive values", t, func() {
+		cfg := &Config{}
+
+		Convey("When ValidateRequired is called", func() {
+			err := cfg.ValidateRequired()
+
+			Convey("Then it should return an error listing the missing config keys", func() {
+				So(err, ShouldNotBeNil)
+				for _, key := range allRequiredConfigKeys() {
+					So(err.Error(), ShouldContainSubstring, key)
+				}
+			})
+		})
+	})
+}
+
+func TestValidateRequiredShouldReturnNilWhenSensitiveValuesExist(t *testing.T) {
+	Convey("Given a config with all required sensitive values", t, func() {
+		cfg := &Config{
+			Strava: &StravaConfig{
+				ClientId:     "strava-client-id",
+				ClientSecret: "strava-client-secret",
+				RefreshToken: "strava-refresh-token",
+				OAuthBaseUrl: "https://www.strava.com/oauth/token",
+				ApiBaseUrl:   "https://www.strava.com/api/v3",
+			},
+			GoogleOAuth: &GoogleOAuthConfig{
+				ClientID:     "google-client-id",
+				ClientSecret: "google-client-secret",
+				RefreshToken: "google-refresh-token",
+				OAuthBaseUrl: "https://oauth2.googleapis.com/token",
+			},
+			Email: &EmailConfig{
+				From:    "from@example.com",
+				To:      "to@example.com",
+				Subject: "Workout report",
+			},
+			ExcelTemplate: &ExcelTemplateConfig{
+				SheetName: "Sheet1",
+				StartCell: "A1",
+			},
 		}
-	}
+
+		Convey("When ValidateRequired is called", func() {
+			err := cfg.ValidateRequired()
+
+			Convey("Then it should return no error", func() {
+				So(err, ShouldBeNil)
+			})
+		})
+	})
 }
 
-func TestValidateRequiredReturnsNilWhenAllValuesExist(t *testing.T) {
-	cfg := &Config{
-		Strava: &StravaConfig{
-			ApiBaseUrl:   "https://www.strava.com/api/v3",
-			OAuthBaseUrl: "https://www.strava.com/oauth/token",
-			ClientId:     "strava-client-id",
-			ClientSecret: "strava-client-secret",
-			RefreshToken: "strava-refresh-token",
-		},
-		GoogleOAuth: &GoogleOAuthConfig{
-			OAuthBaseUrl: "https://oauth2.googleapis.com/token",
-			ClientID:     "google-client-id",
-			ClientSecret: "google-client-secret",
-			RefreshToken: "google-refresh-token",
-		},
-		Email: &EmailConfig{
-			From:    "from@example.com",
-			To:      "to@example.com",
-			Subject: "Workout report",
-		},
+func writeConfigFixture(t *testing.T, content string) {
+	t.Helper()
+
+	tempDir := t.TempDir()
+	configPath := filepath.Join(tempDir, configFilePath)
+	err := os.WriteFile(configPath, []byte(content), 0o600)
+	if err != nil {
+		t.Fatalf("expected config fixture to be written, got %v", err)
 	}
 
-	err := cfg.ValidateRequired()
+	changeWorkingDir(t, tempDir)
+}
+
+func changeWorkingDir(t *testing.T, dir string) {
+	t.Helper()
+
+	currentDir, err := os.Getwd()
 	if err != nil {
-		t.Fatalf("expected no validation error, got %v", err)
+		t.Fatalf("expected working directory, got %v", err)
 	}
+
+	err = os.Chdir(dir)
+	if err != nil {
+		t.Fatalf("expected to chdir to fixture dir, got %v", err)
+	}
+
+	t.Cleanup(func() {
+		_ = os.Chdir(currentDir)
+	})
+}
+
+func setRuntimeEnv(t *testing.T, stravaID, stravaSecret, stravaRefresh, googleID, googleSecret, googleRefresh, emailFrom, emailTo, emailSubject string) {
+	t.Helper()
+	t.Setenv(stravaClientIDKey, stravaID)
+	t.Setenv(stravaClientSecretKey, stravaSecret)
+	t.Setenv(stravaRefreshTokenKey, stravaRefresh)
+	t.Setenv(googleClientIDKey, googleID)
+	t.Setenv(googleClientSecretKey, googleSecret)
+	t.Setenv(googleRefreshTokenKey, googleRefresh)
+	t.Setenv(emailFromKey, emailFrom)
+	t.Setenv(emailToKey, emailTo)
+	t.Setenv(emailSubjectKey, emailSubject)
+}
+
+func TestAllRequiredConfigKeysShouldReturnTheExpectedKeys(t *testing.T) {
+	Convey("Given the required config keys list", t, func() {
+		keys := allRequiredConfigKeys()
+
+		Convey("Then it should contain the required JSON and env-backed keys", func() {
+			So(keys, ShouldResemble, []string{
+				stravaClientIDKey,
+				stravaClientSecretKey,
+				stravaRefreshTokenKey,
+				stravaOAuthBaseURLKey,
+				stravaAPIBaseURLKey,
+				googleClientIDKey,
+				googleClientSecretKey,
+				googleRefreshTokenKey,
+				googleOAuthBaseURLKey,
+				emailFromKey,
+				emailToKey,
+				emailSubjectKey,
+			})
+		})
+	})
+}
+
+func TestValidateRequiredErrorShouldNotMentionOptionalConfigKeys(t *testing.T) {
+	Convey("Given a config with missing required values", t, func() {
+		cfg := &Config{}
+
+		Convey("When ValidateRequired is called", func() {
+			err := cfg.ValidateRequired()
+
+			Convey("Then it should not mention optional config keys", func() {
+				So(err, ShouldNotBeNil)
+				So(strings.Contains(err.Error(), "outputFilePath"), ShouldBeFalse)
+				So(strings.Contains(err.Error(), "excelTemplate.templatePath"), ShouldBeFalse)
+			})
+		})
+	})
+}
+
+func TestValidateRequiredShouldReturnErrorWhenOAuthFieldsAreMissing(t *testing.T) {
+	Convey("Given a config with env-backed values but missing OAuth urls", t, func() {
+		cfg := &Config{
+			Strava: &StravaConfig{
+				ClientId:     "strava-client-id",
+				ClientSecret: "strava-client-secret",
+				RefreshToken: "strava-refresh-token",
+			},
+			GoogleOAuth: &GoogleOAuthConfig{
+				ClientID:     "google-client-id",
+				ClientSecret: "google-client-secret",
+				RefreshToken: "google-refresh-token",
+			},
+			Email: &EmailConfig{
+				From:    "from@example.com",
+				To:      "to@example.com",
+				Subject: "Workout report",
+			},
+		}
+
+		Convey("When ValidateRequired is called", func() {
+			err := cfg.ValidateRequired()
+
+			Convey("Then it should fail fast on the missing OAuth urls", func() {
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, stravaOAuthBaseURLKey)
+				So(err.Error(), ShouldContainSubstring, googleOAuthBaseURLKey)
+			})
+		})
+	})
 }

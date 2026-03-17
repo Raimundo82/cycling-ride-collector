@@ -1,0 +1,15 @@
+{
+  "outputFilePath": "",
+  "strava": {
+    "apiBaseUrl": "https://www.strava.com/api/v3",
+    "oauthBaseUrl": "https://www.strava.com/oauth/token"
+  },
+  "googleOAuth": {
+    "oauthBaseUrl": "https://oauth2.googleapis.com/token"
+  },
+  "excelTemplate": {
+    "templatePath": "template.xlsx",
+    "sheetName": "Registos",
+    "startCell": "B8"
+  }
+}

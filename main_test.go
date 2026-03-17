@@ -44,7 +44,10 @@ func TestRunDelegatesToCronModeWhenEnabled(t *testing.T) {
 }
 
 func TestBuildRuntimeConfigOverridesOutputPath(t *testing.T) {
-	cfg := buildRuntimeConfig(config.CLIOptions{OutputFilePath: "custom.csv"})
+	cfg, err := buildRuntimeConfig(config.CLIOptions{OutputFilePath: "custom.csv"})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
 	if cfg.OutputFilePath != "custom.csv" {
 		t.Fatalf("expected output path override, got %q", cfg.OutputFilePath)
 	}
