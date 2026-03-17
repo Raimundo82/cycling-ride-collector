@@ -93,16 +93,16 @@ Example:
 | `STRAVA_CLIENT_ID` | yes | Strava client id used in token refresh requests |
 | `STRAVA_CLIENT_SECRET` | yes | Strava client secret used to refresh access tokens |
 | `STRAVA_REFRESH_TOKEN` | yes | Strava refresh token used to obtain access tokens |
-| `GOOGLE_CLIENT_ID` | yes* | Google OAuth client id used in Gmail token refresh requests |
-| `GOOGLE_CLIENT_SECRET` | yes* | Google OAuth client secret used for email notifications |
-| `GOOGLE_REFRESH_TOKEN` | yes* | Google OAuth refresh token used for Gmail access |
-| `EMAIL_FROM` | yes* | Sender email address |
-| `EMAIL_TO` | yes* | Recipient email address(es) |
-| `EMAIL_SUBJECT` | yes* | Email subject line |
+| `GOOGLE_CLIENT_ID` | yes | Google OAuth client id used in Gmail token refresh requests |
+| `GOOGLE_CLIENT_SECRET` | yes | Google OAuth client secret used for email notifications |
+| `GOOGLE_REFRESH_TOKEN` | yes | Google OAuth refresh token used for Gmail access |
+| `EMAIL_FROM` | yes | Sender email address |
+| `EMAIL_TO` | yes | Recipient email address(es) |
+| `EMAIL_SUBJECT` | yes | Email subject line |
 
 Notes:
 - `OutputFilePath` can be set in `config.json` or overridden by CLI flag `--output-file`.
-- `*` Google OAuth and email env vars are required when email delivery is used.
+- Google OAuth and email env vars are required because the application always attempts to send the workout report via email on each run; leaving them unset will cause startup validation to fail.
 - `strava.oauthBaseUrl`, `googleOAuth.oauthBaseUrl`, and Excel template settings come from `config.json`.
 - `.env` is loaded automatically at startup when present.
 
