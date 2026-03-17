@@ -76,7 +76,10 @@ func buildCronOptions(now time.Time) config.CLIOptions {
 }
 
 func runOnceMode(options config.CLIOptions) error {
-	cfg := buildRuntimeConfig(options)
+	cfg, err := buildRuntimeConfig(options)
+	if err != nil {
+		return fmt.Errorf("failed to build runtime config: %w", err)
+	}
 	if err := cfg.ValidateRequired(); err != nil {
 		return fmt.Errorf("invalid config: %w", err)
 	}
@@ -105,12 +108,15 @@ func runOnceMode(options config.CLIOptions) error {
 	return nil
 }
 
-func buildRuntimeConfig(options config.CLIOptions) *config.Config {
-	cfg := config.Load()
+func buildRuntimeConfig(options config.CLIOptions) (*config.Config, error) {
+	cfg, err := config.Load()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load config: %w", err)
+	}
 	if options.OutputFilePath != "" {
 		cfg.OutputFilePath = options.OutputFilePath
 	}
-	return cfg
+	return cfg, nil
 }
 
 func buildSaveWorkoutRequest(options config.CLIOptions) (*input.SaveWorkoutPeriodRequest, error) {

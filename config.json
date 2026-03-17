@@ -1,18 +1,11 @@
 {
   "outputFilePath": "",
   "strava": {
-    "clientId": "131590",
     "apiBaseUrl": "https://www.strava.com/api/v3",
     "oauthBaseUrl": "https://www.strava.com/oauth/token"
   },
   "googleOAuth": {
-    "clientId": "295017080012-5hns18ts9sntqml54b21308qv03rom5p.apps.googleusercontent.com",
     "oauthBaseUrl": "https://oauth2.googleapis.com/token"
-  },
-  "email": {
-    "from": "joao.raimundo.1982@gmail.com",
-    "to": "joao.raimundo.1982@gmail.com",
-    "subject": "Cycling Workout Report"
   },
   "excelTemplate": {
     "templatePath": "template.xlsx",
