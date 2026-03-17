@@ -13,7 +13,7 @@ Main capabilities:
 - Persist daily results to CSV or Excel (`.xlsx`)
 - Send workout reports via email with file attachments
 - Load non-sensitive configuration from `config.json`
-- Override sensitive OAuth secrets and refresh tokens from environment variables
+- Load secrets and private runtime values from environment variables
 
 ## Architecture
 
@@ -55,7 +55,7 @@ go build -o cycling-ride-collector .
 The app uses a split configuration model:
 
 - `config.json`: non-sensitive values
-- `.env` or process environment variables: sensitive values only
+- `.env` or process environment variables: secrets and private runtime values
 
 Runtime lookup order:
 
@@ -72,18 +72,11 @@ Example:
 {
   "outputFilePath": "",
   "strava": {
-    "clientId": "131590",
     "apiBaseUrl": "https://www.strava.com/api/v3",
     "oauthBaseUrl": "https://www.strava.com/oauth/token"
   },
   "googleOAuth": {
-    "clientId": "your-google-client-id.apps.googleusercontent.com",
     "oauthBaseUrl": "https://oauth2.googleapis.com/token"
-  },
-  "email": {
-    "from": "your-email@gmail.com",
-    "to": "recipient@example.com",
-    "subject": "Cycling Workout Report"
   },
   "excelTemplate": {
     "templatePath": "template.xlsx",
@@ -97,15 +90,20 @@ Example:
 
 | Variable | Required | Description |
 |---|---|---|
+| `STRAVA_CLIENT_ID` | yes | Strava client id used in token refresh requests |
 | `STRAVA_CLIENT_SECRET` | yes | Strava client secret used to refresh access tokens |
 | `STRAVA_REFRESH_TOKEN` | yes | Strava refresh token used to obtain access tokens |
+| `GOOGLE_CLIENT_ID` | yes* | Google OAuth client id used in Gmail token refresh requests |
 | `GOOGLE_CLIENT_SECRET` | yes* | Google OAuth client secret used for email notifications |
 | `GOOGLE_REFRESH_TOKEN` | yes* | Google OAuth refresh token used for Gmail access |
+| `EMAIL_FROM` | yes* | Sender email address |
+| `EMAIL_TO` | yes* | Recipient email address(es) |
+| `EMAIL_SUBJECT` | yes* | Email subject line |
 
 Notes:
 - `OutputFilePath` can be set in `config.json` or overridden by CLI flag `--output-file`.
-- `*` Google OAuth secrets are required when email delivery is used.
-- Non-sensitive values such as client ids, API URLs, email addresses, and Excel template settings come from `config.json`.
+- `*` Google OAuth and email env vars are required when email delivery is used.
+- `strava.oauthBaseUrl`, `googleOAuth.oauthBaseUrl`, and Excel template settings come from `config.json`.
 - `.env` is loaded automatically at startup when present.
 
 ## Usage
@@ -124,10 +122,15 @@ Notes:
 ### Example Run
 
 ```bash
+export STRAVA_CLIENT_ID="<strava-client-id>"
 export STRAVA_CLIENT_SECRET="<strava-client-secret>"
 export STRAVA_REFRESH_TOKEN="<strava-refresh-token>"
+export GOOGLE_CLIENT_ID="<google-client-id>"
 export GOOGLE_CLIENT_SECRET="<google-client-secret>"
 export GOOGLE_REFRESH_TOKEN="<google-refresh-token>"
+export EMAIL_FROM="your-email@gmail.com"
+export EMAIL_TO="recipient@example.com"
+export EMAIL_SUBJECT="Cycling Workout Report"
 
 ./cycling-ride-collector \
   --start-date 01/01/2026 \
@@ -169,9 +172,9 @@ When running with the `--cron` flag and the appropriate Google OAuth and email c
 3. Send the report via Gmail to the configured recipient(s)
 
 Required configuration:
-- `googleOAuth.clientId` and `googleOAuth.oauthBaseUrl` in `config.json`
-- `email.from`, `email.to`, and `email.subject` in `config.json`
-- `GOOGLE_CLIENT_SECRET` and `GOOGLE_REFRESH_TOKEN` in environment variables
+- `googleOAuth.oauthBaseUrl` in `config.json`
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REFRESH_TOKEN` in environment variables
+- `EMAIL_FROM`, `EMAIL_TO`, and `EMAIL_SUBJECT` in environment variables
 
 ## Daily Workout Policies
 
@@ -194,7 +197,7 @@ Before building for any platform:
 
 1. prepare `config.json` with the non-sensitive values you want to use
 2. keep secrets out of `config.json`
-3. provide secrets via `.env` or environment variables at runtime
+3. provide env-backed client ids, email values, and secrets via `.env` or environment variables at runtime
 
 #### Linux
 
@@ -207,10 +210,15 @@ go build -o cycling-ride-collector .
 Run on Linux with secrets in the environment:
 
 ```bash
+export STRAVA_CLIENT_ID="<strava-client-id>"
 export STRAVA_CLIENT_SECRET="<strava-client-secret>"
 export STRAVA_REFRESH_TOKEN="<strava-refresh-token>"
+export GOOGLE_CLIENT_ID="<google-client-id>"
 export GOOGLE_CLIENT_SECRET="<google-client-secret>"
 export GOOGLE_REFRESH_TOKEN="<google-refresh-token>"
+export EMAIL_FROM="your-email@gmail.com"
+export EMAIL_TO="recipient@example.com"
+export EMAIL_SUBJECT="Cycling Workout Report"
 
 ./cycling-ride-collector --start-date 01/01/2026 --end-date 01/07/2026
 ```
@@ -232,10 +240,15 @@ go build -o cycling-ride-collector.exe .
 Run on Windows PowerShell with secrets in the environment:
 
 ```powershell
+$env:STRAVA_CLIENT_ID="<strava-client-id>"
 $env:STRAVA_CLIENT_SECRET="<strava-client-secret>"
 $env:STRAVA_REFRESH_TOKEN="<strava-refresh-token>"
+$env:GOOGLE_CLIENT_ID="<google-client-id>"
 $env:GOOGLE_CLIENT_SECRET="<google-client-secret>"
 $env:GOOGLE_REFRESH_TOKEN="<google-refresh-token>"
+$env:EMAIL_FROM="your-email@gmail.com"
+$env:EMAIL_TO="recipient@example.com"
+$env:EMAIL_SUBJECT="Cycling Workout Report"
 
 .\cycling-ride-collector.exe --start-date 01/01/2026 --end-date 01/07/2026
 ```
