@@ -7,12 +7,14 @@ import (
 	"strings"
 )
 
-const configFilePath = "config.json"
-const missingRequiredValuesPrefix = "missing required config values: "
-const stravaClientSecretKey = "STRAVA_CLIENT_SECRET"
-const stravaRefreshTokenKey = "STRAVA_REFRESH_TOKEN"
-const googleClientSecretKey = "GOOGLE_CLIENT_SECRET"
-const googleRefreshTokenKey = "GOOGLE_REFRESH_TOKEN"
+const (
+	configFilePath              = "config.json"
+	missingRequiredValuesPrefix = "missing required config values: "
+	stravaClientSecretKey       = "STRAVA_CLIENT_SECRET"
+	stravaRefreshTokenKey       = "STRAVA_REFRESH_TOKEN"
+	googleClientSecretKey       = "GOOGLE_CLIENT_SECRET"
+	googleRefreshTokenKey       = "GOOGLE_REFRESH_TOKEN"
+)
 
 type Config struct {
 	OutputFilePath string               `json:"outputFilePath"`
