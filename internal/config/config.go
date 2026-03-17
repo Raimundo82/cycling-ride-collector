@@ -148,15 +148,15 @@ func initializeNestedConfigs(cfg *Config) *Config {
 }
 
 func applySensitiveEnv(cfg *Config) {
-	cfg.Strava.ClientId = getEnv("STRAVA_CLIENT_ID")
-	cfg.Strava.ClientSecret = getEnv("STRAVA_CLIENT_SECRET")
-	cfg.Strava.RefreshToken = getEnv("STRAVA_REFRESH_TOKEN")
-	cfg.GoogleOAuth.ClientID = getEnv("GOOGLE_CLIENT_ID")
-	cfg.GoogleOAuth.ClientSecret = getEnv("GOOGLE_CLIENT_SECRET")
-	cfg.GoogleOAuth.RefreshToken = getEnv("GOOGLE_REFRESH_TOKEN")
-	cfg.Email.From = getEnv("EMAIL_FROM")
-	cfg.Email.To = getEnv("EMAIL_TO")
-	cfg.Email.Subject = getEnv("EMAIL_SUBJECT")
+	cfg.Strava.ClientId = getEnv(stravaClientIDKey)
+	cfg.Strava.ClientSecret = getEnv(stravaClientSecretKey)
+	cfg.Strava.RefreshToken = getEnv(stravaRefreshTokenKey)
+	cfg.GoogleOAuth.ClientID = getEnv(googleClientIDKey)
+	cfg.GoogleOAuth.ClientSecret = getEnv(googleClientSecretKey)
+	cfg.GoogleOAuth.RefreshToken = getEnv(googleRefreshTokenKey)
+	cfg.Email.From = getEnv(emailFromKey)
+	cfg.Email.To = getEnv(emailToKey)
+	cfg.Email.Subject = getEnv(emailSubjectKey)
 }
 
 func allRequiredConfigKeys() []string {
