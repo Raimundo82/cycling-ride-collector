@@ -237,6 +237,10 @@ func TestValidateRequiredShouldReturnNilWhenSensitiveValuesExist(t *testing.T) {
 				To:      "to@example.com",
 				Subject: "Workout report",
 			},
+			ExcelTemplate: &ExcelTemplateConfig{
+				SheetName: "Sheet1",
+				StartCell: "A1",
+			},
 		}
 
 		Convey("When ValidateRequired is called", func() {
@@ -316,17 +320,17 @@ func TestAllRequiredConfigKeysShouldReturnTheExpectedKeys(t *testing.T) {
 	})
 }
 
-func TestValidateRequiredErrorShouldNotMentionUnrelatedConfigKeys(t *testing.T) {
-	Convey("Given a config with missing sensitive values", t, func() {
+func TestValidateRequiredErrorShouldNotMentionOptionalConfigKeys(t *testing.T) {
+	Convey("Given a config with missing required values", t, func() {
 		cfg := &Config{}
 
 		Convey("When ValidateRequired is called", func() {
 			err := cfg.ValidateRequired()
 
-			Convey("Then it should not mention unrelated non-OAuth config fields", func() {
+			Convey("Then it should not mention optional config keys", func() {
 				So(err, ShouldNotBeNil)
-				So(strings.Contains(err.Error(), "STRAVA_API_BASE_URL"), ShouldBeFalse)
-				So(strings.Contains(err.Error(), "excelTemplate"), ShouldBeFalse)
+				So(strings.Contains(err.Error(), "outputFilePath"), ShouldBeFalse)
+				So(strings.Contains(err.Error(), "excelTemplate.templatePath"), ShouldBeFalse)
 			})
 		})
 	})
