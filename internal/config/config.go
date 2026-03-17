@@ -61,10 +61,10 @@ type GoogleOAuthConfig struct {
 func Load() (*Config, error) {
 	cfg, err := loadFromFile(configFilePath)
 	if err != nil {
-		fmt.Printf("Error loading config file: %v\n", err)
+		return cfg, err
 	}
 	applySensitiveEnv(cfg)
-	return cfg, err
+	return cfg, nil
 }
 
 func (c *Config) ValidateRequired() error {
