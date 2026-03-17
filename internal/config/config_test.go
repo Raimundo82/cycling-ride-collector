@@ -224,6 +224,7 @@ func TestValidateRequiredShouldReturnNilWhenSensitiveValuesExist(t *testing.T) {
 				ClientSecret: "strava-client-secret",
 				RefreshToken: "strava-refresh-token",
 				OAuthBaseUrl: "https://www.strava.com/oauth/token",
+				ApiBaseUrl:   "https://www.strava.com/api/v3",
 			},
 			GoogleOAuth: &GoogleOAuthConfig{
 				ClientID:     "google-client-id",
@@ -302,6 +303,7 @@ func TestAllRequiredConfigKeysShouldReturnTheExpectedKeys(t *testing.T) {
 				stravaClientSecretKey,
 				stravaRefreshTokenKey,
 				stravaOAuthBaseURLKey,
+				stravaAPIBaseURLKey,
 				googleClientIDKey,
 				googleClientSecretKey,
 				googleRefreshTokenKey,

@@ -14,6 +14,7 @@ const (
 	stravaClientSecretKey       = "STRAVA_CLIENT_SECRET"
 	stravaRefreshTokenKey       = "STRAVA_REFRESH_TOKEN"
 	stravaOAuthBaseURLKey       = "strava.oauthBaseUrl"
+	stravaAPIBaseURLKey         = "strava.apiBaseUrl"
 	googleClientIDKey           = "GOOGLE_CLIENT_ID"
 	googleClientSecretKey       = "GOOGLE_CLIENT_SECRET"
 	googleRefreshTokenKey       = "GOOGLE_REFRESH_TOKEN"
@@ -140,6 +141,9 @@ func validateStravaConfig(c *Config, missing []string) []string {
 	if c.Strava == nil || c.Strava.OAuthBaseUrl == "" {
 		missing = append(missing, stravaOAuthBaseURLKey)
 	}
+	if c.Strava == nil || c.Strava.ApiBaseUrl == "" {
+		missing = append(missing, stravaAPIBaseURLKey)
+	}
 	return missing
 }
 
@@ -178,6 +182,7 @@ func allRequiredConfigKeys() []string {
 		stravaClientSecretKey,
 		stravaRefreshTokenKey,
 		stravaOAuthBaseURLKey,
+		stravaAPIBaseURLKey,
 		googleClientIDKey,
 		googleClientSecretKey,
 		googleRefreshTokenKey,
