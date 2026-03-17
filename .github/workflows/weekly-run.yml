@@ -1,0 +1,45 @@
+name: Weekly Ride Collection
+
+on:
+  schedule:
+    - cron: "0 8 * * 0"
+  workflow_dispatch:
+
+jobs:
+  run-weekly-collection:
+    runs-on: ubuntu-latest
+    env:
+      STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
+      STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+          cache: true
+
+      - name: Compute weekly period
+        shell: bash
+        run: |
+          start_date="$(date -u -d '6 days ago' '+%m/%d/%Y')"
+          end_date="$(date -u '+%m/%d/%Y')"
+
+          {
+            echo "START_DATE=$start_date"
+            echo "END_DATE=$end_date"
+          } >> "$GITHUB_ENV"
+
+      - name: Build application
+        run: go build -o cycling-ride-collector .
+
+      - name: Run weekly collection
+        run: >
+          ./cycling-ride-collector
+          --start-date "${START_DATE}"
+          --end-date "${END_DATE}"
