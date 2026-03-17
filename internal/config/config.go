@@ -1,122 +1,82 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 )
 
+const configFilePath = "config.json"
+const missingRequiredValuesPrefix = "missing required config values: "
+const stravaClientSecretKey = "STRAVA_CLIENT_SECRET"
+const stravaRefreshTokenKey = "STRAVA_REFRESH_TOKEN"
+const googleClientSecretKey = "GOOGLE_CLIENT_SECRET"
+const googleRefreshTokenKey = "GOOGLE_REFRESH_TOKEN"
+
 type Config struct {
-	OutputFilePath string
-	Strava         *StravaConfig
-	GoogleOAuth    *GoogleOAuthConfig
-	Email          *EmailConfig
-	ExcelTemplate  *ExcelTemplateConfig
+	OutputFilePath string               `json:"outputFilePath"`
+	Strava         *StravaConfig        `json:"strava"`
+	GoogleOAuth    *GoogleOAuthConfig   `json:"googleOAuth"`
+	Email          *EmailConfig         `json:"email"`
+	ExcelTemplate  *ExcelTemplateConfig `json:"excelTemplate"`
 }
 
 type EmailConfig struct {
-	From    string
-	To      string
-	Subject string
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Subject string `json:"subject"`
 }
 
 type ExcelTemplateConfig struct {
-	TemplatePath string
-	SheetName    string
-	StartCell    string
+	TemplatePath string `json:"templatePath"`
+	SheetName    string `json:"sheetName"`
+	StartCell    string `json:"startCell"`
 }
 
 type StravaConfig struct {
-	ClientId     string
-	ClientSecret string
-	RefreshToken string
-	ApiBaseUrl   string
-	OAuthBaseUrl string
+	ClientId     string `json:"clientId"`
+	ClientSecret string `json:"clientSecret"`
+	RefreshToken string `json:"refreshToken"`
+	ApiBaseUrl   string `json:"apiBaseUrl"`
+	OAuthBaseUrl string `json:"oauthBaseUrl"`
 }
 
 type GoogleOAuthConfig struct {
-	ClientID     string
-	ClientSecret string
-	RefreshToken string
-	OAuthBaseUrl string
+	ClientID     string `json:"clientId"`
+	ClientSecret string `json:"clientSecret"`
+	RefreshToken string `json:"refreshToken"`
+	OAuthBaseUrl string `json:"oauthBaseUrl"`
 }
 
 func Load() *Config {
-	return &Config{
-		Strava: &StravaConfig{
-			ClientId:     getEnv("STRAVA_CLIENT_ID"),
-			ClientSecret: getEnv("STRAVA_CLIENT_SECRET"),
-			RefreshToken: getEnv("STRAVA_REFRESH_TOKEN"),
-			ApiBaseUrl:   getEnv("STRAVA_API_BASE_URL"),
-			OAuthBaseUrl: getEnv("STRAVA_OAUTH_BASE_URL"),
-		},
-		GoogleOAuth: &GoogleOAuthConfig{
-			ClientID:     getEnv("GOOGLE_CLIENT_ID"),
-			ClientSecret: getEnv("GOOGLE_CLIENT_SECRET"),
-			OAuthBaseUrl: getEnv("GOOGLE_OAUTH_TOKEN_URL"),
-			RefreshToken: getEnv("GOOGLE_REFRESH_TOKEN"),
-		},
-		Email: &EmailConfig{
-			From:    getEnv("EMAIL_FROM"),
-			To:      getEnv("EMAIL_TO"),
-			Subject: getEnv("EMAIL_SUBJECT"),
-		},
-		ExcelTemplate: &ExcelTemplateConfig{
-			TemplatePath: getEnv("EXCEL_TEMPLATE_PATH"),
-			SheetName:    getEnv("EXCEL_TEMPLATE_SHEETNAME"),
-			StartCell:    getEnv("EXCEL_TEMPLATE_STARTCELL"),
-		},
-	}
+	cfg := loadFromFile(configFilePath)
+	applySensitiveEnv(cfg)
+	return cfg
 }
 
 func (c *Config) ValidateRequired() error {
-	missing := make([]string, 0)
-
 	if c == nil {
-		return fmt.Errorf("missing required config values: STRAVA_API_BASE_URL, STRAVA_OAUTH_BASE_URL, STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, STRAVA_REFRESH_TOKEN, GOOGLE_OAUTH_TOKEN_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN, EMAIL_FROM, EMAIL_TO, EMAIL_SUBJECT")
+		return fmt.Errorf("%s%s", missingRequiredValuesPrefix, strings.Join(allRequiredEnvKeys(), ", "))
 	}
 
-	if c.Strava == nil || c.Strava.ApiBaseUrl == "" {
-		missing = append(missing, "STRAVA_API_BASE_URL")
-	}
-	if c.Strava == nil || c.Strava.OAuthBaseUrl == "" {
-		missing = append(missing, "STRAVA_OAUTH_BASE_URL")
-	}
-	if c.Strava == nil || c.Strava.ClientId == "" {
-		missing = append(missing, "STRAVA_CLIENT_ID")
-	}
+	missing := make([]string, 0, 4)
+
 	if c.Strava == nil || c.Strava.ClientSecret == "" {
-		missing = append(missing, "STRAVA_CLIENT_SECRET")
+		missing = append(missing, stravaClientSecretKey)
 	}
 	if c.Strava == nil || c.Strava.RefreshToken == "" {
-		missing = append(missing, "STRAVA_REFRESH_TOKEN")
-	}
-
-	if c.GoogleOAuth == nil || c.GoogleOAuth.OAuthBaseUrl == "" {
-		missing = append(missing, "GOOGLE_OAUTH_TOKEN_URL")
-	}
-	if c.GoogleOAuth == nil || c.GoogleOAuth.ClientID == "" {
-		missing = append(missing, "GOOGLE_CLIENT_ID")
+		missing = append(missing, stravaRefreshTokenKey)
 	}
 	if c.GoogleOAuth == nil || c.GoogleOAuth.ClientSecret == "" {
-		missing = append(missing, "GOOGLE_CLIENT_SECRET")
+		missing = append(missing, googleClientSecretKey)
 	}
 	if c.GoogleOAuth == nil || c.GoogleOAuth.RefreshToken == "" {
-		missing = append(missing, "GOOGLE_REFRESH_TOKEN")
-	}
-
-	if c.Email == nil || c.Email.From == "" {
-		missing = append(missing, "EMAIL_FROM")
-	}
-	if c.Email == nil || c.Email.To == "" {
-		missing = append(missing, "EMAIL_TO")
-	}
-	if c.Email == nil || c.Email.Subject == "" {
-		missing = append(missing, "EMAIL_SUBJECT")
+		missing = append(missing, googleRefreshTokenKey)
 	}
 
 	if len(missing) > 0 {
-		return fmt.Errorf("missing required config values: %s", strings.Join(missing, ", "))
+		return fmt.Errorf("%s%s", missingRequiredValuesPrefix, strings.Join(missing, ", "))
 	}
 
 	return nil
@@ -124,4 +84,48 @@ func (c *Config) ValidateRequired() error {
 
 func getEnv(key string) string {
 	return os.Getenv(key)
+}
+
+func loadFromFile(path string) *Config {
+	cfg := &Config{}
+
+	data, err := os.ReadFile(path)
+	if err == nil && len(data) > 0 {
+		_ = json.Unmarshal(data, cfg)
+	}
+
+	return initializeNestedConfigs(cfg)
+}
+
+func initializeNestedConfigs(cfg *Config) *Config {
+	if cfg.Strava == nil {
+		cfg.Strava = &StravaConfig{}
+	}
+	if cfg.GoogleOAuth == nil {
+		cfg.GoogleOAuth = &GoogleOAuthConfig{}
+	}
+	if cfg.Email == nil {
+		cfg.Email = &EmailConfig{}
+	}
+	if cfg.ExcelTemplate == nil {
+		cfg.ExcelTemplate = &ExcelTemplateConfig{}
+	}
+
+	return cfg
+}
+
+func applySensitiveEnv(cfg *Config) {
+	cfg.Strava.ClientSecret = getEnv("STRAVA_CLIENT_SECRET")
+	cfg.Strava.RefreshToken = getEnv("STRAVA_REFRESH_TOKEN")
+	cfg.GoogleOAuth.ClientSecret = getEnv("GOOGLE_CLIENT_SECRET")
+	cfg.GoogleOAuth.RefreshToken = getEnv("GOOGLE_REFRESH_TOKEN")
+}
+
+func allRequiredEnvKeys() []string {
+	return []string{
+		stravaClientSecretKey,
+		stravaRefreshTokenKey,
+		googleClientSecretKey,
+		googleRefreshTokenKey,
+	}
 }
