@@ -21,7 +21,6 @@ const (
 	googleOAuthBaseURLKey       = "googleOAuth.oauthBaseUrl"
 	emailFromKey                = "EMAIL_FROM"
 	emailToKey                  = "EMAIL_TO"
-	emailSubjectKey             = "EMAIL_SUBJECT"
 	excelTemplateSheetNameKey   = "excelTemplate.sheetName"
 	excelTemplateStartCellKey   = "excelTemplate.startCell"
 )
@@ -37,7 +36,7 @@ type Config struct {
 type EmailConfig struct {
 	From    string
 	To      string
-	Subject string
+	Subject string `json:"subject"`
 }
 
 type ExcelTemplateConfig struct {
@@ -122,9 +121,6 @@ func validateEmailConfig(c *Config, missing []string) []string {
 	if c.Email == nil || c.Email.To == "" {
 		missing = append(missing, emailToKey)
 	}
-	if c.Email == nil || c.Email.Subject == "" {
-		missing = append(missing, emailSubjectKey)
-	}
 	return missing
 }
 
@@ -173,7 +169,6 @@ func applySensitiveEnv(cfg *Config) {
 	cfg.GoogleOAuth.RefreshToken = getEnv(googleRefreshTokenKey)
 	cfg.Email.From = getEnv(emailFromKey)
 	cfg.Email.To = getEnv(emailToKey)
-	cfg.Email.Subject = getEnv(emailSubjectKey)
 }
 
 func allRequiredConfigKeys() []string {
@@ -189,7 +184,6 @@ func allRequiredConfigKeys() []string {
 		googleOAuthBaseURLKey,
 		emailFromKey,
 		emailToKey,
-		emailSubjectKey,
 	}
 }
 

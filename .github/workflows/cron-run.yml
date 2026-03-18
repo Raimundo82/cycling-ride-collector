@@ -2,7 +2,7 @@ name: Weekly Ride Collection
 
 on:
   schedule:
-    - cron: "20 23 * * 2"
+    - cron: "20 00 * * 3"
   workflow_dispatch:
 
 jobs:
@@ -20,10 +20,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: "stable"
           cache: true
