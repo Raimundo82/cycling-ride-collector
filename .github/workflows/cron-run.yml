@@ -2,7 +2,7 @@ name: Weekly Ride Collection
 
 on:
   schedule:
-    - cron: "20 23 * * 2"
+    - cron: "20 00 * * 3"
   workflow_dispatch:
 
 jobs:
