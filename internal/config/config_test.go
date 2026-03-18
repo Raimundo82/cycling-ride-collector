@@ -18,6 +18,9 @@ const fullConfigFixture = `{
 	"googleOAuth": {
 		"oauthBaseUrl": "https://oauth2.googleapis.test/token"
 	},
+	"email": {
+		"subject": "Workout report"
+	},
 	"excelTemplate": {
 		"templatePath": "template.xlsx",
 		"sheetName": "Sheet1",
@@ -38,7 +41,6 @@ func TestLoadShouldPopulateConfigFromJSONAndSensitiveFieldsFromEnv(t *testing.T)
 			"google-refresh-token",
 			"from@example.com",
 			"to@example.com",
-			"Workout report",
 		)
 
 		Convey("When Load is called", func() {
@@ -53,6 +55,7 @@ func TestLoadShouldPopulateConfigFromJSONAndSensitiveFieldsFromEnv(t *testing.T)
 				So(cfg.GoogleOAuth, ShouldNotBeNil)
 				So(cfg.GoogleOAuth.OAuthBaseUrl, ShouldEqual, "https://oauth2.googleapis.test/token")
 				So(cfg.Email, ShouldNotBeNil)
+				So(cfg.Email.Subject, ShouldEqual, "Workout report")
 				So(cfg.ExcelTemplate, ShouldNotBeNil)
 				So(cfg.ExcelTemplate.TemplatePath, ShouldEqual, "template.xlsx")
 				So(cfg.ExcelTemplate.SheetName, ShouldEqual, "Sheet1")
@@ -68,7 +71,6 @@ func TestLoadShouldPopulateConfigFromJSONAndSensitiveFieldsFromEnv(t *testing.T)
 				So(cfg.GoogleOAuth.RefreshToken, ShouldEqual, "google-refresh-token")
 				So(cfg.Email.From, ShouldEqual, "from@example.com")
 				So(cfg.Email.To, ShouldEqual, "to@example.com")
-				So(cfg.Email.Subject, ShouldEqual, "Workout report")
 			})
 		})
 	})
@@ -77,7 +79,7 @@ func TestLoadShouldPopulateConfigFromJSONAndSensitiveFieldsFromEnv(t *testing.T)
 func TestLoadShouldFailValidationWhenSensitiveEnvVarsAreMissing(t *testing.T) {
 	Convey("Given a config.json file and missing secret environment variables", t, func() {
 		writeConfigFixture(t, fullConfigFixture)
-		setRuntimeEnv(t, "", "", "", "", "", "", "", "", "")
+		setRuntimeEnv(t, "", "", "", "", "", "", "", "")
 
 		Convey("When Load is called", func() {
 			cfg, err := Load()
@@ -91,6 +93,7 @@ func TestLoadShouldFailValidationWhenSensitiveEnvVarsAreMissing(t *testing.T) {
 				So(cfg.GoogleOAuth, ShouldNotBeNil)
 				So(cfg.GoogleOAuth.OAuthBaseUrl, ShouldEqual, "https://oauth2.googleapis.test/token")
 				So(cfg.Email, ShouldNotBeNil)
+				So(cfg.Email.Subject, ShouldEqual, "Workout report")
 			})
 
 			Convey("Then sensitive values should be empty before validation", func() {
@@ -102,7 +105,6 @@ func TestLoadShouldFailValidationWhenSensitiveEnvVarsAreMissing(t *testing.T) {
 				So(cfg.GoogleOAuth.RefreshToken, ShouldEqual, "")
 				So(cfg.Email.From, ShouldEqual, "")
 				So(cfg.Email.To, ShouldEqual, "")
-				So(cfg.Email.Subject, ShouldEqual, "")
 			})
 
 			Convey("Then validation should fail because sensitive values are mandatory", func() {
@@ -118,7 +120,6 @@ func TestLoadShouldFailValidationWhenSensitiveEnvVarsAreMissing(t *testing.T) {
 					googleRefreshTokenKey,
 					emailFromKey,
 					emailToKey,
-					emailSubjectKey,
 				} {
 					So(err.Error(), ShouldContainSubstring, key)
 				}
@@ -130,7 +131,7 @@ func TestLoadShouldFailValidationWhenSensitiveEnvVarsAreMissing(t *testing.T) {
 func TestLoadShouldInitializeNestedConfigsWhenJSONIsEmptyObject(t *testing.T) {
 	Convey("Given a config.json file with an empty json object", t, func() {
 		writeConfigFixture(t, `{}`)
-		setRuntimeEnv(t, "", "", "", "", "", "", "", "", "")
+		setRuntimeEnv(t, "", "", "", "", "", "", "", "")
 
 		Convey("When Load is called", func() {
 			cfg, err := Load()
@@ -165,7 +166,7 @@ func TestLoadShouldInitializeNestedConfigsWhenJSONIsEmptyObject(t *testing.T) {
 func TestLoadShouldReturnErrorWhenConfigFileDoesNotExist(t *testing.T) {
 	Convey("Given a working directory without config.json", t, func() {
 		changeWorkingDir(t, t.TempDir())
-		setRuntimeEnv(t, "", "", "", "", "", "", "", "", "")
+		setRuntimeEnv(t, "", "", "", "", "", "", "", "")
 
 		Convey("When Load is called", func() {
 			cfg, err := Load()
@@ -284,7 +285,7 @@ func changeWorkingDir(t *testing.T, dir string) {
 	})
 }
 
-func setRuntimeEnv(t *testing.T, stravaID, stravaSecret, stravaRefresh, googleID, googleSecret, googleRefresh, emailFrom, emailTo, emailSubject string) {
+func setRuntimeEnv(t *testing.T, stravaID, stravaSecret, stravaRefresh, googleID, googleSecret, googleRefresh, emailFrom, emailTo string) {
 	t.Helper()
 	t.Setenv(stravaClientIDKey, stravaID)
 	t.Setenv(stravaClientSecretKey, stravaSecret)
@@ -294,7 +295,6 @@ func setRuntimeEnv(t *testing.T, stravaID, stravaSecret, stravaRefresh, googleID
 	t.Setenv(googleRefreshTokenKey, googleRefresh)
 	t.Setenv(emailFromKey, emailFrom)
 	t.Setenv(emailToKey, emailTo)
-	t.Setenv(emailSubjectKey, emailSubject)
 }
 
 func TestAllRequiredConfigKeysShouldReturnTheExpectedKeys(t *testing.T) {
@@ -314,7 +314,6 @@ func TestAllRequiredConfigKeysShouldReturnTheExpectedKeys(t *testing.T) {
 				googleOAuthBaseURLKey,
 				emailFromKey,
 				emailToKey,
-				emailSubjectKey,
 			})
 		})
 	})

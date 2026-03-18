@@ -7,6 +7,9 @@
   "googleOAuth": {
     "oauthBaseUrl": "https://oauth2.googleapis.com/token"
   },
+  "email": {
+    "subject": "Cycling Workout Report"
+  },
   "excelTemplate": {
     "templatePath": "template.xlsx",
     "sheetName": "Registos",

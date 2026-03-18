@@ -78,6 +78,9 @@ Example:
   "googleOAuth": {
     "oauthBaseUrl": "https://oauth2.googleapis.com/token"
   },
+  "email": {
+    "subject": "Cycling Workout Report"
+  },
   "excelTemplate": {
     "templatePath": "template.xlsx",
     "sheetName": "Registos",
@@ -98,12 +101,11 @@ Example:
 | `GOOGLE_REFRESH_TOKEN` | yes | Google OAuth refresh token used for Gmail access |
 | `EMAIL_FROM` | yes | Sender email address |
 | `EMAIL_TO` | yes | Recipient email address(es) |
-| `EMAIL_SUBJECT` | yes | Email subject line |
 
 Notes:
 - `OutputFilePath` can be set in `config.json` or overridden by CLI flag `--output-file`.
 - Google OAuth and email env vars are required because the application always attempts to send the workout report via email on each run; leaving them unset will cause startup validation to fail.
-- `strava.oauthBaseUrl`, `googleOAuth.oauthBaseUrl`, and Excel template settings come from `config.json`.
+- `strava.oauthBaseUrl`, `googleOAuth.oauthBaseUrl`, `email.subject`, and Excel template settings come from `config.json`.
 - `.env` is loaded automatically at startup when present.
 
 ## Usage
@@ -130,7 +132,6 @@ export GOOGLE_CLIENT_SECRET="<google-client-secret>"
 export GOOGLE_REFRESH_TOKEN="<google-refresh-token>"
 export EMAIL_FROM="your-email@gmail.com"
 export EMAIL_TO="recipient@example.com"
-export EMAIL_SUBJECT="Cycling Workout Report"
 
 ./cycling-ride-collector \
   --start-date 01/01/2026 \
@@ -173,8 +174,9 @@ When running with the `--cron` flag and the appropriate Google OAuth and email c
 
 Required configuration:
 - `googleOAuth.oauthBaseUrl` in `config.json`
+- `email.subject` in `config.json`
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REFRESH_TOKEN` in environment variables
-- `EMAIL_FROM`, `EMAIL_TO`, and `EMAIL_SUBJECT` in environment variables
+- `EMAIL_FROM` and `EMAIL_TO` in environment variables
 
 ## Daily Workout Policies
 
@@ -197,7 +199,7 @@ Before building for any platform:
 
 1. prepare `config.json` with the non-sensitive values you want to use
 2. keep secrets out of `config.json`
-3. provide env-backed client ids, email values, and secrets via `.env` or environment variables at runtime
+3. provide env-backed client ids, email addresses, and secrets via `.env` or environment variables at runtime
 
 #### Linux
 
@@ -218,7 +220,6 @@ export GOOGLE_CLIENT_SECRET="<google-client-secret>"
 export GOOGLE_REFRESH_TOKEN="<google-refresh-token>"
 export EMAIL_FROM="your-email@gmail.com"
 export EMAIL_TO="recipient@example.com"
-export EMAIL_SUBJECT="Cycling Workout Report"
 
 ./cycling-ride-collector --start-date 01/01/2026 --end-date 01/07/2026
 ```
@@ -248,7 +249,6 @@ $env:GOOGLE_CLIENT_SECRET="<google-client-secret>"
 $env:GOOGLE_REFRESH_TOKEN="<google-refresh-token>"
 $env:EMAIL_FROM="your-email@gmail.com"
 $env:EMAIL_TO="recipient@example.com"
-$env:EMAIL_SUBJECT="Cycling Workout Report"
 
 .\cycling-ride-collector.exe --start-date 01/01/2026 --end-date 01/07/2026
 ```
