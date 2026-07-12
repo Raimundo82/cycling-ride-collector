@@ -45,5 +45,6 @@ jobs:
       - name: Run weekly collection
         run: >
           ./cycling-ride-collector
+          --daily-workout-policy merge
           --start-date "${START_DATE}"
           --end-date "${END_DATE}"
