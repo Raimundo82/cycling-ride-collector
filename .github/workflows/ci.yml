@@ -21,6 +21,12 @@ jobs:
           go-version: "stable"
           cache: true
 
+      - name: Cache Go tool binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/go/bin
+          key: ${{ runner.os }}-gobin-${{ hashFiles('.devcontainer/scripts/install-tools.sh') }}
+
       - name: Install developer tools
         run: |
           chmod +x .devcontainer/scripts/install-tools.sh
