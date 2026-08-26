@@ -33,19 +33,18 @@ install_tool() {
 
 # Strict gofmt replacement
 echo "Installing gofumpt..."
-install_tool install mvdan.cc/gofumpt@v0.11.0
+install_tool mvdan.cc/gofumpt@v0.11.0
 
 # Import grouping formatter
 echo "Installing gci..."
-install_tool install github.com/daixiang0/gci@v0.14.0
+install_tool github.com/daixiang0/gci@v0.14.0
 
 # Linter
 echo "Installing golangci-lint..."
-install_tool install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.6.2
+install_tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.6.2
 
 # Hook manager
 echo "Installing lefthook..."
-
-install_tool install github.com/evilmartians/lefthook/v2@v2.1.11
+install_tool github.com/evilmartians/lefthook/v2@v2.1.11
 
 echo "✅ All Go dev tools installed!"
