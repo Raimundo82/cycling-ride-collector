@@ -5,9 +5,7 @@ volumes:
 
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: mcr.microsoft.com/devcontainers/go:2-1.26-trixie
     env_file:
        # Ensure that the variables in .env match the same variables in devcontainer.json
        - .env
