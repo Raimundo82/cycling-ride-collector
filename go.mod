@@ -1,6 +1,6 @@
 module github.com/raimundo82/cycling-ride-collector
 
-go 1.25.3
+go 1.26
 
 require (
 	github.com/joho/godotenv v1.5.1
