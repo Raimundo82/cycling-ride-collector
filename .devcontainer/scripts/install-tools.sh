@@ -36,7 +36,7 @@ PKG="mvdan.cc/gofumpt@v0.11.0"
 install_tool gofumpt
 
 echo "Installing gci..."
-PKG="github.com/daixiang0/gci@latest"
+PKG="github.com/daixiang0/gci@v0.14.0"
 install_tool gci
 
 echo "Installing golangci-lint..."
@@ -44,7 +44,7 @@ PKG="github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.6.2"
 install_tool golangci-lint
 
 echo "Installing lefthook..."
-PKG="github.com/evilmartians/lefthook@v0.11.0"
+PKG="github.com/evilmartians/lefthook/v2@v2.1.11"
 install_tool lefthook
 
 echo "All Go dev tools installed!"
