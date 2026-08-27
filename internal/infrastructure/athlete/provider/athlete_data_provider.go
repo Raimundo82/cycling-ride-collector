@@ -40,11 +40,11 @@ func NewAthleteProvider(httpAthleteStatsProvider athlete_interfaces.AthleteStats
 func (a *athleteDataProvider) mapAthlete(detailedAthlete *athlete_model.DetailedAthlete) *domain.Athlete {
 	weightInKg := detailedAthlete.Weight
 	hrThreshold := 0
-	if (len(detailedAthlete.Zones.HeartRateRangeZones.Zones)) >= 2 {
+	if len(detailedAthlete.Zones.HeartRateRangeZones.Zones) >= 2 {
 		hrThreshold = detailedAthlete.Zones.HeartRateRangeZones.Zones[1].Max
 	}
 	pwrThreshold := 0
-	if (len(detailedAthlete.Zones.PowerRangeZones.Zones)) >= 2 {
+	if len(detailedAthlete.Zones.PowerRangeZones.Zones) >= 2 {
 		pwrThreshold = detailedAthlete.Zones.PowerRangeZones.Zones[1].Max
 	}
 	return domain.NewAthlete(weightInKg, hrThreshold, pwrThreshold)
