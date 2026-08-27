@@ -1,16 +1,10 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/go .
+// README at: https://github.com/devcontainers/templates/tree/main/src/go-postgres
 {
-	"name": "Go",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/go:2-1.25-bookworm",
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
-	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "sh ./.devcontainer/scripts/install-tools.sh",
-	// Configure tool-specific properties.
+	"name": "Go & PostgreSQL",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "app",
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 	"customizations": {
 		"vscode": {
 			"settings": {
@@ -24,7 +18,8 @@
 				"SonarSource.sonarlint-vscode",
 				"GitHub.vscode-pull-request-github",
 				"GitHub.copilot-chat",
-				"github.vscode-github-actions"
+				"github.vscode-github-actions",
+				"Anthropic.claude-code"
 			]
 		}
 	},
@@ -32,7 +27,7 @@
 		"ghcr.io/guiyomh/features/golangci-lint:0": {
 			"version": "latest"
 		}
-	}
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
+	},
+	"postCreateCommand": "sh ./.devcontainer/scripts/install-tools.sh"
 }
+
