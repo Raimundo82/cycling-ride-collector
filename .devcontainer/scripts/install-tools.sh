@@ -3,21 +3,48 @@
 set -e  # exit immediately on error
 set -u  # error on undefined variables
 
-echo "🔧 Installing Go development tools..."
+echo "Installing Go development tools..."
 
-# Strict gofmt replacement
+# Retries a `go install` a few times to ride out transient network/sumdb
+# errors, and skips it entirely if the binary is already on PATH.
+# Package spec is read from the GOFUMPT_PKG-style env var below rather
+# than passed as a second CLI word, so a stray line-wrap can't drop it.
+install_tool() {
+  bin_name="$1"
+
+  if command -v "$bin_name" >/dev/null 2>&1; then
+    echo "  $bin_name already installed, skipping."
+    return 0
+  fi
+
+  i=1
+  while [ "$i" -le 3 ]; do
+    if go install "$PKG"; then
+      return 0
+    fi
+    echo "  install of $PKG failed (attempt $i/3), retrying in 5s..."
+    sleep 5
+    i=$((i + 1))
+  done
+
+  echo "  failed to install $PKG after 3 attempts"
+  return 1
+}
+
 echo "Installing gofumpt..."
-go install mvdan.cc/gofumpt@latest
+PKG="mvdan.cc/gofumpt@v0.11.0"
+install_tool gofumpt
 
-# Import grouping formatter
 echo "Installing gci..."
-go install github.com/daixiang0/gci@latest
+PKG="github.com/daixiang0/gci@v0.14.0"
+install_tool gci
 
-# Linter
 echo "Installing golangci-lint..."
-go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.6.2
-# Hook manager
-echo "Installing lefthook..."
-go install github.com/evilmartians/lefthook/v2@v2.1.11
+PKG="github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.6.2"
+install_tool golangci-lint
 
-echo "✅ All Go dev tools installed!"
+echo "Installing lefthook..."
+PKG="github.com/evilmartians/lefthook/v2@v2.1.11"
+install_tool lefthook
+
+echo "All Go dev tools installed!"
