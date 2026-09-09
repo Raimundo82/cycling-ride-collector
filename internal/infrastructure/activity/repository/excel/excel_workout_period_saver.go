@@ -18,7 +18,7 @@ type excelWorkoutPeriodSaver struct {
 	startCell    string
 }
 
-// SaveAll implements [contracts.WorkoutRepository].
+// SaveAll implements [contracts.WorkoutPersister].
 func (e *excelWorkoutPeriodSaver) SaveAll(workouts []*domain.Workout, athlete *domain.Athlete) error {
 	f, err := e.openOrCreate()
 	if err != nil {
@@ -68,7 +68,7 @@ func (e *excelWorkoutPeriodSaver) openOrCreate() (*excelize.File, error) {
 	return excelize.NewFile(), nil
 }
 
-func NewExcelWorkoutPeriodSaver(filePath string) contracts.WorkoutRepository {
+func NewExcelWorkoutPeriodSaver(filePath string) contracts.WorkoutPersister {
 	return &excelWorkoutPeriodSaver{
 		filePath:  filePath,
 		sheetName: defaultSheet,
@@ -76,7 +76,7 @@ func NewExcelWorkoutPeriodSaver(filePath string) contracts.WorkoutRepository {
 	}
 }
 
-func NewExcelWorkoutPeriodSaverWithOptions(filePath, templatePath, sheetName, startCell string) contracts.WorkoutRepository {
+func NewExcelWorkoutPeriodSaverWithOptions(filePath, templatePath, sheetName, startCell string) contracts.WorkoutPersister {
 	return &excelWorkoutPeriodSaver{
 		filePath:     filePath,
 		templatePath: templatePath,
@@ -85,4 +85,4 @@ func NewExcelWorkoutPeriodSaverWithOptions(filePath, templatePath, sheetName, st
 	}
 }
 
-var _ contracts.WorkoutRepository = (*excelWorkoutPeriodSaver)(nil)
+var _ contracts.WorkoutPersister = (*excelWorkoutPeriodSaver)(nil)

@@ -11,7 +11,7 @@ import (
 	token_model "github.com/raimundo82/cycling-ride-collector/internal/infrastructure/auth/model"
 )
 
-type TokenClient interface {
+type TokenRefresher interface {
 	RefreshToken(ctx context.Context, input *token_model.RefreshTokenInput) (*token_model.RefreshTokenOutput, error)
 }
 
@@ -20,7 +20,7 @@ type tokenClient struct {
 	httpClient *http.Client
 }
 
-func NewTokenClient(tokenUrl string, httpClient *http.Client) TokenClient {
+func NewTokenClient(tokenUrl string, httpClient *http.Client) TokenRefresher {
 	return &tokenClient{
 		tokenUrl:   tokenUrl,
 		httpClient: httpClient,
@@ -58,4 +58,4 @@ func (o *tokenClient) RefreshToken(ctx context.Context, input *token_model.Refre
 	return &refreshResponse, nil
 }
 
-var _ TokenClient = (*tokenClient)(nil)
+var _ TokenRefresher = (*tokenClient)(nil)

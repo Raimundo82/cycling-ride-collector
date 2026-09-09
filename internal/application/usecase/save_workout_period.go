@@ -9,15 +9,15 @@ import (
 )
 
 type SaveWorkoutPeriod struct {
-	dailyWorkout        contracts.DailyWorkoutPolicy
-	workoutRepo         contracts.WorkoutRepository
+	dailyWorkout        contracts.DailyWorkoutSelector
+	workoutRepo         contracts.WorkoutPersister
 	workoutProvider     contracts.WorkoutProvider
 	athleteDataProvider contracts.AthleteDataProvider
 }
 
 func NewSaveWorkoutPeriod(
-	dailyWorkout contracts.DailyWorkoutPolicy,
-	workoutRepo contracts.WorkoutRepository,
+	dailyWorkout contracts.DailyWorkoutSelector,
+	workoutRepo contracts.WorkoutPersister,
 	workoutProvider contracts.WorkoutProvider,
 	athleteDataProvider contracts.AthleteDataProvider,
 ) *SaveWorkoutPeriod {

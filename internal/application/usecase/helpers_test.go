@@ -10,10 +10,10 @@ type mockDailyWorkoutPolicy struct {
 	Workout               *domain.Workout
 }
 
-// GetDailyWorkout implements [contracts.DailyWorkoutPolicy].
+// GetDailyWorkout implements [contracts.DailyWorkoutSelector].
 func (m *mockDailyWorkoutPolicy) GetDailyWorkout(workouts []*domain.Workout, minWorkoutDuration int) *domain.Workout {
 	m.GetDailyWorkoutCalled++
 	return m.Workout
 }
 
-var _ contracts.DailyWorkoutPolicy = (*mockDailyWorkoutPolicy)(nil)
+var _ contracts.DailyWorkoutSelector = (*mockDailyWorkoutPolicy)(nil)
