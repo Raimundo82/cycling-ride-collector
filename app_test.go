@@ -24,7 +24,7 @@ type spyDailyWorkoutPolicy struct {
 	ReceivedDailyWorkouts []*domain.Workout
 }
 
-var _ contracts.DailyWorkoutPolicy = (*spyDailyWorkoutPolicy)(nil)
+var _ contracts.DailyWorkoutSelector = (*spyDailyWorkoutPolicy)(nil)
 
 func (s *spyDailyWorkoutPolicy) GetDailyWorkout(dailyWorkouts []*domain.Workout, minWorkoutDuration int) *domain.Workout {
 	s.Called++
@@ -44,7 +44,7 @@ type spyWorkoutRepository struct {
 	Err      error
 }
 
-var _ contracts.WorkoutRepository = (*spyWorkoutRepository)(nil)
+var _ contracts.WorkoutPersister = (*spyWorkoutRepository)(nil)
 
 func (s *spyWorkoutRepository) SaveAll(workouts []*domain.Workout, athlete *domain.Athlete) error {
 	s.Called++
@@ -64,7 +64,7 @@ func (s *spyReportSender) Send(reportPath string) error {
 	return s.Err
 }
 
-var _ contracts.WorkoutRepository = (*spyWorkoutRepository)(nil)
+var _ contracts.WorkoutPersister = (*spyWorkoutRepository)(nil)
 
 type stubWorkoutProvider struct {
 	Called int

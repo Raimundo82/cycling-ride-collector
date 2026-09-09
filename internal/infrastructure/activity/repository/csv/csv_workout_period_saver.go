@@ -17,7 +17,7 @@ type csvWorkoutPeriodSaver struct {
 	writer   *csv.Writer
 }
 
-// SaveAll implements [contracts.WorkoutRepository].
+// SaveAll implements [contracts.WorkoutPersister].
 func (c *csvWorkoutPeriodSaver) SaveAll(workouts []*domain.Workout, athlete *domain.Athlete) error {
 	c.buf.Reset()
 	records := lo.Map(workouts, func(w *domain.Workout, _ int) []string {
@@ -35,7 +35,7 @@ func (c *csvWorkoutPeriodSaver) SaveAll(workouts []*domain.Workout, athlete *dom
 	return os.WriteFile(c.filePath, c.buf.Bytes(), 0o644)
 }
 
-func NewCSVWorkoutPeriodSaver(filePath string) contracts.WorkoutRepository {
+func NewCSVWorkoutPeriodSaver(filePath string) contracts.WorkoutPersister {
 	buf := &bytes.Buffer{}
 	return &csvWorkoutPeriodSaver{
 		filePath: filePath,
@@ -44,4 +44,4 @@ func NewCSVWorkoutPeriodSaver(filePath string) contracts.WorkoutRepository {
 	}
 }
 
-var _ contracts.WorkoutRepository = (*csvWorkoutPeriodSaver)(nil)
+var _ contracts.WorkoutPersister = (*csvWorkoutPeriodSaver)(nil)

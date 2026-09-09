@@ -28,19 +28,32 @@ const fullConfigFixture = `{
 	}
 }`
 
+type testEnvs struct {
+	stravaClientID     string
+	stravaClientSecret string
+	stravaRefreshToken string
+	googleClientID     string
+	googleClientSecret string
+	googleRefreshToken string
+	emailFrom          string
+	emailTo            string
+}
+
 func TestLoadShouldPopulateConfigFromJSONAndSensitiveFieldsFromEnv(t *testing.T) {
 	Convey("Given a config.json file and secrets in environment variables", t, func() {
 		writeConfigFixture(t, fullConfigFixture)
 		setRuntimeEnv(
 			t,
-			"strava-client-id",
-			"client-secret",
-			"refresh-token",
-			"google-client-id",
-			"google-client-secret",
-			"google-refresh-token",
-			"from@example.com",
-			"to@example.com",
+			testEnvs{
+				stravaClientID:     "strava-client-id",
+				stravaClientSecret: "client-secret",
+				stravaRefreshToken: "refresh-token",
+				googleClientID:     "google-client-id",
+				googleClientSecret: "google-client-secret",
+				googleRefreshToken: "google-refresh-token",
+				emailFrom:          "from@example.com",
+				emailTo:            "to@example.com",
+			},
 		)
 
 		Convey("When Load is called", func() {
@@ -79,7 +92,7 @@ func TestLoadShouldPopulateConfigFromJSONAndSensitiveFieldsFromEnv(t *testing.T)
 func TestLoadShouldFailValidationWhenSensitiveEnvVarsAreMissing(t *testing.T) {
 	Convey("Given a config.json file and missing secret environment variables", t, func() {
 		writeConfigFixture(t, fullConfigFixture)
-		setRuntimeEnv(t, "", "", "", "", "", "", "", "")
+		setRuntimeEnv(t, testEnvs{})
 
 		Convey("When Load is called", func() {
 			cfg, err := Load()
@@ -131,7 +144,7 @@ func TestLoadShouldFailValidationWhenSensitiveEnvVarsAreMissing(t *testing.T) {
 func TestLoadShouldInitializeNestedConfigsWhenJSONIsEmptyObject(t *testing.T) {
 	Convey("Given a config.json file with an empty json object", t, func() {
 		writeConfigFixture(t, `{}`)
-		setRuntimeEnv(t, "", "", "", "", "", "", "", "")
+		setRuntimeEnv(t, testEnvs{})
 
 		Convey("When Load is called", func() {
 			cfg, err := Load()
@@ -166,7 +179,7 @@ func TestLoadShouldInitializeNestedConfigsWhenJSONIsEmptyObject(t *testing.T) {
 func TestLoadShouldReturnErrorWhenConfigFileDoesNotExist(t *testing.T) {
 	Convey("Given a working directory without config.json", t, func() {
 		changeWorkingDir(t, t.TempDir())
-		setRuntimeEnv(t, "", "", "", "", "", "", "", "")
+		setRuntimeEnv(t, testEnvs{})
 
 		Convey("When Load is called", func() {
 			cfg, err := Load()
@@ -285,16 +298,16 @@ func changeWorkingDir(t *testing.T, dir string) {
 	})
 }
 
-func setRuntimeEnv(t *testing.T, stravaID, stravaSecret, stravaRefresh, googleID, googleSecret, googleRefresh, emailFrom, emailTo string) {
+func setRuntimeEnv(t *testing.T, envs testEnvs) {
 	t.Helper()
-	t.Setenv(stravaClientIDKey, stravaID)
-	t.Setenv(stravaClientSecretKey, stravaSecret)
-	t.Setenv(stravaRefreshTokenKey, stravaRefresh)
-	t.Setenv(googleClientIDKey, googleID)
-	t.Setenv(googleClientSecretKey, googleSecret)
-	t.Setenv(googleRefreshTokenKey, googleRefresh)
-	t.Setenv(emailFromKey, emailFrom)
-	t.Setenv(emailToKey, emailTo)
+	t.Setenv(stravaClientIDKey, envs.stravaClientID)
+	t.Setenv(stravaClientSecretKey, envs.stravaClientSecret)
+	t.Setenv(stravaRefreshTokenKey, envs.stravaRefreshToken)
+	t.Setenv(googleClientIDKey, envs.googleClientID)
+	t.Setenv(googleClientSecretKey, envs.googleClientSecret)
+	t.Setenv(googleRefreshTokenKey, envs.googleRefreshToken)
+	t.Setenv(emailFromKey, envs.emailFrom)
+	t.Setenv(emailToKey, envs.emailTo)
 }
 
 func TestAllRequiredConfigKeysShouldReturnTheExpectedKeys(t *testing.T) {

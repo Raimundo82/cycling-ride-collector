@@ -13,11 +13,11 @@ type TokenProvider interface {
 
 type tokenProvider struct {
 	RefreshTokenInput *token_model.RefreshTokenInput
-	TokenClient       token_client.TokenClient
+	TokenClient       token_client.TokenRefresher
 	cachedToken       token_model.Token
 }
 
-func NewTokenProvider(input *token_model.RefreshTokenInput, tokenClient token_client.TokenClient) TokenProvider {
+func NewTokenProvider(input *token_model.RefreshTokenInput, tokenClient token_client.TokenRefresher) TokenProvider {
 	return &tokenProvider{
 		RefreshTokenInput: input,
 		TokenClient:       tokenClient,

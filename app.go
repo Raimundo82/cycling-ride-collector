@@ -90,7 +90,7 @@ func (a *App) Run(request *input.SaveWorkoutPeriodRequest, reportPath string) er
 	return nil
 }
 
-func buildDailyWorkoutPolicy(workoutPolicy string) contracts.DailyWorkoutPolicy {
+func buildDailyWorkoutPolicy(workoutPolicy string) contracts.DailyWorkoutSelector {
 	switch workoutPolicy {
 	case "merge":
 		return usecase.NewMergeWorkouts()
