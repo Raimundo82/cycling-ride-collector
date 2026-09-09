@@ -52,7 +52,8 @@ func TestLoadShouldPopulateConfigFromJSONAndSensitiveFieldsFromEnv(t *testing.T)
 				googleClientSecret: "google-client-secret",
 				googleRefreshToken: "google-refresh-token",
 				emailFrom:          "from@example.com",
-				emailTo:            "to@example.com"},
+				emailTo:            "to@example.com",
+			},
 		)
 
 		Convey("When Load is called", func() {
