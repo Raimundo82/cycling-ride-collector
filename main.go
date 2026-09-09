@@ -143,10 +143,7 @@ func buildSaveWorkoutRequest(options config.CLIOptions) (*input.SaveWorkoutPerio
 		return nil, fmt.Errorf("invalid daily workout policy: %s. Allowed values are 'longest' or 'merge'", options.DailyWorkoutPolicy)
 	}
 
-	minimalDuration := options.MinimalWorkoutDuration
-	if minimalDuration < 30 {
-		minimalDuration = 30
-	}
+	minimalDuration := max(options.MinimalWorkoutDuration, 30)
 
 	request, err := input.NewSaveWorkoutPeriodRequest(period, options.DailyWorkoutPolicy, minimalDuration)
 	if err != nil {
