@@ -4,7 +4,7 @@ go 1.26
 
 require (
 	github.com/joho/godotenv v1.5.1
-	github.com/samber/lo v1.52.0
+	github.com/samber/lo v1.53.0
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/xuri/excelize/v2 v2.10.1
 )
