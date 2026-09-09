@@ -1,0 +1,32 @@
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: daily
+      time: "20:00"
+    reviewers:
+      - Raimundo82
+    assignees:
+      - Raimundo82
+    commit-message:
+      prefix: deps
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: saturday
+      time: "20:00"
+    reviewers:
+      - Raimundo82
+    assignees:
+      - Raimundo82
+    commit-message:
+      prefix: deps
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
